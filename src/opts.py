@@ -96,16 +96,18 @@ def bcd(x, b, sigma, lambd, x_tst, b_tst, a0, B, r, max_iter, device):
         block_etas.append(2 / get_L(Kb, lambd, U, S, rho))
 
     a = a0.clone()
-    elapsed_time = time.time() - start_time
+    iter_time = time.time() - start_time
 
     Ka = torch.zeros_like(a)
     K_tsta = torch.zeros_like(b_tst)
 
     residual = Ka + lambd * a - b
     test_acc = torch.sum(torch.sign(K_tsta) == b_tst) / b_tst.shape[0]
-    wandb.log({'elapsed_time': elapsed_time,
+    loss = 1/2 * torch.dot(a, residual - b)
+    wandb.log({'iter_time': iter_time,
                 'residual': torch.norm(residual) / b_norm,
-                'test_acc': test_acc})
+                'test_acc': test_acc,
+                'loss': loss})
 
     for _ in range(max_iter):
         iter_time = 0
@@ -151,9 +153,11 @@ def bcd(x, b, sigma, lambd, x_tst, b_tst, a0, B, r, max_iter, device):
         # Update residual
         residual = Ka + lambd * a - b
         test_acc = torch.sum(torch.sign(K_tsta) == b_tst) / b_tst.shape[0]
-        wandb.log({'elapsed_time': iter_time,
-               'residual': torch.norm(residual) / b_norm,
-               'test_acc': test_acc})
+        loss = 1/2 * torch.dot(a, residual - b)
+        wandb.log({'iter_time': iter_time,
+                    'residual': torch.norm(residual) / b_norm,
+                    'test_acc': test_acc,
+                    'loss': loss})
 
 
     return a
@@ -203,7 +207,7 @@ def abcd(x, b, sigma, lambd, x_tst, b_tst, a0, B, r, max_iter, device):
     y = a0.clone()
     z = a0.clone()
 
-    elapsed_time = time.time() - start_time
+    iter_time = time.time() - start_time
 
     # NOTE: This only works if a0 = 0
     Ka = torch.zeros_like(a)
@@ -216,9 +220,11 @@ def abcd(x, b, sigma, lambd, x_tst, b_tst, a0, B, r, max_iter, device):
 
     residual = Ky + lambd * y - b
     test_acc = torch.sum(torch.sign(K_tsty) == b_tst) / b_tst.shape[0]
-    wandb.log({'elapsed_time': elapsed_time,
-            'residual': torch.norm(residual) / b_norm,
-            'test_acc': test_acc})
+    loss = 1/2 * torch.dot(y, residual - b)
+    wandb.log({'iter_time': iter_time,
+                'residual': torch.norm(residual) / b_norm,
+                'test_acc': test_acc,
+                'loss': loss})
 
     for _ in range(max_iter):
         iter_time = 0
@@ -291,8 +297,10 @@ def abcd(x, b, sigma, lambd, x_tst, b_tst, a0, B, r, max_iter, device):
         # Update residual
         residual = Ky + lambd * y - b
         test_acc = torch.sum(torch.sign(K_tsty) == b_tst) / b_tst.shape[0]
-        wandb.log({'elapsed_time': iter_time,
-               'residual': torch.norm(residual) / b_norm,
-               'test_acc': test_acc})
+        loss = 1/2 * torch.dot(y, residual - b)
+        wandb.log({'iter_time': iter_time,
+                'residual': torch.norm(residual) / b_norm,
+                'test_acc': test_acc,
+                'loss': loss})
 
     return y
