@@ -16,6 +16,7 @@ def main():
     parser.add_argument('--b', type=int, default=100, help='Number of blocks in optimizer')
     parser.add_argument('--r', type=int, default=10, help='Rank parameter in optimizer')
     parser.add_argument('--max_iter', type=int, default=100, help='Number of iterations')
+    parser.add_argument('--log_freq', type=int, default=100, help='Logging frequency of metrics')
     parser.add_argument('--seed', type=int, default=1234, help='initial seed')
     parser.add_argument('--device', type=str, default=0, help='GPU to use')
     parser.add_argument('--wandb_project', type=str, default='fast_krr', help='W&B project name')
@@ -37,6 +38,7 @@ def main():
         'b': args.b,
         'r': args.r,
         'max_iter': args.max_iter,
+        'log_freq': args.log_freq,
         'seed': seed,
         'device': f'cuda:{args.device}'
     }
@@ -50,6 +52,7 @@ def main():
     print(f'# of Blocks: {experiment_args["b"]}')
     print(f'Rank: {experiment_args["r"]}')
     print(f'Max Iterations: {experiment_args["max_iter"]}')
+    print(f'Logging Frequency: {experiment_args["log_freq"]}')
     print(f'Seed: {experiment_args["seed"]}')
     print(f'Device: {experiment_args["device"]}')
     print(f'W&B Project: {args.wandb_project}')
@@ -69,7 +72,7 @@ def main():
 
         # Run the optimizer
         with torch.no_grad():
-            opt(Xtr, ytr, config.sigma, config.lambd, Xtst, ytst, a0, config.b, config.r, config.max_iter, config.device)
+            opt(Xtr, ytr, config.sigma, config.lambd, Xtst, ytst, a0, config.b, config.r, config.max_iter, config.log_freq, config.device)
 
 if __name__ == '__main__':
     main()

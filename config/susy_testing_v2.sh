@@ -3,7 +3,7 @@
 dataset=susy
 data_loc=./data/SUSY
 sigma=4.0
-lambd=4.5
+lambd=1e-3
 opts=(bcd abcd)
 b=450
 ranks=(10 30 50 100)
@@ -11,7 +11,7 @@ max_iter=30000
 log_freq=100
 seed=0
 devices=(0 1 2 3 4 5 6 7)
-wandb_project=susy_testing
+wandb_project=susy_testing_v2
 
 # Initialize the counter
 counter=0
