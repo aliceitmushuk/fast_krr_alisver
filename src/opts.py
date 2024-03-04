@@ -80,7 +80,7 @@ def get_rbf_kernels_start(x, x_tst, sigma):
 
     K = get_rbf_kernel(x_i, x_j, sigma)
 
-    K_tst = get_rbf_kernel(x_i, x_tst_i, sigma)
+    K_tst = get_rbf_kernel(x_tst_i, x_j, sigma)
 
     return x_j, K, K_tst
 
@@ -122,7 +122,7 @@ def bcd(x, b, sigma, lambd, x_tst, b_tst, a0, B, r, max_iter, log_freq, device):
 
     n = x.shape[0]
     blocks = get_blocks(n, B)
-    block_preconds, block_etas = [], [], []
+    block_preconds, block_etas = [], []
 
     b_norm = torch.norm(b)
 
@@ -137,7 +137,7 @@ def bcd(x, b, sigma, lambd, x_tst, b_tst, a0, B, r, max_iter, log_freq, device):
         U, S, rho, L = get_block_nys_precond_L(Kb, lambd, block, r, device)
 
         block_preconds.append((U, S, rho))
-        block_etas.append(2 / L)
+        block_etas.append(1 / L)
 
     a = a0.clone()
     iter_time = time.time() - start_time
@@ -179,7 +179,7 @@ def abcd(x, b, sigma, lambd, x_tst, b_tst, a0, B, r, max_iter, log_freq, device)
 
     n = x.shape[0]
     blocks = get_blocks(n, B)
-    block_preconds, block_Ls, block_etas = [], [], [], []
+    block_preconds, block_Ls, block_etas = [], [], []
 
     b_norm = torch.norm(b)
 
@@ -199,7 +199,7 @@ def abcd(x, b, sigma, lambd, x_tst, b_tst, a0, B, r, max_iter, log_freq, device)
         block_preconds.append((U, S, rho))
         S_alpha += L ** alpha
         block_Ls.append(L)
-        block_etas.append(2 / L)
+        block_etas.append(1 / L)
 
     block_probs = torch.tensor([L ** alpha / S_alpha for L in block_Ls])
     sampling_dist = torch.distributions.categorical.Categorical(block_probs)
