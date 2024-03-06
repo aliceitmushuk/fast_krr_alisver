@@ -91,33 +91,37 @@ def get_block_nys_precond_L(Kb, lambd, block, r, device):
 
     return U, S, rho, L
 
+def get_block_grad(Kbn, a, b, lambd, block):
+    return Kbn @ a + lambd * a[block] - b[block]
+
 def apply_nys_precond(U, S, rho, g):
     UTg = U.t() @ g
     dir = U @ (UTg / (S + rho)) + 1/rho * (g - U @ UTg)
 
     return dir
 
-def compute_metrics(K, K_tst, a, b, b_tst, lambd, b_norm):
+def compute_metrics_dict(K, K_tst, a, b, b_tst, lambd, b_norm, task):
     residual = K @ a + lambd * a - b
-    test_acc = torch.sum(torch.sign(K_tst @ a) == b_tst) / b_tst.shape[0]
+    rel_residual = torch.norm(residual) / b_norm
     loss = 1/2 * torch.dot(a, residual - b)
 
-    rel_residual = torch.norm(residual) / b_norm
-    
-    return rel_residual, test_acc, loss
-
-def compute_and_log_metrics(K, K_tst, y, b, b_tst, lambd, b_norm, iter_time, i, log_freq):
-    if (i + 1) % log_freq == 0:
-        rel_residual, test_acc, loss = compute_metrics(K, K_tst, y, b, b_tst, lambd, b_norm)
-        wandb.log({'iter_time': iter_time,
-                'residual': rel_residual,
-                'test_acc': test_acc,
-                'loss': loss})
+    test_metric_name = 'test_acc' if task == 'classification' else 'test_mse'
+    if task == 'classification':
+        test_metric = torch.sum(torch.sign(K_tst @ a) == b_tst) / b_tst.shape[0]
     else:
-        wandb.log({'iter_time': iter_time})
+        test_metric = 1/2 * torch.norm(K_tst @ a - b_tst) ** 2 / b_tst.shape[0]
+
+    return {'rel_residual': rel_residual, test_metric_name: test_metric,
+             'train_loss': loss}
+
+def compute_and_log_metrics(K, K_tst, y, b, b_tst, lambd, b_norm, iter_time,
+                             task, i, log_freq):
+    wandb.log({'iter_time': iter_time}, commit=False)
+    if (i + 1) % log_freq == 0:
+        wandb.log(compute_metrics_dict(K, K_tst, y, b, b_tst, lambd, b_norm, task))
 
 # For RBF kernel only -- need to generalize
-def bcd(x, b, sigma, lambd, x_tst, b_tst, a0, B, r, max_iter, log_freq, device):
+def bcd(x, b, x_tst, b_tst, sigma, lambd, task, a0, B, r, max_iter, log_freq, device):
     x_j, K, K_tst = get_rbf_kernels_start(x, x_tst, sigma)
 
     n = x.shape[0]
@@ -142,7 +146,8 @@ def bcd(x, b, sigma, lambd, x_tst, b_tst, a0, B, r, max_iter, log_freq, device):
     a = a0.clone()
     iter_time = time.time() - start_time
 
-    compute_and_log_metrics(K, K_tst, a, b, b_tst, lambd, b_norm, iter_time, -1, log_freq)
+    compute_and_log_metrics(K, K_tst, a, b, b_tst, lambd, b_norm, iter_time,
+                            task, -1, log_freq)
 
     for i in range(max_iter):
         start_time = time.time()
@@ -159,7 +164,7 @@ def bcd(x, b, sigma, lambd, x_tst, b_tst, a0, B, r, max_iter, log_freq, device):
         xb_i = LazyTensor(x[block][:, None, :])
         Kbn = get_rbf_kernel(xb_i, x_j, sigma)
 
-        gb = Kbn @ a + lambd * a[block] - b[block]
+        gb = get_block_grad(Kbn, a, b, lambd, block)
 
         # Apply preconditioner
         dir = apply_nys_precond(U, S, rho, gb)
@@ -169,12 +174,13 @@ def bcd(x, b, sigma, lambd, x_tst, b_tst, a0, B, r, max_iter, log_freq, device):
 
         iter_time = time.time() - start_time
 
-        compute_and_log_metrics(K, K_tst, a, b, b_tst, lambd, b_norm, iter_time, i, log_freq)
+        compute_and_log_metrics(K, K_tst, a, b, b_tst, lambd, b_norm, iter_time, 
+                                task, i, log_freq)
 
     return a
 
 # For RBF kernel only -- need to generalize
-def abcd(x, b, sigma, lambd, x_tst, b_tst, a0, B, r, max_iter, log_freq, device):
+def abcd(x, b, x_tst, b_tst, sigma, lambd, task, a0, B, r, max_iter, log_freq, device):
     x_j, K, K_tst = get_rbf_kernels_start(x, x_tst, sigma)
 
     n = x.shape[0]
@@ -212,7 +218,8 @@ def abcd(x, b, sigma, lambd, x_tst, b_tst, a0, B, r, max_iter, log_freq, device)
 
     iter_time = time.time() - start_time
 
-    compute_and_log_metrics(K, K_tst, y, b, b_tst, lambd, b_norm, iter_time, -1, log_freq)
+    compute_and_log_metrics(K, K_tst, y, b, b_tst, lambd, b_norm, iter_time,
+                            task, -1, log_freq)
 
     for i in range(max_iter):
         start_time = time.time()
@@ -229,7 +236,7 @@ def abcd(x, b, sigma, lambd, x_tst, b_tst, a0, B, r, max_iter, log_freq, device)
         xb_i = LazyTensor(x[block][:, None, :])
         Kbn = get_rbf_kernel(xb_i, x_j, sigma)
 
-        gb = Kbn @ a + lambd * a[block] - b[block]
+        gb = get_block_grad(Kbn, a, b, lambd, block)
 
         # Apply preconditioner
         dir = apply_nys_precond(U, S, rho, gb)
@@ -248,6 +255,7 @@ def abcd(x, b, sigma, lambd, x_tst, b_tst, a0, B, r, max_iter, log_freq, device)
 
         iter_time = time.time() - start_time
 
-        compute_and_log_metrics(K, K_tst, y, b, b_tst, lambd, b_norm, iter_time, i, log_freq)
+        compute_and_log_metrics(K, K_tst, y, b, b_tst, lambd, b_norm, iter_time,
+                                task, i, log_freq)
 
     return y

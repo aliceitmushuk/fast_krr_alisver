@@ -9,7 +9,8 @@ def main():
     # Parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, default='susy', help='Which dataset to use')
-    parser.add_argument('--data_loc', type=str, default='./data/SUSY', help='Location of the dataset')
+    # parser.add_argument('--data_loc', type=str, default='./data/SUSY', help='Location of the dataset')
+    parser.add_argument('--task', choices=['regression', 'classification'], help='Type of task')
     parser.add_argument('--sigma', type=float, default=1.0, help='Kernel bandwidth')
     parser.add_argument('--lambd', type=float, default=0.1, help='Regularization parameter')
     parser.add_argument('--opt', choices=['bcd', 'abcd'], help='Which optimizer to use')
@@ -31,7 +32,8 @@ def main():
     # Organize arguments for the experiment into a dictionary for logging in wandb
     experiment_args = {
         'dataset': args.dataset,
-        'data_loc': args.data_loc,
+        # 'data_loc': args.data_loc,
+        'task': args.task,
         'sigma': args.sigma,
         'lambd': args.lambd,
         'opt': args.opt,
@@ -45,7 +47,8 @@ def main():
 
     # Print the experiment arguments
     print(f'Dataset: {experiment_args["dataset"]}')
-    print(f'Data Location: {experiment_args["data_loc"]}')
+    # print(f'Data Location: {experiment_args["data_loc"]}')
+    print(f'Task: {experiment_args["task"]}')
     print(f'Sigma: {experiment_args["sigma"]}')
     print(f'Lambda: {experiment_args["lambd"]}')
     print(f'Optimizer: {experiment_args["opt"]}')
@@ -62,7 +65,8 @@ def main():
         config = wandb.config
 
         # Load the dataset
-        Xtr, Xtst, ytr, ytst = load_data(config.dataset, config.data_loc, config.device)
+        # Xtr, Xtst, ytr, ytst = load_data(config.dataset, config.data_loc, config.device)
+        Xtr, Xtst, ytr, ytst = load_data(config.dataset, config.seed, config.device)
 
         # Select the optimizer
         opt = bcd if config.opt == 'bcd' else abcd
@@ -72,7 +76,8 @@ def main():
 
         # Run the optimizer
         with torch.no_grad():
-            opt(Xtr, ytr, config.sigma, config.lambd, Xtst, ytst, a0, config.b, config.r, config.max_iter, config.log_freq, config.device)
+            opt(Xtr, ytr, Xtst, ytst, config.sigma, config.lambd, a0, config.b,
+                config.r, config.max_iter, config.log_freq, config.device)
 
 if __name__ == '__main__':
     main()
