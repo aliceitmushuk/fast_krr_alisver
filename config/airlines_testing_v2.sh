@@ -1,17 +1,17 @@
 #!/bin/bash
 
-dataset=susy
-task=classification
+dataset=airlines
+task=regression
 sigma=4.0
-lambd=1e-3
+lambd=0.1
 opts=(bcd abcd)
-b=450
-ranks=(10 30 50 100 300 500)
+b=900
+ranks=(10 30 50 100)
 max_iter=60000
 log_freq=1000
 seed=0
 devices=(0 1 2 3 4 5 6 7)
-wandb_project=susy_testing_v2
+wandb_project=airlines_testing_v2
 
 # Initialize the counter
 counter=0

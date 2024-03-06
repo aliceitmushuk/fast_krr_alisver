@@ -1,7 +1,7 @@
 #!/bin/bash
 
 dataset=susy
-data_loc=./data/SUSY
+task=classification
 sigma=4.0
 lambd=1e-1
 opts=(bcd abcd)
@@ -24,7 +24,7 @@ do
     for r in "${ranks[@]}"
     do
         device=${devices[counter]}
-        python run_experiment.py --dataset $dataset --data_loc $data_loc --sigma $sigma --lambd $lambd --opt $opt --b $b --r $r --max_iter $max_iter \
+        python run_experiment.py --dataset $dataset --task $task --sigma $sigma --lambd $lambd --opt $opt --b $b --r $r --max_iter $max_iter \
                                     --log_freq $log_freq --seed $seed --device $device --wandb_project $wandb_project &
         counter=$((counter+1))
         # Ensure we don't exceed the number of devices
