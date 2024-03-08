@@ -18,10 +18,21 @@ DATA_FILES = {
 # Custom action to parse kernel parameters
 class ParseKernelParams(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
-        kv_pairs = values.split()  # Split the input string into individual elements
-        # Convert list of key value strings to a dictionary
-        params_dict = {kv_pairs[i]: float(kv_pairs[i+1])
-                       for i in range(0, len(kv_pairs), 2)}
+        # Split the input string into individual elements
+        elements = values.split()
+        print(elements)
+        params_dict = {}
+        # Iterate over the elements two at a time (key-value pairs)
+        for i in range(0, len(elements), 2):
+            key = elements[i]
+            value = elements[i + 1]
+            # Attempt to convert numeric values to float, otherwise keep as string
+            try:
+                value = float(value)
+            except ValueError:
+                # If conversion fails, value remains a string
+                pass
+            params_dict[key] = value
         setattr(namespace, self.dest, params_dict)
 
 """

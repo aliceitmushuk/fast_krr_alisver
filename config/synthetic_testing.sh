@@ -2,7 +2,9 @@
 
 dataset=synthetic
 task=classification
+type=rbf
 sigma=1.0
+kernel_params="type $type sigma $sigma"
 lambd=0.1
 opts=(bcd abcd)
 b=10
@@ -24,7 +26,7 @@ do
     for r in "${ranks[@]}"
     do
         device=${devices[counter]}
-        python run_experiment.py --dataset $dataset --task $task --sigma $sigma --lambd $lambd --opt $opt --b $b --r $r --max_iter $max_iter \
+        python run_experiment.py --dataset $dataset --task $task --kernel_params "$kernel_params" --lambd $lambd --opt $opt --b $b --r $r --max_iter $max_iter \
                                     --log_freq $log_freq --seed $seed --device $device --wandb_project $wandb_project &
         counter=$((counter+1))
         # Ensure we don't exceed the number of devices
