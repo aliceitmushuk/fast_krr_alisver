@@ -1,3 +1,4 @@
+import argparse
 import os
 import random
 
@@ -8,11 +9,20 @@ from sklearn.datasets import load_svmlight_file
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
 
-DATA_DIR = '../data/'
+DATA_DIR = './data/'
 DATA_FILES = {
-    'airlines': ['airlines.data.pkl', 'airlines_target.pkl', 'airport_to_atrcc.csv'],
+    'airlines': ['airlines_data.pkl', 'airlines_target.pkl', 'airport_to_atrcc.csv'],
     'susy': 'SUSY'
 }
+
+# Custom action to parse kernel parameters
+class ParseKernelParams(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        kv_pairs = values.split()  # Split the input string into individual elements
+        # Convert list of key value strings to a dictionary
+        params_dict = {kv_pairs[i]: float(kv_pairs[i+1])
+                       for i in range(0, len(kv_pairs), 2)}
+        setattr(namespace, self.dest, params_dict)
 
 """
 Helper function for setting seed for the random number generator in various packages.
@@ -34,8 +44,8 @@ def np_to_torch(X, y, device):
     return X, y
 
 def np_to_torch_tr_tst(Xtr, Xtst, ytr, ytst, device):
-    np_to_torch(Xtr, ytr, device)
-    np_to_torch(Xtst, ytst, device)
+    Xtr, ytr = np_to_torch(Xtr, ytr, device)
+    Xtst, ytst = np_to_torch(Xtst, ytst, device)
 
     return Xtr, Xtst, ytr, ytst
 

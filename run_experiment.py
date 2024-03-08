@@ -3,15 +3,15 @@ import argparse
 import torch
 
 from src.opts import bcd, abcd
-from src.utils import set_random_seed, load_data
+from src.utils import ParseKernelParams, set_random_seed, load_data
 
 def main():
     # Parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, default='susy', help='Which dataset to use')
-    # parser.add_argument('--data_loc', type=str, default='./data/SUSY', help='Location of the dataset')
     parser.add_argument('--task', choices=['regression', 'classification'], help='Type of task')
-    parser.add_argument('--sigma', type=float, default=1.0, help='Kernel bandwidth')
+    parser.add_argument('--kernel_params', action=ParseKernelParams, 
+        help='Kernel parameters in the form of a string: "type matern sigma 1.0 nu 1.5"')
     parser.add_argument('--lambd', type=float, default=0.1, help='Regularization parameter')
     parser.add_argument('--opt', choices=['bcd', 'abcd'], help='Which optimizer to use')
     parser.add_argument('--b', type=int, default=100, help='Number of blocks in optimizer')
@@ -32,9 +32,8 @@ def main():
     # Organize arguments for the experiment into a dictionary for logging in wandb
     experiment_args = {
         'dataset': args.dataset,
-        # 'data_loc': args.data_loc,
         'task': args.task,
-        'sigma': args.sigma,
+        'kernel_params': args.kernel_params,
         'lambd': args.lambd,
         'opt': args.opt,
         'b': args.b,
@@ -47,9 +46,8 @@ def main():
 
     # Print the experiment arguments
     print(f'Dataset: {experiment_args["dataset"]}')
-    # print(f'Data Location: {experiment_args["data_loc"]}')
     print(f'Task: {experiment_args["task"]}')
-    print(f'Sigma: {experiment_args["sigma"]}')
+    print(f'Kernel Parameters: {experiment_args["kernel_params"]}')
     print(f'Lambda: {experiment_args["lambd"]}')
     print(f'Optimizer: {experiment_args["opt"]}')
     print(f'# of Blocks: {experiment_args["b"]}')
@@ -76,8 +74,8 @@ def main():
 
         # Run the optimizer
         with torch.no_grad():
-            opt(Xtr, ytr, Xtst, ytst, config.sigma, config.lambd, a0, config.b,
-                config.r, config.max_iter, config.log_freq, config.device)
+            opt(Xtr, ytr, Xtst, ytst, config.kernel_params, config.lambd, config.task, a0,
+                config.b, config.r, config.max_iter, config.log_freq, config.device)
 
 if __name__ == '__main__':
     main()

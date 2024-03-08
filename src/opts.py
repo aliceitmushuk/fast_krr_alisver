@@ -3,6 +3,17 @@ from pykeops.torch import LazyTensor
 import torch
 import wandb
 
+from .kernels import get_kernel, get_kernels_start
+
+# TODO: Give a better name to this function
+def get_needed_quantities(x, x_tst, kernel_params, b, B):
+    x_j, K, K_tst = get_kernels_start(x, x_tst, kernel_params)
+
+    b_norm = torch.norm(b)
+    blocks = get_blocks(x.shape[0], B)
+
+    return x_j, K, K_tst, b_norm, blocks
+
 def rand_nys_appx(K, n, r, device):
     # Calculate sketch
     Phi = torch.randn((n, r), device=device) / (n ** 0.5)
@@ -67,23 +78,6 @@ def get_L(K, lambd, U, S, rho):
 
     return max_eig
 
-def get_rbf_kernel(x1_lazy, x2_lazy, sigma):
-    D = ((x1_lazy - x2_lazy) ** 2).sum(dim=2)
-    K = (-D / (2 * sigma ** 2)).exp()
-
-    return K
-
-def get_rbf_kernels_start(x, x_tst, sigma):
-    x_i = LazyTensor(x[:, None, :])
-    x_j = LazyTensor(x[None, :, :])
-    x_tst_i = LazyTensor(x_tst[:, None, :])
-
-    K = get_rbf_kernel(x_i, x_j, sigma)
-
-    K_tst = get_rbf_kernel(x_tst_i, x_j, sigma)
-
-    return x_j, K, K_tst
-
 def get_block_nys_precond_L(Kb, lambd, block, r, device):
     U, S = rand_nys_appx(Kb, block.shape[0], r, device)
     rho = lambd + S[-1]
@@ -91,7 +85,27 @@ def get_block_nys_precond_L(Kb, lambd, block, r, device):
 
     return U, S, rho, L
 
-def get_block_grad(Kbn, a, b, lambd, block):
+def get_block_properties(x, blocks, kernel_params, lambd, r, device):
+    block_preconds, block_etas, block_Ls = [], [], []
+
+    # Compute randomized Nystrom approximation corresponding to each block
+    for _, block in enumerate(blocks):
+        xb_i = LazyTensor(x[block][:, None, :])
+        xb_j = LazyTensor(x[block][None, :, :])
+        Kb = get_kernel(xb_i, xb_j, kernel_params)
+
+        U, S, rho, L = get_block_nys_precond_L(Kb, lambd, block, r, device)
+
+        block_preconds.append((U, S, rho))
+        block_Ls.append(L)
+        block_etas.append(1 / L)
+
+    return block_preconds, block_etas, block_Ls
+
+def get_block_grad(x, x_j, kernel_params, a, b, lambd, block):
+    xb_i = LazyTensor(x[block][:, None, :])
+    Kbn = get_kernel(xb_i, x_j, kernel_params)
+
     return Kbn @ a + lambd * a[block] - b[block]
 
 def apply_nys_precond(U, S, rho, g):
@@ -99,6 +113,21 @@ def apply_nys_precond(U, S, rho, g):
     dir = U @ (UTg / (S + rho)) + 1/rho * (g - U @ UTg)
 
     return dir
+
+def get_block_update(block_idx, blocks, block_preconds, block_etas, 
+                     x, x_j, kernel_params, a, b, lambd):
+    # Get the block and its corresponding preconditioner
+    block = blocks[block_idx]
+    U, S, rho = block_preconds[block_idx]
+    eta = block_etas[block_idx]
+
+    # Compute block gradient
+    gb = get_block_grad(x, x_j, kernel_params, a, b, lambd, block)
+
+    # Apply preconditioner
+    dir = apply_nys_precond(U, S, rho, gb)
+
+    return block, eta, dir
 
 def compute_metrics_dict(K, K_tst, a, b, b_tst, lambd, b_norm, task):
     residual = K @ a + lambd * a - b
@@ -113,35 +142,24 @@ def compute_metrics_dict(K, K_tst, a, b, b_tst, lambd, b_norm, task):
 
     return {'rel_residual': rel_residual, test_metric_name: test_metric,
              'train_loss': loss}
+    # return {test_metric_name: test_metric}
 
 def compute_and_log_metrics(K, K_tst, y, b, b_tst, lambd, b_norm, iter_time,
                              task, i, log_freq):
-    wandb.log({'iter_time': iter_time}, commit=False)
+    iter_time_dict = {'iter_time': iter_time}
     if (i + 1) % log_freq == 0:
-        wandb.log(compute_metrics_dict(K, K_tst, y, b, b_tst, lambd, b_norm, task))
+        wandb.log(iter_time_dict | 
+                    compute_metrics_dict(K, K_tst, y, b, b_tst, lambd, b_norm, task))
+    else:
+        wandb.log(iter_time_dict)
 
-# For RBF kernel only -- need to generalize
-def bcd(x, b, x_tst, b_tst, sigma, lambd, task, a0, B, r, max_iter, log_freq, device):
-    x_j, K, K_tst = get_rbf_kernels_start(x, x_tst, sigma)
-
-    n = x.shape[0]
-    blocks = get_blocks(n, B)
-    block_preconds, block_etas = [], []
-
-    b_norm = torch.norm(b)
+def bcd(x, b, x_tst, b_tst, kernel_params, lambd, task, a0, B, r, max_iter, log_freq, device):
+    x_j, K, K_tst, b_norm, blocks = get_needed_quantities(x, x_tst, kernel_params, b, B)
 
     start_time = time.time()
 
-    # Compute randomized Nystrom approximation corresponding to each block
-    for _, block in enumerate(blocks):
-        xb_i = LazyTensor(x[block][:, None, :])
-        xb_j = LazyTensor(x[block][None, :, :])
-        Kb = get_rbf_kernel(xb_i, xb_j, sigma)
-
-        U, S, rho, L = get_block_nys_precond_L(Kb, lambd, block, r, device)
-
-        block_preconds.append((U, S, rho))
-        block_etas.append(1 / L)
+    block_preconds, block_etas, _ = get_block_properties(x, blocks, 
+                                                kernel_params, lambd, r, device)
 
     a = a0.clone()
     iter_time = time.time() - start_time
@@ -155,19 +173,10 @@ def bcd(x, b, x_tst, b_tst, sigma, lambd, task, a0, B, r, max_iter, log_freq, de
         # Randomly select a block
         block_idx = torch.randint(B, (1,))
 
-        # Get the block and its corresponding preconditioner
-        block = blocks[block_idx]
-        U, S, rho = block_preconds[block_idx]
-        eta = block_etas[block_idx]
-
-        # Compute block gradient
-        xb_i = LazyTensor(x[block][:, None, :])
-        Kbn = get_rbf_kernel(xb_i, x_j, sigma)
-
-        gb = get_block_grad(Kbn, a, b, lambd, block)
-
-        # Apply preconditioner
-        dir = apply_nys_precond(U, S, rho, gb)
+        # Get the block, step size, and update direction
+        block, eta, dir = get_block_update(block_idx, blocks, block_preconds,
+                                           block_etas, x, x_j, kernel_params,
+                                             a, b, lambd)
 
         # Update block
         a[block] -= eta * dir
@@ -179,33 +188,17 @@ def bcd(x, b, x_tst, b_tst, sigma, lambd, task, a0, B, r, max_iter, log_freq, de
 
     return a
 
-# For RBF kernel only -- need to generalize
-def abcd(x, b, x_tst, b_tst, sigma, lambd, task, a0, B, r, max_iter, log_freq, device):
-    x_j, K, K_tst = get_rbf_kernels_start(x, x_tst, sigma)
+def abcd(x, b, x_tst, b_tst, kernel_params, lambd, task, a0, B, r, max_iter, log_freq, device):
+    x_j, K, K_tst, b_norm, blocks = get_needed_quantities(x, x_tst, kernel_params, b, B)
 
-    n = x.shape[0]
-    blocks = get_blocks(n, B)
-    block_preconds, block_Ls, block_etas = [], [], []
-
-    b_norm = torch.norm(b)
-
-    alpha = 1/2
-    S_alpha = 0
+    alpha = 1/2 # Controls acceleration
 
     start_time = time.time()
 
-    # Compute randomized Nystrom approximation corresponding to each block
-    for _, block in enumerate(blocks):
-        xb_i = LazyTensor(x[block][:, None, :])
-        xb_j = LazyTensor(x[block][None, :, :])
-        Kb = get_rbf_kernel(xb_i, xb_j, sigma)
-
-        U, S, rho, L = get_block_nys_precond_L(Kb, lambd, block, r, device)
-
-        block_preconds.append((U, S, rho))
-        S_alpha += L ** alpha
-        block_Ls.append(L)
-        block_etas.append(1 / L)
+    block_preconds, block_etas, block_Ls = get_block_properties(x, blocks,
+                                                    kernel_params, lambd, r, device)
+    
+    S_alpha = sum([L ** alpha for L in block_Ls])
 
     block_probs = torch.tensor([L ** alpha / S_alpha for L in block_Ls])
     sampling_dist = torch.distributions.categorical.Categorical(block_probs)
@@ -227,19 +220,10 @@ def abcd(x, b, x_tst, b_tst, sigma, lambd, task, a0, B, r, max_iter, log_freq, d
         # Randomly select a block
         block_idx = sampling_dist.sample()
 
-        # Get the block and its corresponding preconditioner
-        block = blocks[block_idx]
-        U, S, rho = block_preconds[block_idx]
-        eta = block_etas[block_idx]
-
-        # Compute block gradient
-        xb_i = LazyTensor(x[block][:, None, :])
-        Kbn = get_rbf_kernel(xb_i, x_j, sigma)
-
-        gb = get_block_grad(Kbn, a, b, lambd, block)
-
-        # Apply preconditioner
-        dir = apply_nys_precond(U, S, rho, gb)
+        # Get the block, step size, and update direction
+        block, eta, dir = get_block_update(block_idx, blocks, block_preconds,
+                                           block_etas, x, x_j, kernel_params,
+                                           a, b, lambd)
 
         # Update y
         y = a.clone()
