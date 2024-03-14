@@ -4,14 +4,16 @@ import random
 
 import numpy as np
 import pandas as pd
-import torch
+from scipy.io import loadmat
 from sklearn.datasets import load_svmlight_file
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
+import torch
 
 DATA_DIR = './data/'
 DATA_FILES = {
     'airlines': ['airlines_data.pkl', 'airlines_target.pkl', 'airport_to_atrcc.csv'],
+    'homo': 'homo.mat',
     'susy': 'SUSY'
 }
 
@@ -46,6 +48,25 @@ def set_random_seed(seed):
     random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
+
+def standardize(data_tr, data_tst):
+    reshaped = False
+
+    # If data is one dimensional, reshape to 2D
+    if len(data_tr.shape) == 1:
+        reshaped = True
+        data_tr = data_tr.reshape(-1, 1)
+        data_tst = data_tst.reshape(-1, 1)
+
+    scaler = StandardScaler()
+    data_tr = scaler.fit_transform(data_tr)
+    data_tst = scaler.transform(data_tst)
+
+    if reshaped:
+        data_tr = data_tr.flatten()
+        data_tst = data_tst.flatten()
+
+    return data_tr, data_tst
 
 def np_to_torch(X, y, device):
     X = torch.from_numpy(X).float().to(device)
@@ -123,13 +144,24 @@ def load_data(dataset, seed, device):
 
         Xtr, Xtst, ytr, ytst = train_test_split(X, y, test_size=0.1, random_state=seed)
 
-        X_scaler = StandardScaler()
-        Xtr[:, :6] = X_scaler.fit_transform(Xtr[:, :6]) # Only standardize non-one-hot encoded features
-        Xtst[:, :6] = X_scaler.transform(Xtst[:, :6])
+        Xtr_std_col, Xtst_std_col = standardize(Xtr[:, :6], Xtst[:, :6])
+        Xtr[:, :6] = Xtr_std_col
+        Xtst[:, :6] = Xtst_std_col
 
-        y_scaler = StandardScaler()
-        ytr = y_scaler.fit_transform(ytr.reshape(-1, 1)).flatten()
-        ytst = y_scaler.transform(ytst.reshape(-1, 1)).flatten()
+        ytr, ytst = standardize(ytr, ytst)
+
+        Xtr, Xtst, ytr, ytst = np_to_torch_tr_tst(Xtr, Xtst, ytr, ytst, device)
+    elif dataset == 'homo':
+        data = loadmat(os.path.join(DATA_DIR, DATA_FILES[dataset]))
+
+        X, y = data['X'], data['Y']
+        y = np.squeeze(y) # Remove singleton dimension due to .mat format
+
+        Xtr, Xtst, ytr, ytst = train_test_split(
+            X, y, train_size=100000, random_state=seed)
+
+        Xtr, Xtst = standardize(Xtr, Xtst)
+        # ytr, ytst = standardize(ytr, ytst)
 
         Xtr, Xtst, ytr, ytst = np_to_torch_tr_tst(Xtr, Xtst, ytr, ytst, device)
     elif dataset == 'susy':
@@ -144,9 +176,7 @@ def load_data(dataset, seed, device):
         ytr = y[:4500000]
         ytst = y[4500000:]
 
-        scaler = StandardScaler() 
-        Xtr = scaler.fit_transform(Xtr)
-        Xtst = scaler.transform(Xtst)
+        Xtr, Xtst = standardize(Xtr, Xtst)
 
         Xtr, Xtst, ytr, ytst = np_to_torch_tr_tst(Xtr, Xtst, ytr, ytst, device)
     else:

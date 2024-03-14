@@ -134,15 +134,21 @@ def compute_metrics_dict(K, K_tst, a, b, b_tst, lambd, b_norm, task):
     rel_residual = torch.norm(residual) / b_norm
     loss = 1/2 * torch.dot(a, residual - b)
 
+    pred = K_tst @ a
+
+    metrics_dict = {'rel_residual': rel_residual, 'train_loss': loss}
+
     test_metric_name = 'test_acc' if task == 'classification' else 'test_mse'
     if task == 'classification':
-        test_metric = torch.sum(torch.sign(K_tst @ a) == b_tst) / b_tst.shape[0]
+        test_metric = torch.sum(torch.sign(pred) == b_tst) / b_tst.shape[0]
+        metrics_dict[test_metric_name] = test_metric
     else:
-        test_metric = 1/2 * torch.norm(K_tst @ a - b_tst) ** 2 / b_tst.shape[0]
+        test_metric = 1/2 * torch.norm(pred - b_tst) ** 2 / b_tst.shape[0]
+        smape = torch.sum((pred - b_tst).abs() / ((pred.abs() + b_tst.abs()) / 2)) / b_tst.shape[0]
+        metrics_dict[test_metric_name] = test_metric
+        metrics_dict['smape'] = smape
 
-    return {'rel_residual': rel_residual, test_metric_name: test_metric,
-             'train_loss': loss}
-    # return {test_metric_name: test_metric}
+    return metrics_dict
 
 def compute_and_log_metrics(K, K_tst, y, b, b_tst, lambd, b_norm, iter_time,
                              task, i, log_freq):
