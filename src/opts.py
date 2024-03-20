@@ -5,6 +5,23 @@ import wandb
 
 from .kernels import get_kernel, get_kernels_start
 
+def get_blocks(n, B):
+    # Permute the indices
+    idx = torch.randperm(n)
+
+    # Partition the indices into B blocks of roughly equal size
+    # Do this by first computing the block size then making a list of block sizes
+    block_size = n // B
+    remainder = n % B
+    sizes = [block_size] * B
+
+    for i in range(remainder):
+        sizes[i] += 1
+
+    blocks = torch.split(idx, sizes)
+
+    return blocks
+
 # TODO: Give a better name to this function
 def get_needed_quantities(x, x_tst, kernel_params, b, B):
     x_j, K, K_tst = get_kernels_start(x, x_tst, kernel_params)
@@ -36,23 +53,6 @@ def rand_nys_appx(K, n, r, device):
     S = torch.max(torch.square(S) - shift, torch.tensor(0.0))
 
     return U, S
-
-def get_blocks(n, B):
-    # Permute the indices
-    idx = torch.randperm(n)
-
-    # Partition the indices into B blocks of roughly equal size
-    # Do this by first computing the block size then making a list of block sizes
-    block_size = n // B
-    remainder = n % B
-    sizes = [block_size] * B
-
-    for i in range(remainder):
-        sizes[i] += 1
-
-    blocks = torch.split(idx, sizes)
-
-    return blocks
 
 def get_L(K, lambd, U, S, rho):
     n = U.shape[0]
@@ -133,10 +133,9 @@ def compute_metrics_dict(K, K_tst, a, b, b_tst, lambd, b_norm, task):
     residual = K @ a + lambd * a - b
     rel_residual = torch.norm(residual) / b_norm
     loss = 1/2 * torch.dot(a, residual - b)
+    metrics_dict = {'rel_residual': rel_residual, 'train_loss': loss}
 
     pred = K_tst @ a
-
-    metrics_dict = {'rel_residual': rel_residual, 'train_loss': loss}
 
     test_metric_name = 'test_acc' if task == 'classification' else 'test_mse'
     if task == 'classification':
