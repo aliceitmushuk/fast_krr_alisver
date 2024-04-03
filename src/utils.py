@@ -17,8 +17,8 @@ DATA_FILES = {
     'susy': 'SUSY'
 }
 
-# Custom action to parse kernel parameters
-class ParseKernelParams(argparse.Action):
+# Custom action to parse parameters
+class ParseParams(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         # Split the input string into individual elements
         elements = values.split()
@@ -30,7 +30,10 @@ class ParseKernelParams(argparse.Action):
             value = elements[i + 1]
             # Attempt to convert numeric values to float, otherwise keep as string
             try:
-                value = float(value)
+                if key == 'r': # Rank parameter in preconditioner is int, not float
+                    value = int(value)
+                else:
+                    value = float(value)
             except ValueError:
                 # If conversion fails, value remains a string
                 pass
