@@ -6,17 +6,18 @@ class Skotch():
     def __init__(self, B, precond_params=None):
         self.B = B
         self.precond_params = precond_params
-        self.logger_enabled = False
 
     def run(self, x, b, x_tst, b_tst, kernel_params, lambd, task,
              a0, max_iter, device, logger=None):
-        if logger is not None:
-            self.logger_enabled = True
 
         x_j, K, K_tst, b_norm, blocks = _get_needed_quantities(
             x, x_tst, kernel_params, b, self.B)
 
-        if self.logger_enabled:
+        if logger is not None:
+            logger_enabled = True
+            def metric_lin_op(v): return K @ v + lambd * v
+
+        if logger_enabled:
             logger.reset_timer()
 
         block_preconds, block_etas, _ = _get_block_properties(x, kernel_params,
@@ -26,8 +27,8 @@ class Skotch():
 
         a = a0.clone()
 
-        if self.logger_enabled:
-            logger.compute_log_reset(K, K_tst, a, b, b_tst, b_norm, task, -1, False)
+        if logger_enabled:
+            logger.compute_log_reset(metric_lin_op, K_tst, a, b, b_tst, b_norm, task, -1, False)
 
         for i in range(max_iter):
             # Randomly select a block
@@ -41,7 +42,7 @@ class Skotch():
             # Update block
             a[block] -= eta * dir
 
-            if self.logger_enabled:
-                logger.compute_log_reset(K, K_tst, a, b, b_tst, b_norm, task, i, False)
+            if logger_enabled:
+                logger.compute_log_reset(metric_lin_op, K_tst, a, b, b_tst, b_norm, task, i, False)
 
         return a

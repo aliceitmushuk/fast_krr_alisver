@@ -51,14 +51,17 @@ def _get_L(K_lin_op, lambd, precond_inv_sqrt_lin_op, n, device):
 
 def _get_block_precond_L(Kb, lambd, block, precond_params, device):
     precond = None
+    def Kb_lin_op(v): return Kb @ v
 
-    if precond_params['type'] == 'nystrom':
-        precond = Nystrom(device, **precond_params)
-        precond.update(lambda v: Kb @ v, block.shape[0])
-        precond.rho = lambd + precond.S[-1]
-        L = _get_L(lambda v: Kb @ v, lambd, precond.inv_sqrt_lin_op, block.shape[0], device)
+    if precond_params is not None:
+        if precond_params['type'] == 'nystrom':
+            precond_params_sub = {k: v for k, v in precond_params.items() if k != 'type'}
+            precond = Nystrom(device, **precond_params_sub)
+            precond.update(Kb_lin_op, block.shape[0])
+            precond.rho = lambd + precond.S[-1]
+            L = _get_L(Kb_lin_op, lambd, precond.inv_sqrt_lin_op, block.shape[0], device)
     else: # No preconditioner
-        L = _get_L(lambda v: Kb @ v, lambd, lambda x: x, block.shape[0], device)
+        L = _get_L(Kb_lin_op, lambd, lambda x: x, block.shape[0], device)
 
     return precond, L
 
