@@ -1,1 +1,1 @@
-# fast_krr
+# Fast KRR
