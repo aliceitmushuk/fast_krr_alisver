@@ -55,12 +55,11 @@ def _get_stochastic_grad_inducing(x, n, idx, x_inducing_j, kernel_params, K_mm, 
 
     return g
 
-def _get_update_inducing(x, n, idx, x_inducing_j, kernel_params, K_mm, a, b, lambd, precond):
-    g = _get_stochastic_grad_inducing(x, n, idx, x_inducing_j, kernel_params, K_mm, a, b, lambd)
-    
-    if precond is not None:
-        dir = precond.inv_lin_op(g)
-    else:
-        dir = g
+def _get_full_grad_inducing(K_nm, K_mm, a, b, lambd):
+    return K_nm.T @ (K_nm @ a - b) + lambd * (K_mm @ a)
 
-    return dir
+def _apply_precond(v, precond):
+    if precond is not None:
+        return precond.inv_sqrt_lin_op(v)
+    else:
+        return v
