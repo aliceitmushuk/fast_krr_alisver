@@ -1,6 +1,6 @@
 import torch
 
-from .opt_utils import _get_needed_quantities, _get_block_properties, _get_block_update
+from .opt_utils_bcd import _get_needed_quantities, _get_block_properties, _get_block_update
 
 class Skotch():
     def __init__(self, B, precond_params=None):
