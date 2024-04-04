@@ -55,11 +55,20 @@ def _get_stochastic_grad_inducing(x, n, idx, x_inducing_j, kernel_params, K_mm, 
 
     return g
 
+# NOTE: This works because of the structure of the KRR objective -- does not work for general objectives
+def _get_stochastic_grad_diff_inducing(x, n, idx, x_inducing_j, kernel_params, K_mm, a, a_tilde, b, lambd):
+    x_idx_i = LazyTensor(x[idx][:, None, :])
+    K_nm_idx = _get_kernel(x_idx_i, x_inducing_j, kernel_params)
+    a_diff = a - a_tilde
+    g_diff = n/idx.shape[0] * (K_nm_idx.T @ (K_nm_idx @ a_diff)) + lambd * (K_mm @ a_diff)
+
+    return g_diff
+
 def _get_full_grad_inducing(K_nm, K_mm, a, b, lambd):
     return K_nm.T @ (K_nm @ a - b) + lambd * (K_mm @ a)
 
 def _apply_precond(v, precond):
     if precond is not None:
-        return precond.inv_sqrt_lin_op(v)
+        return precond.inv_lin_op(v)
     else:
         return v

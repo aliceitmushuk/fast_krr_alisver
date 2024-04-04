@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 
-from .opt_utils_sgd import _get_needed_quantities_inducing, _get_precond_L_inducing, _get_stochastic_grad_inducing, _get_full_grad_inducing, _apply_precond
+from .opt_utils_sgd import _get_needed_quantities_inducing, _get_precond_L_inducing, _get_stochastic_grad_diff_inducing, _get_full_grad_inducing, _apply_precond
 
 class SketchySVRG():
     def __init__(self, bg, bH, update_freq, precond_params=None):
@@ -44,7 +44,7 @@ class SketchySVRG():
 
             # TODO: Use a shuffling approach instead of random sampling to match PROMISE
             idx = torch.from_numpy(np.random.choice(n, self.bg, replace=False))
-            g_diff = _get_stochastic_grad_inducing(x, n, idx, x_inducing_j, kernel_params, K_mm, a - a_tilde, b, lambd)
+            g_diff = _get_stochastic_grad_diff_inducing(x, n, idx, x_inducing_j, kernel_params, K_mm, a, a_tilde, b, lambd)
             dir = _apply_precond(g_diff + g_bar, precond)
 
             # Update parameters

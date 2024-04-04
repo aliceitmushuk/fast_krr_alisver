@@ -5,6 +5,7 @@ import torch
 from src.opts.skotch import Skotch
 from src.opts.askotch import ASkotch
 from src.opts.sketchysgd import SketchySGD
+from src.opts.sketchysvrg import SketchySVRG
 from src.logger import Logger
 from src.utils import ParseParams, set_random_seed, load_data
 
@@ -39,7 +40,7 @@ def check_inputs(args):
         if args.bH is not None:
             raise Warning(
                 'Hessian batch size is not used in ASkotch. Ignoring this parameter')
-    elif args.opt == 'sketchysgd':
+    elif args.opt in ['sketchysgd', 'sketchysvrg']:
         if args.m is None:
             raise ValueError('Number of inducing points must be provided for SketchySGD')
         if args.b is not None:
@@ -54,6 +55,14 @@ def check_inputs(args):
         if args.bH is None:
             raise ValueError(
                 'Hessian batch size must be provided for SketchySGD')
+        
+        if args.opt == 'sketchysgd':
+            if args.update_freq is not None:
+                raise Warning(
+                    'Update frequency is not used in SketchySGD. Ignoring this parameter')
+        elif args.opt == 'sketchysvrg':
+            if args.update_freq is None:
+                raise ValueError('Update frequency must be provided for SketchySVRG')
         
     if args.precond_params is not None:
         # Check that 'type' is provided and 'nystrom' is the only option
@@ -75,13 +84,14 @@ def main():
         help='Kernel parameters in the form of a string: "type matern sigma 1.0 nu 1.5"')
     parser.add_argument('--m', type=int, default=None, help='Number of inducing points')
     parser.add_argument('--lambd', type=float, default=0.1, help='Regularization parameter')
-    parser.add_argument('--opt', choices=['skotch', 'askotch', 'sketchysgd'], help='Which optimizer to use')
+    parser.add_argument('--opt', choices=['skotch', 'askotch', 'sketchysgd', 'sketchysvrg'], help='Which optimizer to use')
     parser.add_argument('--b', type=int, default=None, help='Number of blocks in optimizer')
     parser.add_argument('--beta', type=float, default=None, help='Acceleration parameter in ASkotch')
     parser.add_argument('--bg', type=int, default=None, help='Gradient batch size in SGD-type methods')
     parser.add_argument('--bH', type=int, default=None, help='Hessian batch size in SGD-type methods')
+    parser.add_argument('--update_freq', type=int, default=None, help='Update frequency in SketchySVRG')
     parser.add_argument('--precond_params', action=ParseParams, default=None,
-        help='Preconditioner parameters in the form of a string: "type nystrom rank 100 rho 0.1"')
+        help='Preconditioner parameters in the form of a string: "type nystrom r 100 rho 0.1"')
     parser.add_argument('--max_iter', type=int, default=100, help='Number of iterations')
     parser.add_argument('--log_freq', type=int, default=100, help='Logging frequency of metrics')
     parser.add_argument('--seed', type=int, default=1234, help='initial seed')
@@ -117,30 +127,19 @@ def main():
     elif args.opt == 'askotch':
         experiment_args['b'] = args.b
         experiment_args['beta'] = args.beta
-    elif args.opt == 'sketchysgd':
+    elif args.opt in ['sketchysgd', 'sketchysvrg']:
         experiment_args['m'] = args.m
         experiment_args['bg'] = args.bg
         experiment_args['bH'] = args.bH
 
-    # Print the experiment arguments
-    # print(f'Dataset: {experiment_args["dataset"]}')
-    # print(f'Task: {experiment_args["task"]}')
-    # print(f'Kernel Parameters: {experiment_args["kernel_params"]}')
-    # print(f'Lambda: {experiment_args["lambd"]}')
-    # print(f'Optimizer: {experiment_args["opt"]}')
-    # print(f'Preconditioner parameters: {experiment_args["precond_params"]}')
-    # print(f'Max Iterations: {experiment_args["max_iter"]}')
-    # print(f'Logging Frequency: {experiment_args["log_freq"]}')
-    # print(f'Seed: {experiment_args["seed"]}')
-    # print(f'Device: {experiment_args["device"]}')
-    # print(f'W&B Project: {args.wandb_project}')
+        if args.opt == 'sketchysvrg':
+            experiment_args['update_freq'] = args.update_freq
 
     with wandb.init(project=args.wandb_project, config=experiment_args):
         # Access the experiment configuration
         config = wandb.config
 
         # Load the dataset
-        # Xtr, Xtst, ytr, ytst = load_data(config.dataset, config.data_loc, config.device)
         Xtr, Xtst, ytr, ytst = load_data(config.dataset, config.seed, config.device)
 
         # Select the optimizer
@@ -148,14 +147,19 @@ def main():
             opt = Skotch(config.b, config.precond_params)
         elif config.opt == 'askotch':
             opt = ASkotch(config.b, config.beta, config.precond_params)
-        elif config.opt == 'sketchysgd':
-            opt = SketchySGD(config.bg, config.bH, config.precond_params)
+        elif config.opt in ['sketchysgd', 'sketchysvrg']:
             inducing_pts = torch.randperm(Xtr.shape[0])[:config.m]
+
+            if config.opt == 'sketchysgd':
+                opt = SketchySGD(config.bg, config.bH, config.precond_params)
+            elif config.opt == 'sketchysvrg':
+                opt = SketchySVRG(config.bg, config.bH, config.update_freq,
+                                   config.precond_params)
 
         # Initialize at 0
         if config.opt == 'skotch' or config.opt == 'askotch':
             a0 = torch.zeros(Xtr.shape[0], device=config.device)
-        elif config.opt == 'sketchysgd':
+        elif config.opt in ['sketchysgd', 'sketchysvrg']:
             a0 = torch.zeros(config.m, device=config.device)
 
         # Initialize the logger
@@ -163,7 +167,7 @@ def main():
 
         # Run the optimizer
         with torch.no_grad():
-            if config.opt == 'sketchysgd':
+            if config.opt in ['sketchysgd', 'sketchysvrg']:
                 opt.run(Xtr, ytr, Xtst, ytst, config.kernel_params, inducing_pts, config.lambd, config.task,
                     a0, config.max_iter, config.device, logger)
             else:
