@@ -105,7 +105,8 @@ def main():
         help='Kernel parameters in the form of a string: "type matern sigma 1.0 nu 1.5"')
     parser.add_argument('--m', type=int, default=None, help='Number of inducing points')
     parser.add_argument('--lambd', type=float, default=0.1, help='Regularization parameter')
-    parser.add_argument('--opt', choices=['skotch', 'askotch', 'sketchysgd', 'sketchysvrg', 'sketchysaga'], help='Which optimizer to use')
+    parser.add_argument('--opt', choices=['skotch', 'askotch', 'sketchysgd', 
+        'sketchysvrg', 'sketchysaga', 'sketchykatyusha'], help='Which optimizer to use')
     parser.add_argument('--b', type=int, default=None, help='Number of blocks in optimizer')
     parser.add_argument('--beta', type=float, default=None, help='Acceleration parameter in ASkotch')
     parser.add_argument('--bg', type=int, default=None, help='Gradient batch size in SGD-type methods')

@@ -50,18 +50,18 @@ class SketchyKatyusha():
             logger.compute_log_reset(metric_lin_op, K_tst, a, K_nmTb, b_tst, b_norm, task, -1, True)
 
         for i in range(max_iter):
-            x = theta1 * z + self.theta2 * y + (1 - theta1 - self.theta2) * a
+            w = theta1 * z + self.theta2 * y + (1 - theta1 - self.theta2) * a
 
             # TODO: Use a shuffling approach instead of random sampling to match PROMISE
             idx = torch.from_numpy(np.random.choice(n, self.bg, replace=False))
-            g_diff = _get_stochastic_grad_diff_inducing(x, n, idx, x_inducing_j, kernel_params, K_mm, x, y, b, lambd)
+            g_diff = _get_stochastic_grad_diff_inducing(x, n, idx, x_inducing_j, kernel_params, K_mm, w, y, b, lambd)
             dir = _apply_precond(g_diff + g_bar, precond)
 
-            z_new = 1/(1 + eta * sigma) * (eta * sigma * x + z - eta/L * dir)
+            z_new = 1/(1 + eta * sigma) * (eta * sigma * w + z - eta/L * dir)
 
             # Update parameters
-            a = x + theta1 * (z_new - z)
-            
+            a = w + theta1 * (z_new - z)
+
             z = z_new.clone()
 
             # Update snapshot
