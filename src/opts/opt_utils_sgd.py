@@ -67,6 +67,11 @@ def _get_stochastic_grad_diff_inducing(x, n, idx, x_inducing_j, kernel_params, K
 def _get_full_grad_inducing(K_nm, K_mm, a, b, lambd):
     return K_nm.T @ (K_nm @ a - b) + lambd * (K_mm @ a)
 
+def _get_table_val(x, n, idx, x_inducing_j, kernel_params, a, b):
+    x_idx_i = LazyTensor(x[idx][:, None, :])
+    K_nm_idx = _get_kernel(x_idx_i, x_inducing_j, kernel_params)
+    return n * (K_nm_idx @ a - b[idx]), K_nm_idx
+
 def _apply_precond(v, precond):
     if precond is not None:
         return precond.inv_lin_op(v)
