@@ -6,63 +6,72 @@ from src.opts.skotch import Skotch
 from src.opts.askotch import ASkotch
 from src.opts.sketchysgd import SketchySGD
 from src.opts.sketchysvrg import SketchySVRG
+from src.opts.sketchysaga import SketchySAGA
 from src.logger import Logger
 from src.utils import ParseParams, set_random_seed, load_data
 
+OPT_NAMES = {'skotch': Skotch, 'askotch': ASkotch, 
+            'sketchysgd': SketchySGD, 'sketchysvrg': SketchySVRG, 'sketchysaga': SketchySAGA}
+
 def check_inputs(args):
+    opt_name = OPT_NAMES[args.opt]
     # Input checking
     if args.opt == 'skotch':
         if args.m is not None:
             raise Warning(
-                'Number of inducing points is not used in Skotch. Ignoring this parameter')
+                f'Number of inducing points is not used in {opt_name}. Ignoring this parameter')
         if args.b is None:
-            raise ValueError('Number of blocks must be provided for Skotch')
+            raise ValueError(
+                f'Number of blocks must be provided for {opt_name}')
         if args.beta is not None:
             raise Warning(
-                'Beta is not used in Skotch. Ignoring this parameter')
+                f'Beta is not used in {opt_name}. Ignoring this parameter')
         if args.bg is not None:
             raise Warning(
-                'Gradient batch size is not used in Skotch. Ignoring this parameter')
+                f'Gradient batch size is not used in {opt_name}. Ignoring this parameter')
         if args.bH is not None:
             raise Warning(
-                'Hessian batch size is not used in Skotch. Ignoring this parameter')
+                f'Hessian batch size is not used in {opt_name}. Ignoring this parameter')
     elif args.opt == 'askotch':
         if args.m is not None:
             raise Warning(
-                'Number of inducing points is not used in ASkotch. Ignoring this parameter')
+                f'Number of inducing points is not used in {opt_name}. Ignoring this parameter')
         if args.b is None:
-            raise ValueError('Number of blocks must be provided for ASkotch')
+            raise ValueError(
+                f'Number of blocks must be provided for {opt_name}')
         if args.beta is None:
-            raise ValueError('Beta must be provided for ASkotch')
+            raise ValueError(f'Beta must be provided for {opt_name}')
         if args.bg is not None:
             raise Warning(
-                'Gradient batch size is not used in ASkotch. Ignoring this parameter')
+                f'Gradient batch size is not used in {opt_name}. Ignoring this parameter')
         if args.bH is not None:
             raise Warning(
-                'Hessian batch size is not used in ASkotch. Ignoring this parameter')
-    elif args.opt in ['sketchysgd', 'sketchysvrg']:
+                f'Hessian batch size is not used in {opt_name}. Ignoring this parameter')
+    elif args.opt in ['sketchysgd', 'sketchysvrg', 'sketchysaga']:
         if args.m is None:
-            raise ValueError('Number of inducing points must be provided for SketchySGD')
+            raise ValueError(
+                f'Number of inducing points must be provided for {opt_name}')
         if args.b is not None:
             raise Warning(
-                'Number of blocks is not used in SketchySGD. Ignoring this parameter')
+                f'Number of blocks is not used in {opt_name}. Ignoring this parameter')
         if args.beta is not None:
             raise Warning(
-                'Beta is not used in SketchySGD. Ignoring this parameter')
+                f'Beta is not used in {opt_name}. Ignoring this parameter')
         if args.bg is None:
             raise ValueError(
-                'Gradient batch size must be provided for SketchySGD')
+                f'Gradient batch size must be provided for {opt_name}')
         if args.bH is None:
             raise ValueError(
-                'Hessian batch size must be provided for SketchySGD')
+                f'Hessian batch size must be provided for {opt_name}')
         
-        if args.opt == 'sketchysgd':
+        if args.opt in ['sketchysgd', 'sketchysaga']:
             if args.update_freq is not None:
                 raise Warning(
-                    'Update frequency is not used in SketchySGD. Ignoring this parameter')
+                    f'Update frequency is not used in {opt_name}. Ignoring this parameter')
         elif args.opt == 'sketchysvrg':
             if args.update_freq is None:
-                raise ValueError('Update frequency must be provided for SketchySVRG')
+                raise ValueError(
+                    f'Update frequency must be provided for {opt_name}')
         
     if args.precond_params is not None:
         # Check that 'type' is provided and 'nystrom' is the only option
@@ -84,7 +93,7 @@ def main():
         help='Kernel parameters in the form of a string: "type matern sigma 1.0 nu 1.5"')
     parser.add_argument('--m', type=int, default=None, help='Number of inducing points')
     parser.add_argument('--lambd', type=float, default=0.1, help='Regularization parameter')
-    parser.add_argument('--opt', choices=['skotch', 'askotch', 'sketchysgd', 'sketchysvrg'], help='Which optimizer to use')
+    parser.add_argument('--opt', choices=['skotch', 'askotch', 'sketchysgd', 'sketchysvrg', 'sketchysaga'], help='Which optimizer to use')
     parser.add_argument('--b', type=int, default=None, help='Number of blocks in optimizer')
     parser.add_argument('--beta', type=float, default=None, help='Acceleration parameter in ASkotch')
     parser.add_argument('--bg', type=int, default=None, help='Gradient batch size in SGD-type methods')
@@ -127,7 +136,7 @@ def main():
     elif args.opt == 'askotch':
         experiment_args['b'] = args.b
         experiment_args['beta'] = args.beta
-    elif args.opt in ['sketchysgd', 'sketchysvrg']:
+    elif args.opt in ['sketchysgd', 'sketchysvrg', 'sketchysaga']:
         experiment_args['m'] = args.m
         experiment_args['bg'] = args.bg
         experiment_args['bH'] = args.bH
@@ -147,7 +156,7 @@ def main():
             opt = Skotch(config.b, config.precond_params)
         elif config.opt == 'askotch':
             opt = ASkotch(config.b, config.beta, config.precond_params)
-        elif config.opt in ['sketchysgd', 'sketchysvrg']:
+        elif config.opt in ['sketchysgd', 'sketchysvrg', 'sketchysaga']:
             inducing_pts = torch.randperm(Xtr.shape[0])[:config.m]
 
             if config.opt == 'sketchysgd':
@@ -155,11 +164,13 @@ def main():
             elif config.opt == 'sketchysvrg':
                 opt = SketchySVRG(config.bg, config.bH, config.update_freq,
                                    config.precond_params)
+            elif config.opt == 'sketchysaga':
+                opt = SketchySAGA(config.bg, config.bH, config.precond_params)
 
         # Initialize at 0
         if config.opt == 'skotch' or config.opt == 'askotch':
             a0 = torch.zeros(Xtr.shape[0], device=config.device)
-        elif config.opt in ['sketchysgd', 'sketchysvrg']:
+        elif config.opt in ['sketchysgd', 'sketchysvrg', 'sketchysaga']:
             a0 = torch.zeros(config.m, device=config.device)
 
         # Initialize the logger
@@ -167,7 +178,7 @@ def main():
 
         # Run the optimizer
         with torch.no_grad():
-            if config.opt in ['sketchysgd', 'sketchysvrg']:
+            if config.opt in ['sketchysgd', 'sketchysvrg', 'sketchysaga']:
                 opt.run(Xtr, ytr, Xtst, ytst, config.kernel_params, inducing_pts, config.lambd, config.task,
                     a0, config.max_iter, config.device, logger)
             else:
