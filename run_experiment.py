@@ -1,5 +1,7 @@
-import wandb
 import argparse
+import warnings
+
+import wandb
 import torch
 
 from src.opts.skotch import Skotch
@@ -18,23 +20,23 @@ def check_inputs(args):
     # Input checking
     if args.opt == 'skotch':
         if args.m is not None:
-            raise Warning(
+            warnings.warn(
                 f'Number of inducing points is not used in {opt_name}. Ignoring this parameter')
         if args.b is None:
             raise ValueError(
                 f'Number of blocks must be provided for {opt_name}')
         if args.beta is not None:
-            raise Warning(
+            warnings.warn(
                 f'Beta is not used in {opt_name}. Ignoring this parameter')
         if args.bg is not None:
-            raise Warning(
+            warnings.warn(
                 f'Gradient batch size is not used in {opt_name}. Ignoring this parameter')
         if args.bH is not None:
-            raise Warning(
+            warnings.warn(
                 f'Hessian batch size is not used in {opt_name}. Ignoring this parameter')
     elif args.opt == 'askotch':
         if args.m is not None:
-            raise Warning(
+            warnings.warn(
                 f'Number of inducing points is not used in {opt_name}. Ignoring this parameter')
         if args.b is None:
             raise ValueError(
@@ -42,20 +44,20 @@ def check_inputs(args):
         if args.beta is None:
             raise ValueError(f'Beta must be provided for {opt_name}')
         if args.bg is not None:
-            raise Warning(
+            warnings.warn(
                 f'Gradient batch size is not used in {opt_name}. Ignoring this parameter')
         if args.bH is not None:
-            raise Warning(
+            warnings.warn(
                 f'Hessian batch size is not used in {opt_name}. Ignoring this parameter')
     elif args.opt in ['sketchysgd', 'sketchysvrg', 'sketchysaga']:
         if args.m is None:
             raise ValueError(
                 f'Number of inducing points must be provided for {opt_name}')
         if args.b is not None:
-            raise Warning(
+            warnings.warn(
                 f'Number of blocks is not used in {opt_name}. Ignoring this parameter')
         if args.beta is not None:
-            raise Warning(
+            warnings.warn(
                 f'Beta is not used in {opt_name}. Ignoring this parameter')
         if args.bg is None:
             raise ValueError(
@@ -66,7 +68,7 @@ def check_inputs(args):
         
         if args.opt in ['sketchysgd', 'sketchysaga']:
             if args.update_freq is not None:
-                raise Warning(
+                warnings.warn(
                     f'Update frequency is not used in {opt_name}. Ignoring this parameter')
         elif args.opt == 'sketchysvrg':
             if args.update_freq is None:
