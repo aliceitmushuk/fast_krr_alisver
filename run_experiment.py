@@ -9,11 +9,13 @@ from src.opts.askotch import ASkotch
 from src.opts.sketchysgd import SketchySGD
 from src.opts.sketchysvrg import SketchySVRG
 from src.opts.sketchysaga import SketchySAGA
+from src.opts.sketchykatyusha import SketchyKatyusha
 from src.logger import Logger
 from src.utils import ParseParams, set_random_seed, load_data
 
 OPT_NAMES = {'skotch': Skotch, 'askotch': ASkotch, 
-            'sketchysgd': SketchySGD, 'sketchysvrg': SketchySVRG, 'sketchysaga': SketchySAGA}
+            'sketchysgd': SketchySGD, 'sketchysvrg': SketchySVRG,
+            'sketchysaga': SketchySAGA, 'sketchykatyusha': SketchyKatyusha}
 
 def check_inputs(args):
     opt_name = OPT_NAMES[args.opt]
@@ -49,7 +51,7 @@ def check_inputs(args):
         if args.bH is not None:
             warnings.warn(
                 f'Hessian batch size is not used in {opt_name}. Ignoring this parameter')
-    elif args.opt in ['sketchysgd', 'sketchysvrg', 'sketchysaga']:
+    elif args.opt in ['sketchysgd', 'sketchysvrg', 'sketchysaga', 'sketchykatyusha']:
         if args.m is None:
             raise ValueError(
                 f'Number of inducing points must be provided for {opt_name}')
@@ -66,7 +68,7 @@ def check_inputs(args):
             raise ValueError(
                 f'Hessian batch size must be provided for {opt_name}')
         
-        if args.opt in ['sketchysgd', 'sketchysaga']:
+        if args.opt in ['sketchysgd', 'sketchysaga', 'sketchykatyusha']:
             if args.update_freq is not None:
                 warnings.warn(
                     f'Update frequency is not used in {opt_name}. Ignoring this parameter')
@@ -74,6 +76,14 @@ def check_inputs(args):
             if args.update_freq is None:
                 raise ValueError(
                     f'Update frequency must be provided for {opt_name}')
+
+        if args.opt in ['sketchysgd', 'sketchysvrg', 'sketchysaga']:
+            if args.p is not None:
+                warnings.warn(
+                    f'Update probability is not used in {opt_name}. Ignoring this parameter')
+        elif args.opt == 'sketchykatyusha':
+            if args.p is None:
+                warnings.warn(f'Update probability is not provided for {opt_name}. Using default value bg/n')
         
     if args.precond_params is not None:
         # Check that 'type' is provided and 'nystrom' is the only option
@@ -101,6 +111,7 @@ def main():
     parser.add_argument('--bg', type=int, default=None, help='Gradient batch size in SGD-type methods')
     parser.add_argument('--bH', type=int, default=None, help='Hessian batch size in SGD-type methods')
     parser.add_argument('--update_freq', type=int, default=None, help='Update frequency in SketchySVRG')
+    parser.add_argument('--p', type=float, default=None, help='Update probability in SketchyKatyusha')
     parser.add_argument('--precond_params', action=ParseParams, default=None,
         help='Preconditioner parameters in the form of a string: "type nystrom r 100 rho 0.1"')
     parser.add_argument('--max_iter', type=int, default=100, help='Number of iterations')
@@ -138,13 +149,15 @@ def main():
     elif args.opt == 'askotch':
         experiment_args['b'] = args.b
         experiment_args['beta'] = args.beta
-    elif args.opt in ['sketchysgd', 'sketchysvrg', 'sketchysaga']:
+    elif args.opt in ['sketchysgd', 'sketchysvrg', 'sketchysaga', 'sketchykatyusha']:
         experiment_args['m'] = args.m
         experiment_args['bg'] = args.bg
         experiment_args['bH'] = args.bH
 
         if args.opt == 'sketchysvrg':
             experiment_args['update_freq'] = args.update_freq
+        elif args.opt == 'sketchykatyusha':
+            experiment_args['p'] = args.p
 
     with wandb.init(project=args.wandb_project, config=experiment_args):
         # Access the experiment configuration
@@ -158,7 +171,7 @@ def main():
             opt = Skotch(config.b, config.precond_params)
         elif config.opt == 'askotch':
             opt = ASkotch(config.b, config.beta, config.precond_params)
-        elif config.opt in ['sketchysgd', 'sketchysvrg', 'sketchysaga']:
+        elif config.opt in ['sketchysgd', 'sketchysvrg', 'sketchysaga', 'sketchykatyusha']:
             inducing_pts = torch.randperm(Xtr.shape[0])[:config.m]
 
             if config.opt == 'sketchysgd':
@@ -168,11 +181,13 @@ def main():
                                    config.precond_params)
             elif config.opt == 'sketchysaga':
                 opt = SketchySAGA(config.bg, config.bH, config.precond_params)
+            elif config.opt == 'sketchykatyusha':
+                opt = SketchyKatyusha(config.bg, config.bH, config.p, config.lambd, config.precond_params)
 
         # Initialize at 0
         if config.opt == 'skotch' or config.opt == 'askotch':
             a0 = torch.zeros(Xtr.shape[0], device=config.device)
-        elif config.opt in ['sketchysgd', 'sketchysvrg', 'sketchysaga']:
+        elif config.opt in ['sketchysgd', 'sketchysvrg', 'sketchysaga', 'sketchykatyusha']:
             a0 = torch.zeros(config.m, device=config.device)
 
         # Initialize the logger
@@ -180,7 +195,7 @@ def main():
 
         # Run the optimizer
         with torch.no_grad():
-            if config.opt in ['sketchysgd', 'sketchysvrg', 'sketchysaga']:
+            if config.opt in ['sketchysgd', 'sketchysvrg', 'sketchysaga', 'sketchykatyusha']:
                 opt.run(Xtr, ytr, Xtst, ytst, config.kernel_params, inducing_pts, config.lambd, config.task,
                     a0, config.max_iter, config.device, logger)
             else:
