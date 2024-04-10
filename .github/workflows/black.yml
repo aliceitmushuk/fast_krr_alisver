@@ -2,21 +2,20 @@ name: Autoformat with Black and Create PR
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  format-and-pr:
+  format:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+          # Persist credentials for pushing changes
+          persist-credentials: true
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -24,42 +23,35 @@ jobs:
           python-version: '3.x'
 
       - name: Install Black
-        run: python -m pip install black
+        run: pip install black
 
-      - name: Format code with Black
-        run: black --verbose .
-
-      - name: Check for changes
-        id: check_changes
+      - name: Format code with Black and check for changes
+        id: black_format
         run: |
-          if git diff --exit-code; then
-            echo "No changes to format"
-            echo "::set-output name=changes_exist::false"
+          black --verbose .
+          if git diff --quiet; then
+            echo "::set-output name=changes_made::false"
           else
-            echo "Changes detected"
-            echo "::set-output name=changes_exist::true"
+            echo "::set-output name=changes_made::true"
           fi
 
-      - name: Commit formatted code
-        if: steps.check_changes.outputs.changes_exist == 'true'
+      - name: Commit and push changes if there were any
+        if: steps.black_format.outputs.changes_made == 'true'
         run: |
           git config --global user.name 'github-actions'
           git config --global user.email 'github-actions@github.com'
-          git add -A
+          git add .
           git commit -m "Apply autoformatting with Black"
-          git push origin HEAD:refs/heads/${{ github.ref == 'refs/heads/main' && github.event_name == 'push' ? 'main' : github.head_ref }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git push
 
       - name: Create Pull Request
-        if: steps.check_changes.outputs.changes_exist == 'true'
+        if: steps.black_format.outputs.changes_made == 'true'
         uses: peter-evans/create-pull-request@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "Apply autoformatting with Black"
-          title: "Autoformatting with Black"
-          body: "This PR applies Black formatting to the code."
-          # This generates a dynamic branch name for the PR.
-          branch: format/${{ github.event.pull_request.head.ref || 'main' }}-${{ github.run_number }}
+          title: "Apply autoformatting with Black"
+          body: "Automated changes to apply Black code formatting."
+          branch: "autoformat/black-${{ github.run_number }}"
           delete-branch: true
           draft: false
