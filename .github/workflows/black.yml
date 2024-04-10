@@ -1,7 +1,3 @@
-name: Lint and Create PR
-
-on: [push, pull_request]
-
 jobs:
   format:
     runs-on: ubuntu-latest
@@ -23,8 +19,10 @@ jobs:
         id: black_check
         continue-on-error: true
         run: |
-          black --verbose --check .
-          echo "BLACK_STATUS=$?" >> $GITHUB_ENV
+          black --verbose --check . || echo "BLACK_STATUS=$?" >> $GITHUB_ENV
+
+      - name: Print BLACK_STATUS
+        run: echo "Black formatting check status: $BLACK_STATUS"
 
       - name: Format code with Black
         if: env.BLACK_STATUS == 1
