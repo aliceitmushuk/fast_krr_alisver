@@ -1,12 +1,19 @@
 name: Autoformat with Black and Create PR
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   format-and-pr:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Check out code
+        uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
@@ -40,9 +47,9 @@ jobs:
           git config --global user.email 'github-actions@github.com'
           git add -A
           git commit -m "Apply autoformatting with Black"
-          # Assuming you want to push to the same branch
-          # Create a unique branch name if necessary
-          git push origin HEAD:${{ github.head_ref }}
+          git push origin HEAD:refs/heads/${{ github.ref == 'refs/heads/main' && github.event_name == 'push' ? 'main' : github.head_ref }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create Pull Request
         if: steps.check_changes.outputs.changes_exist == 'true'
@@ -52,6 +59,7 @@ jobs:
           commit-message: "Apply autoformatting with Black"
           title: "Autoformatting with Black"
           body: "This PR applies Black formatting to the code."
-          branch: "format/${{ github.head_ref }}-${{ github.run_number }}"
+          # This generates a dynamic branch name for the PR.
+          branch: format/${{ github.event.pull_request.head.ref || 'main' }}-${{ github.run_number }}
           delete-branch: true
           draft: false
