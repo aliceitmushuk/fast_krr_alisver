@@ -6,12 +6,10 @@ jobs:
   format-and-pr:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
         with:
-          # This is important to allow pushing changes
           token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0 # Ensures you have the full git history for commits
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -21,15 +19,14 @@ jobs:
       - name: Install Black
         run: python -m pip install black
 
-      - name: Run Black and format code
-        run: black --check --diff .
-        continue-on-error: true
+      - name: Format code with Black
+        run: black --verbose .
 
       - name: Check for changes
         id: check_changes
         run: |
           if git diff --exit-code; then
-            echo "No changes to commit"
+            echo "No changes to format"
             echo "::set-output name=changes_exist::false"
           else
             echo "Changes detected"
@@ -43,9 +40,9 @@ jobs:
           git config --global user.email 'github-actions@github.com'
           git add -A
           git commit -m "Apply autoformatting with Black"
-          git push origin HEAD:refs/heads/autoformat-$(date +%s)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Assuming you want to push to the same branch
+          # Create a unique branch name if necessary
+          git push origin HEAD:${{ github.head_ref }}
 
       - name: Create Pull Request
         if: steps.check_changes.outputs.changes_exist == 'true'
@@ -53,8 +50,8 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "Apply autoformatting with Black"
-          title: "Apply autoformatting with Black"
-          body: "This PR applies Black formatting rules to the code."
-          branch: autoformat-$(date +%s)
+          title: "Autoformatting with Black"
+          body: "This PR applies Black formatting to the code."
+          branch: "format/${{ github.head_ref }}-${{ github.run_number }}"
           delete-branch: true
           draft: false
