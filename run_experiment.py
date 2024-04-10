@@ -83,7 +83,9 @@ def check_inputs(args):
                 )
         elif args.opt == "sketchysvrg":
             if args.update_freq is None:
-                raise ValueError(f"Update frequency must be provided for {opt_name}")
+                warnings.warn(
+                    f"Update frequency is not provided for {opt_name}. Using default value n // bg"
+                )
 
         if args.opt in ["sketchysgd", "sketchysvrg", "sketchysaga"]:
             if args.p is not None:
