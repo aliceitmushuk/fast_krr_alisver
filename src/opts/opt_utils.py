@@ -1,5 +1,6 @@
 import torch
 
+
 def _get_L(K_lin_op, lambd, precond_inv_sqrt_lin_op, n, device):
     v = torch.randn(n, device=device)
     v = v / torch.linalg.norm(v)

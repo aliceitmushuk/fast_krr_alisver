@@ -1,6 +1,7 @@
 import torch
 
-class Nystrom():
+
+class Nystrom:
     def __init__(self, device, r, rho=None):
         self.device = device
         self.r = r
@@ -11,8 +12,8 @@ class Nystrom():
 
     def update(self, K_lin_op, n):
         # Calculate sketch
-        Phi = torch.randn((n, self.r), device=self.device) / (n ** 0.5)
-        Phi = torch.linalg.qr(Phi, mode='reduced')[0]
+        Phi = torch.randn((n, self.r), device=self.device) / (n**0.5)
+        Phi = torch.linalg.qr(Phi, mode="reduced")[0]
 
         Y = K_lin_op(Phi)
 
@@ -35,12 +36,14 @@ class Nystrom():
 
     def inv_lin_op(self, v):
         UTv = self.U.t() @ v
-        v = self.U @ (UTv / (self.S + self.rho)) + 1/(self.rho) * (v - self.U @ UTv)
+        v = self.U @ (UTv / (self.S + self.rho)) + 1 / (self.rho) * (v - self.U @ UTv)
 
         return v
 
     def inv_sqrt_lin_op(self, v):
         UTv = self.U.t() @ v
-        v = self.U @ (UTv / ((self.S + self.rho) ** (0.5))) + 1/(self.rho ** 0.5) * (v - self.U @ UTv)
+        v = self.U @ (UTv / ((self.S + self.rho) ** (0.5))) + 1 / (self.rho**0.5) * (
+            v - self.U @ UTv
+        )
 
         return v
