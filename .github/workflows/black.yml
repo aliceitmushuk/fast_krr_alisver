@@ -44,14 +44,14 @@ jobs:
           git commit -m "Apply autoformatting with Black"
           git push
 
-      - name: Create Pull Request
-        if: steps.black_format.outputs.changes_made == 'true'
-        uses: peter-evans/create-pull-request@v4
-        with:
-          # token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          commit-message: "Apply autoformatting with Black"
-          title: "Apply autoformatting with Black"
-          body: "Automated changes to apply Black code formatting."
-          branch: "autoformat/black-${{ github.run_number }}"
-          delete-branch: true
-          draft: false
+      # - name: Create Pull Request
+      #   if: steps.black_format.outputs.changes_made == 'true'
+      #   uses: peter-evans/create-pull-request@v4
+      #   with:
+      #     # token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+      #     commit-message: "Apply autoformatting with Black"
+      #     title: "Apply autoformatting with Black"
+      #     body: "Automated changes to apply Black code formatting."
+      #     branch: "autoformat/black-${{ github.run_number }}"
+      #     delete-branch: true
+      #     draft: false
