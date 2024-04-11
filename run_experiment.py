@@ -84,7 +84,9 @@ def check_inputs(args):
         if args.bg is None:
             raise ValueError(f"Gradient batch size must be provided for {opt_name}")
         if args.bH is None:
-            raise ValueError(f"Hessian batch size must be provided for {opt_name}")
+            warnings.warn(
+                f"Hessian batch size is not provided for {opt_name}. Using default value int(n**0.5)"
+            )
 
         if args.opt in ["sketchysgd", "sketchysaga", "sketchykatyusha"]:
             if args.update_freq is not None:
