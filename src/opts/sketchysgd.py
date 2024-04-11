@@ -48,7 +48,7 @@ class SketchySGD:
 
         # Set hyperparameters if not provided
         if self.bH is None:
-            self.bH = int(n ** 0.5)
+            self.bH = int(n**0.5)
 
         precond, L = _get_precond_L_inducing(
             x,
