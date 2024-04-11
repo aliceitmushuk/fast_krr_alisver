@@ -8,8 +8,9 @@ from .opt_utils_bcd import (
 
 
 class Skotch:
-    def __init__(self, B, precond_params=None):
+    def __init__(self, B, alpha=0.5, precond_params=None):
         self.B = B
+        self.alpha = alpha
         self.precond_params = precond_params
 
     def run(
@@ -40,9 +41,14 @@ class Skotch:
         if logger_enabled:
             logger.reset_timer()
 
-        block_preconds, block_etas, _ = _get_block_properties(
+        block_preconds, block_etas, block_Ls = _get_block_properties(
             x, kernel_params, lambd, blocks, self.precond_params, device
         )
+
+        S_alpha = sum([L**self.alpha for L in block_Ls])
+
+        block_probs = torch.tensor([L**self.alpha / S_alpha for L in block_Ls])
+        sampling_dist = torch.distributions.categorical.Categorical(block_probs)
 
         a = a0.clone()
 
@@ -53,7 +59,7 @@ class Skotch:
 
         for i in range(max_iter):
             # Randomly select a block
-            block_idx = torch.randint(self.B, (1,))
+            block_idx = sampling_dist.sample()
 
             # Get the block, step size, and update direction
             block, eta, dir = _get_block_update(

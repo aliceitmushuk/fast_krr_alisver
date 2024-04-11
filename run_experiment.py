@@ -33,6 +33,8 @@ def check_inputs(args):
             )
         if args.b is None:
             raise ValueError(f"Number of blocks must be provided for {opt_name}")
+        if args.alpha is None:
+            raise ValueError(f"Sampling parameter must be provided for {opt_name}")
         if args.beta is not None:
             warnings.warn(f"Beta is not used in {opt_name}. Ignoring this parameter")
         if args.bg is not None:
@@ -50,8 +52,12 @@ def check_inputs(args):
             )
         if args.b is None:
             raise ValueError(f"Number of blocks must be provided for {opt_name}")
+        if args.alpha is not None:
+            warnings.warn(
+                f"Sampling parameter is not used in {opt_name}. Ignoring this parameter"
+            )
         if args.beta is None:
-            raise ValueError(f"Beta must be provided for {opt_name}")
+            raise ValueError(f"Acceleration parameter must be provided for {opt_name}")
         if args.bg is not None:
             warnings.warn(
                 f"Gradient batch size is not used in {opt_name}. Ignoring this parameter"
@@ -68,6 +74,10 @@ def check_inputs(args):
         if args.b is not None:
             warnings.warn(
                 f"Number of blocks is not used in {opt_name}. Ignoring this parameter"
+            )
+        if args.alpha is not None:
+            warnings.warn(
+                f"Sampling parameter is not used in {opt_name}. Ignoring this parameter"
             )
         if args.beta is not None:
             warnings.warn(f"Beta is not used in {opt_name}. Ignoring this parameter")
@@ -143,6 +153,9 @@ def main():
         "--b", type=int, default=None, help="Number of blocks in optimizer"
     )
     parser.add_argument(
+        "--alpha", type=float, default=None, help="Sampling parameter in Skotch"
+    )
+    parser.add_argument(
         "--beta", type=float, default=None, help="Acceleration parameter in ASkotch"
     )
     parser.add_argument(
@@ -201,6 +214,7 @@ def main():
 
     if args.opt == "skotch":
         experiment_args["b"] = args.b
+        experiment_args["alpha"] = args.alpha
     elif args.opt == "askotch":
         experiment_args["b"] = args.b
         experiment_args["beta"] = args.beta
@@ -223,7 +237,7 @@ def main():
 
         # Select the optimizer
         if config.opt == "skotch":
-            opt = Skotch(config.b, config.precond_params)
+            opt = Skotch(config.b, config.alpha, config.precond_params)
         elif config.opt == "askotch":
             opt = ASkotch(config.b, config.beta, config.precond_params)
         elif config.opt in [
