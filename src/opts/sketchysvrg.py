@@ -11,7 +11,7 @@ from .opt_utils_sgd import (
 
 
 class SketchySVRG:
-    def __init__(self, bg, bH, update_freq, precond_params=None):
+    def __init__(self, bg, bH=None, update_freq=None, precond_params=None):
         self.bg = bg
         self.bH = bH
         self.update_freq = update_freq
@@ -48,6 +48,10 @@ class SketchySVRG:
         if logger_enabled:
             logger.reset_timer()
 
+        # Set hyperparameters if not provided
+        if self.bH is None:
+            self.bH = int(n ** 0.5)
+
         precond, L = _get_precond_L_inducing(
             x,
             m,
@@ -60,6 +64,10 @@ class SketchySVRG:
             self.precond_params,
             device,
         )
+        
+        # Set hyperparameters if not provided
+        if self.update_freq is None:
+            self.update_freq = n // self.bg
 
         eta = 0.5 / L
 

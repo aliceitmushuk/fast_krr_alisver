@@ -11,7 +11,7 @@ from .opt_utils_sgd import (
 
 
 class SketchyKatyusha:
-    def __init__(self, bg, bH, p=None, mu=None, precond_params=None):
+    def __init__(self, bg, bH=None, p=None, mu=None, precond_params=None):
         self.bg = bg
         self.bH = bH
         self.p = p
@@ -50,6 +50,10 @@ class SketchyKatyusha:
 
         if logger_enabled:
             logger.reset_timer()
+
+        # Set hyperparameters if not provided
+        if self.bH is None:
+            self.bH = int(n ** 0.5)
 
         precond, L = _get_precond_L_inducing(
             x,
