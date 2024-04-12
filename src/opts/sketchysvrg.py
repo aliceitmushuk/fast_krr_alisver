@@ -88,7 +88,6 @@ class SketchySVRG:
                 a_tilde = a.clone()
                 g_bar = _get_full_grad_inducing(K_nm, K_mm, a_tilde, b, lambd)
 
-            # TODO: Use a shuffling approach instead of random sampling to match PROMISE
             idx = _get_minibatch(generator)
             g_diff = _get_stochastic_grad_diff_inducing(
                 x, n, idx, x_inducing_j, kernel_params, K_mm, a, a_tilde, b, lambd

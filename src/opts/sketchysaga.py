@@ -80,7 +80,6 @@ class SketchySAGA:
         generator = MinibatchGenerator(n, self.bg)
 
         for i in range(max_iter):
-            # TODO: Use a shuffling approach instead of random sampling to match PROMISE
             idx = _get_minibatch(generator)
 
             # Compute the aux vector
