@@ -1,12 +1,13 @@
 import torch
-import numpy as np
 
+from .minibatch_generator import MinibatchGenerator
 from .opt_utils_sgd import (
     _get_needed_quantities_inducing,
     _get_precond_L_inducing,
     _get_stochastic_grad_diff_inducing,
     _get_full_grad_inducing,
     _apply_precond,
+    _get_minibatch,
 )
 
 
@@ -90,11 +91,12 @@ class SketchyKatyusha:
                 metric_lin_op, K_tst, a, K_nmTb, b_tst, b_norm, task, -1, True
             )
 
+        generator = MinibatchGenerator(n, self.bg)
+
         for i in range(max_iter):
             w = theta1 * z + self.theta2 * y + (1 - theta1 - self.theta2) * a
 
-            # TODO: Use a shuffling approach instead of random sampling to match PROMISE
-            idx = torch.from_numpy(np.random.choice(n, self.bg, replace=False))
+            idx = _get_minibatch(generator)
             g_diff = _get_stochastic_grad_diff_inducing(
                 x, n, idx, x_inducing_j, kernel_params, K_mm, w, y, b, lambd
             )

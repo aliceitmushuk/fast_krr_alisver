@@ -1,11 +1,10 @@
-import torch
-import numpy as np
-
+from .minibatch_generator import MinibatchGenerator
 from .opt_utils_sgd import (
     _get_needed_quantities_inducing,
     _get_precond_L_inducing,
     _get_stochastic_grad_inducing,
     _apply_precond,
+    _get_minibatch,
 )
 
 
@@ -74,9 +73,10 @@ class SketchySGD:
                 metric_lin_op, K_tst, a, K_nmTb, b_tst, b_norm, task, -1, True
             )
 
+        generator = MinibatchGenerator(n, self.bg)
+
         for i in range(max_iter):
-            # TODO: Use a shuffling approach instead of random sampling to match PROMISE
-            idx = torch.from_numpy(np.random.choice(n, self.bg, replace=False))
+            idx = _get_minibatch(generator)
             g = _get_stochastic_grad_inducing(
                 x, n, idx, x_inducing_j, kernel_params, K_mm, a, b, lambd
             )
