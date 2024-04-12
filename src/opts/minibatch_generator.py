@@ -1,5 +1,6 @@
 import torch
 
+
 class MinibatchGenerator:
     def __init__(self, n, bg):
         self.n = n
