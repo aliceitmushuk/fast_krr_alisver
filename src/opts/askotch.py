@@ -95,7 +95,7 @@ class ASkotch:
                 * dir
             )
 
-            # Update x
+            # Update a
             a = tau * z + (1 - tau) * y
 
             if logger_enabled:
