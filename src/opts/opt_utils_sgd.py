@@ -108,3 +108,11 @@ def _apply_precond(v, precond):
         return precond.inv_lin_op(v)
     else:
         return v
+
+
+def _get_minibatch(generator):
+    try:
+        idx = next(generator)
+        return idx
+    except StopIteration:
+        return None

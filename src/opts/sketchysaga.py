@@ -1,11 +1,12 @@
 import torch
-import numpy as np
 
+from .minibatch_generator import MinibatchGenerator
 from .opt_utils_sgd import (
     _get_needed_quantities_inducing,
     _get_precond_L_inducing,
     _get_table_val,
     _apply_precond,
+    _get_minibatch,
 )
 
 
@@ -37,6 +38,7 @@ class SketchySAGA:
 
         K_nmTb = K_nm.T @ b  # Useful for computing metrics
 
+        logger_enabled = False
         if logger is not None:
             logger_enabled = True
 
@@ -76,9 +78,10 @@ class SketchySAGA:
                 metric_lin_op, K_tst, a, K_nmTb, b_tst, b_norm, task, -1, True
             )
 
+        generator = MinibatchGenerator(n, self.bg)
+
         for i in range(max_iter):
-            # TODO: Use a shuffling approach instead of random sampling to match PROMISE
-            idx = torch.from_numpy(np.random.choice(n, self.bg, replace=False))
+            idx = _get_minibatch(generator)
 
             # Compute the aux vector
             new_weights, K_nm_idx = _get_table_val(
