@@ -1,5 +1,4 @@
 import torch
-import numpy as np
 
 from opt_utils_pcg import _get_precond, _get_kernel_matrices, _init_pcg, _step_pcg
 
@@ -21,15 +20,14 @@ class PCG:
         max_iter,
         device,
         logger=None,
-        pcg_tol=10**-6,
-        Verbose=False,
+        pcg_tol=1e-6,
+        verbose=False,
     ):
         K, K_tst, n, b_norm = _get_kernel_matrices(x, x_tst, kernel_params, b)
 
+        logger_enabled = False
         if logger is not None:
             logger_enabled = True
-        else:
-            logger_enabled = False
 
         precond = _get_precond(x, n, K, kernel_params, self.precond_params, device)
 
@@ -50,7 +48,7 @@ class PCG:
 
             r_norm = torch.linalg.norm(r)
 
-            if Verbose:
+            if verbose:
                 print("Current PCG residual:" + repr(r_norm))
 
             if torch.linalg.norm(r_norm) <= pcg_tol:

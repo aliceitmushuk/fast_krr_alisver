@@ -32,6 +32,7 @@ class Skotch:
             x, x_tst, kernel_params, b, self.B
         )
 
+        logger_enabled = False
         if logger is not None:
             logger_enabled = True
 

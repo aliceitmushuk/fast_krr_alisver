@@ -36,6 +36,7 @@ class SketchySGD:
 
         K_nmTb = K_nm.T @ b  # Useful for computing metrics
 
+        logger_enabled = False
         if logger is not None:
             logger_enabled = True
 

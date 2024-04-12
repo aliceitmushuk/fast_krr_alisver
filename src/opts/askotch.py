@@ -34,6 +34,7 @@ class ASkotch:
 
         alpha = (1 - self.beta) / 2  # Controls acceleration
 
+        logger_enabled = False
         if logger is not None:
             logger_enabled = True
 
