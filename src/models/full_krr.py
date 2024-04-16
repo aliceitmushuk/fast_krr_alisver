@@ -1,6 +1,7 @@
 import torch
+from pykeops.torch import LazyTensor
 
-from ..kernels.kernel_inits import _get_kernels_start
+from ..kernels.kernel_inits import _get_kernel, _get_kernels_start
 
 
 class FullKRR:
@@ -22,3 +23,22 @@ class FullKRR:
 
     def lin_op(self, v):
         return self.K @ v + self.lambd * v
+    
+    def _get_block_grad(self, w, block):
+        xb_i = LazyTensor(self.x[block][:, None, :])
+        Kbn = _get_kernel(xb_i, self.x_j, self.kernel_params)
+
+        return Kbn @ w + self.lambd * self.w[block] - self.b[block]
+    
+    def _get_block_lin_ops(self, block):
+        xb_i = LazyTensor(self.x[block][:, None, :])
+        xb_j = LazyTensor(self.x[block][None, :, :])
+        Kb = _get_kernel(xb_i, xb_j, self.kernel_params)
+
+        def Kb_lin_op(v):
+            return Kb @ v
+
+        def Kb_lin_op_reg(v):
+            return Kb @ v + self.lambd * v
+        
+        return Kb_lin_op, Kb_lin_op_reg

@@ -52,6 +52,7 @@ class ASkotch:
             # Get the block, step size, and update direction
             block, eta, dir = _get_block_update(
                 self.model,
+                self.model.w,
                 block_idx,
                 blocks,
                 block_preconds,

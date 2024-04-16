@@ -33,11 +33,10 @@ def _get_precond_L_inducing(model, bH, precond_params):
             precond = Nystrom(model.device, **precond_params_sub)
             precond.update(K_inducing_sub_lin_op, model.m)
             L = _get_L(
-                K_inducing_sub_Kmm_lin_op, model.lambd, precond.inv_sqrt_lin_op, model.m, model.device
+                K_inducing_sub_Kmm_lin_op, precond.inv_sqrt_lin_op, model.m, model.device
             )
     else:  # No preconditioner
-        L = _get_L(K_inducing_sub_Kmm_lin_op,
-                   model.lambd, lambda x: x, model.m, model.device)
+        L = _get_L(K_inducing_sub_Kmm_lin_op, lambda x: x, model.m, model.device)
 
     return precond, L
 

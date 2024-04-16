@@ -1,10 +1,7 @@
 import torch
-from pykeops.torch import LazyTensor
 
 from .opt_utils import _get_L
 from ..preconditioners.nystrom import Nystrom
-from ..kernels.kernel_inits import _get_kernel
-
 
 def _get_blocks(n, B):
     # Permute the indices
@@ -24,11 +21,8 @@ def _get_blocks(n, B):
     return blocks
 
 
-def _get_block_precond_L(Kb, lambd, block, precond_params, device):
+def _get_block_precond_L(block_lin_op, block_lin_op_reg, lambd, block, precond_params, device):
     precond = None
-
-    def Kb_lin_op(v):
-        return Kb @ v
 
     if precond_params is not None:
         if precond_params["type"] == "nystrom":
@@ -36,7 +30,7 @@ def _get_block_precond_L(Kb, lambd, block, precond_params, device):
                 k: v for k, v in precond_params.items() if k != "type"
             }
             precond = Nystrom(device, **precond_params_sub)
-            precond.update(Kb_lin_op, block.shape[0])
+            precond.update(block_lin_op, block.shape[0])
 
             # Automatically set rho to lambda + S[-1] if not provided
             precond.rho = (
@@ -45,10 +39,10 @@ def _get_block_precond_L(Kb, lambd, block, precond_params, device):
                 else precond_params_sub["rho"]
             )
             L = _get_L(
-                Kb_lin_op, lambd, precond.inv_sqrt_lin_op, block.shape[0], device
+                block_lin_op_reg, precond.inv_sqrt_lin_op, block.shape[0], device
             )
     else:  # No preconditioner
-        L = _get_L(Kb_lin_op, lambd, lambda x: x, block.shape[0], device)
+        L = _get_L(block_lin_op_reg, lambda x: x, block.shape[0], device)
 
     return precond, L
 
@@ -57,11 +51,10 @@ def _get_block_properties(model, blocks, precond_params):
     block_preconds, block_etas, block_Ls = [], [], []
 
     for _, block in enumerate(blocks):
-        xb_i = LazyTensor(model.x[block][:, None, :])
-        xb_j = LazyTensor(model.x[block][None, :, :])
-        Kb = _get_kernel(xb_i, xb_j, model.kernel_params)
+        Kb_lin_op, Kb_lin_op_reg = model._get_block_lin_ops(block)
 
-        precond, L = _get_block_precond_L(Kb, model.lambd, block, precond_params, model.device)
+        precond, L = _get_block_precond_L(
+            Kb_lin_op, Kb_lin_op_reg, model.lambd, block, precond_params, model.device)
 
         block_preconds.append(precond)
         block_Ls.append(L)
@@ -70,21 +63,14 @@ def _get_block_properties(model, blocks, precond_params):
     return block_preconds, block_etas, block_Ls
 
 
-def _get_block_grad(x, x_j, kernel_params, a, b, lambd, block):
-    xb_i = LazyTensor(x[block][:, None, :])
-    Kbn = _get_kernel(xb_i, x_j, kernel_params)
-
-    return Kbn @ a + lambd * a[block] - b[block]
-
-
-def _get_block_update(model, block_idx, blocks, block_preconds, block_etas):
+def _get_block_update(model, w, block_idx, blocks, block_preconds, block_etas):
     # Get the block and its corresponding preconditioner
     block = blocks[block_idx]
     precond = block_preconds[block_idx]
     eta = block_etas[block_idx]
 
     # Compute the block gradient
-    gb = _get_block_grad(model.x, model.x_j, model.kernel_params, model.w, model.b, model.lambd, block)
+    gb = model._get_block_grad(w, block)
 
     # Apply the preconditioner
     if precond is not None:
