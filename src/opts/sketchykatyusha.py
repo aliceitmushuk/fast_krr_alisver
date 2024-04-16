@@ -60,16 +60,16 @@ class SketchyKatyusha:
         generator = MinibatchGenerator(self.model.n, self.bg)
 
         for i in range(max_iter):
-            w = theta1 * z + self.theta2 * y + (1 - theta1 - self.theta2) * self.model.w
+            x = theta1 * z + self.theta2 * y + (1 - theta1 - self.theta2) * self.model.w
 
             idx = _get_minibatch(generator)
-            g_diff = _get_stochastic_grad_diff_inducing(self.model, idx, w, y)
+            g_diff = _get_stochastic_grad_diff_inducing(self.model, idx, x, y)
             dir = _apply_precond(g_diff + g_bar, precond)
 
-            z_new = 1 / (1 + eta * sigma) * (eta * sigma * w + z - eta / L * dir)
+            z_new = 1 / (1 + eta * sigma) * (eta * sigma * x + z - eta / L * dir)
 
             # Update parameters
-            self.model.w = w + theta1 * (z_new - z)
+            self.model.w = x + theta1 * (z_new - z)
 
             z = z_new.clone()
 
