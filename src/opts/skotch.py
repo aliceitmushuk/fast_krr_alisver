@@ -14,11 +14,7 @@ class Skotch:
         self.alpha = alpha
         self.precond_params = precond_params
 
-    def run(
-        self,
-        max_iter,
-        logger=None,
-    ):
+    def run(self, max_iter, logger=None):
         blocks = _get_blocks(self.model.n, self.B)
 
         logger_enabled = False

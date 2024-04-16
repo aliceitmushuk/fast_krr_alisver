@@ -2,7 +2,6 @@ import torch
 
 from .minibatch_generator import MinibatchGenerator
 from .opt_utils_sgd import (
-    _get_needed_quantities_inducing,
     _get_precond_L_inducing,
     _get_stochastic_grad_diff_inducing,
     _get_full_grad_inducing,
@@ -12,7 +11,8 @@ from .opt_utils_sgd import (
 
 
 class SketchyKatyusha:
-    def __init__(self, bg, bH=None, p=None, mu=None, precond_params=None):
+    def __init__(self, model, bg, bH=None, p=None, mu=None, precond_params=None):
+        self.model = model
         self.bg = bg
         self.bH = bH
         self.p = p
@@ -21,103 +21,64 @@ class SketchyKatyusha:
 
         self.theta2 = 0.5
 
-    def run(
-        self,
-        x,
-        b,
-        x_tst,
-        b_tst,
-        kernel_params,
-        inducing_pts,
-        lambd,
-        task,
-        a0,
-        max_iter,
-        device,
-        logger=None,
-    ):
-
-        x_inducing_j, K_mm, K_nm, K_tst, m, n, b_norm = _get_needed_quantities_inducing(
-            x, x_tst, inducing_pts, kernel_params, b
-        )
-
-        K_nmTb = K_nm.T @ b  # Useful for computing metrics
-
+    def run(self, max_iter, logger=None):
         logger_enabled = False
         if logger is not None:
             logger_enabled = True
-
-            def metric_lin_op(v):
-                return K_nm.T @ (K_nm @ v) + lambd * (K_mm @ v)
 
         if logger_enabled:
             logger.reset_timer()
 
         # Set hyperparameters if not provided
         if self.bH is None:
-            self.bH = int(n**0.5)
+            self.bH = int(self.model.n**0.5)
 
         precond, L = _get_precond_L_inducing(
-            x,
-            m,
-            n,
-            self.bH,
-            x_inducing_j,
-            kernel_params,
-            K_mm,
-            lambd,
-            self.precond_params,
-            device,
-        )
+            self.model, self.bH, self.precond_params)
 
         # Set hyperparameters if not provided
         if self.p is None:
-            self.p = self.bg / n
+            self.p = self.bg / self.model.n
         if self.mu is None:
-            self.mu = lambd
+            self.mu = self.model.lambd
 
         sigma = self.mu / L
-        theta1 = min(torch.sqrt(2 / 3 * n * sigma), 0.5)
+        theta1 = min(torch.sqrt(2 / 3 * self.model.n * sigma), 0.5)
         eta = self.theta2 / ((1 + self.theta2) * theta1)
 
-        a = a0.clone()
-        y = a0.clone()
-        z = a0.clone()
-        g_bar = _get_full_grad_inducing(K_nm, K_mm, y, b, lambd)
+        y = self.model.w.clone()
+        z = self.model.w.clone()
+        g_bar = _get_full_grad_inducing(self.model, y)
 
         if (
             logger_enabled
         ):  # We use K_nmTb instead of b because we are using inducing points
             logger.compute_log_reset(
-                metric_lin_op, K_tst, a, K_nmTb, b_tst, b_norm, task, -1, True
+                self.model.lin_op, self.model.K_tst, self.model.w, self.model.K_nmTb, self.model.b_tst, self.model.b_norm, self.model.task, -1, True
             )
 
-        generator = MinibatchGenerator(n, self.bg)
+        generator = MinibatchGenerator(self.model.n, self.bg)
 
         for i in range(max_iter):
-            w = theta1 * z + self.theta2 * y + (1 - theta1 - self.theta2) * a
+            w = theta1 * z + self.theta2 * y + (1 - theta1 - self.theta2) * self.model.w
 
             idx = _get_minibatch(generator)
-            g_diff = _get_stochastic_grad_diff_inducing(
-                x, n, idx, x_inducing_j, kernel_params, K_mm, w, y, b, lambd
-            )
+            g_diff = _get_stochastic_grad_diff_inducing(self.model, idx, w, y)
             dir = _apply_precond(g_diff + g_bar, precond)
 
             z_new = 1 / (1 + eta * sigma) * (eta * sigma * w + z - eta / L * dir)
 
             # Update parameters
-            a = w + theta1 * (z_new - z)
+            self.model.w = w + theta1 * (z_new - z)
 
             z = z_new.clone()
 
             # Update snapshot
             if torch.rand(1).item() < self.p:
-                y = a.clone()
-                g_bar = _get_full_grad_inducing(K_nm, K_mm, y, b, lambd)
+                y = self.model.w.clone()
+                g_bar = _get_full_grad_inducing(self.model, y)
 
             if logger_enabled:
                 logger.compute_log_reset(
-                    metric_lin_op, K_tst, a, K_nmTb, b_tst, b_norm, task, i, True
+                    self.model.lin_op, self.model.K_tst, self.model.w, self.model.K_nmTb, self.model.b_tst, self.model.b_norm, self.model.task, i, True
                 )
-
-        return a

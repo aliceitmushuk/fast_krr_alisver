@@ -5,6 +5,7 @@ import wandb
 import torch
 
 from src.models.full_krr import FullKRR
+from src.models.inducing_krr import InducingKRR
 from src.opts.skotch import Skotch
 from src.opts.askotch import ASkotch
 from src.opts.sketchysgd import SketchySGD
@@ -250,6 +251,19 @@ def main():
             "sketchykatyusha",
         ]:
             w0 = torch.zeros(config.m, device=config.device)
+            inducing_pts = torch.randperm(Xtr.shape[0])[: config.m]
+            model = InducingKRR(
+                Xtr,
+                ytr,
+                Xtst,
+                ytst,
+                config.kernel_params,
+                inducing_pts,
+                config.lambd,
+                config.task,
+                w0,
+                config.device,
+            )
 
         # Select the optimizer
         if config.opt == "skotch":
@@ -262,19 +276,19 @@ def main():
             "sketchysaga",
             "sketchykatyusha",
         ]:
-            inducing_pts = torch.randperm(Xtr.shape[0])[: config.m]
-
             if config.opt == "sketchysgd":
-                opt = SketchySGD(config.bg, config.bH, config.precond_params)
+                opt = SketchySGD(model, config.bg, config.bH,
+                                 config.precond_params)
             elif config.opt == "sketchysvrg":
                 opt = SketchySVRG(
-                    config.bg, config.bH, config.update_freq, config.precond_params
+                    model, config.bg, config.bH, config.update_freq, config.precond_params
                 )
             elif config.opt == "sketchysaga":
-                opt = SketchySAGA(config.bg, config.bH, config.precond_params)
+                opt = SketchySAGA(model, config.bg, config.bH,
+                                  config.precond_params)
             elif config.opt == "sketchykatyusha":
                 opt = SketchyKatyusha(
-                    config.bg, config.bH, config.p, config.lambd, config.precond_params
+                    model, config.bg, config.bH, config.p, config.lambd, config.precond_params
                 )
 
         # Initialize the logger
@@ -282,28 +296,7 @@ def main():
 
         # Run the optimizer
         with torch.no_grad():
-            if config.opt in [
-                "sketchysgd",
-                "sketchysvrg",
-                "sketchysaga",
-                "sketchykatyusha",
-            ]:
-                opt.run(
-                    Xtr,
-                    ytr,
-                    Xtst,
-                    ytst,
-                    config.kernel_params,
-                    inducing_pts,
-                    config.lambd,
-                    config.task,
-                    w0,
-                    config.max_iter,
-                    config.device,
-                    logger,
-                )
-            else:
-                opt.run(config.max_iter, logger)
+            opt.run(config.max_iter, logger)
 
 
 if __name__ == "__main__":

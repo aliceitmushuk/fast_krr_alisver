@@ -6,50 +6,22 @@ from .opt_utils import _get_L
 from ..preconditioners.nystrom import Nystrom
 from ..kernels.kernel_inits import _get_kernel
 
+def _get_precond_L_inducing(model, bH, precond_params):
+    hess_pts = torch.from_numpy(np.random.choice(model.n, bH, replace=False))
+    x_hess_i = LazyTensor(model.x[hess_pts][:, None, :])
+    K_sm = _get_kernel(x_hess_i, model.x_inducing_j, model.kernel_params)
 
-def _get_needed_quantities_inducing(x, x_tst, inducing_pts, kernel_params, b):
-    # Get inducing points kernel
-    x_inducing_i = LazyTensor(x[inducing_pts][:, None, :])
-    x_inducing_j = LazyTensor(x[inducing_pts][None, :, :])
-    K_mm = _get_kernel(x_inducing_i, x_inducing_j, kernel_params)
+    hess_pts_lr = torch.from_numpy(np.random.choice(model.n, bH, replace=False))
+    x_hess_lr_i = LazyTensor(model.x[hess_pts_lr][:, None, :])
+    K_sm_lr = _get_kernel(x_hess_lr_i, model.x_inducing_j, model.kernel_params)
 
-    # Get kernel between full training set and inducing points
-    x_i = LazyTensor(x[:, None, :])
-    K_nm = _get_kernel(x_i, x_inducing_j, kernel_params)
-
-    # Get kernel for test set
-    x_tst_i = LazyTensor(x_tst[:, None, :])
-    K_tst = _get_kernel(x_tst_i, x_inducing_j, kernel_params)
-
-    return (
-        x_inducing_j,
-        K_mm,
-        K_nm,
-        K_tst,
-        inducing_pts.shape[0],
-        x.shape[0],
-        torch.norm(b),
-    )
-
-
-def _get_precond_L_inducing(
-    x, m, n, bH, x_inducing_j, kernel_params, K_mm, lambd, precond_params, device
-):
-    hess_pts = torch.from_numpy(np.random.choice(n, bH, replace=False))
-    x_hess_i = LazyTensor(x[hess_pts][:, None, :])
-    K_sm = _get_kernel(x_hess_i, x_inducing_j, kernel_params)
-
-    hess_pts_lr = torch.from_numpy(np.random.choice(n, bH, replace=False))
-    x_hess_lr_i = LazyTensor(x[hess_pts_lr][:, None, :])
-    K_sm_lr = _get_kernel(x_hess_lr_i, x_inducing_j, kernel_params)
-
-    adj_factor = n / bH
+    adj_factor = model.n / bH
 
     def K_inducing_sub_lin_op(v):
         return adj_factor * K_sm.T @ (K_sm @ v)
 
     def K_inducing_sub_Kmm_lin_op(v):
-        return adj_factor * K_sm_lr.T @ (K_sm_lr @ v) + lambd * (K_mm @ v)
+        return adj_factor * K_sm_lr.T @ (K_sm_lr @ v) + model.lambd * (model.K_mm @ v)
 
     precond = None
 
@@ -58,49 +30,48 @@ def _get_precond_L_inducing(
             precond_params_sub = {
                 k: v for k, v in precond_params.items() if k != "type"
             }
-            precond = Nystrom(device, **precond_params_sub)
-            precond.update(K_inducing_sub_lin_op, m)
+            precond = Nystrom(model.device, **precond_params_sub)
+            precond.update(K_inducing_sub_lin_op, model.m)
             L = _get_L(
-                K_inducing_sub_Kmm_lin_op, lambd, precond.inv_sqrt_lin_op, m, device
+                K_inducing_sub_Kmm_lin_op, model.lambd, precond.inv_sqrt_lin_op, model.m, model.device
             )
     else:  # No preconditioner
-        L = _get_L(K_inducing_sub_Kmm_lin_op, lambd, lambda x: x, m, device)
+        L = _get_L(K_inducing_sub_Kmm_lin_op,
+                   model.lambd, lambda x: x, model.m, model.device)
 
     return precond, L
 
 
-def _get_stochastic_grad_inducing(
-    x, n, idx, x_inducing_j, kernel_params, K_mm, a, b, lambd
-):
-    x_idx_i = LazyTensor(x[idx][:, None, :])
-    K_nm_idx = _get_kernel(x_idx_i, x_inducing_j, kernel_params)
-    g = n / idx.shape[0] * (K_nm_idx.T @ (K_nm_idx @ a - b[idx])) + lambd * (K_mm @ a)
+def _get_stochastic_grad_inducing(model, idx, w):
+    x_idx_i = LazyTensor(model.x[idx][:, None, :])
+    K_nm_idx = _get_kernel(x_idx_i, model.x_inducing_j, model.kernel_params)
+    g = model.n / idx.shape[0] * (K_nm_idx.T @ (K_nm_idx @ w - model.b[idx])) + model.lambd * (model.K_mm @ w)
 
     return g
 
 
 # NOTE: This works because of the structure of the KRR objective -- does not work for general objectives
-def _get_stochastic_grad_diff_inducing(
-    x, n, idx, x_inducing_j, kernel_params, K_mm, a, a_tilde, b, lambd
-):
-    x_idx_i = LazyTensor(x[idx][:, None, :])
-    K_nm_idx = _get_kernel(x_idx_i, x_inducing_j, kernel_params)
-    a_diff = a - a_tilde
-    g_diff = n / idx.shape[0] * (K_nm_idx.T @ (K_nm_idx @ a_diff)) + lambd * (
-        K_mm @ a_diff
+def _get_stochastic_grad_diff_inducing(model, idx, w1, w2):
+    x_idx_i = LazyTensor(model.x[idx][:, None, :])
+    K_nm_idx = _get_kernel(x_idx_i, model.x_inducing_j, model.kernel_params)
+    w_diff = w1 - w2
+    g_diff = model.n / idx.shape[0] * (K_nm_idx.T @ (K_nm_idx @ w_diff)) + model.lambd * (
+        model.K_mm @ w_diff
     )
 
     return g_diff
 
 
-def _get_full_grad_inducing(K_nm, K_mm, a, b, lambd):
-    return K_nm.T @ (K_nm @ a - b) + lambd * (K_mm @ a)
+def _get_full_grad_inducing(model, w):
+    return model.K_nm.T @ (model.K_nm @ w - model.b) + model.lambd * (model.K_mm @ w)
 
 
-def _get_table_val(x, n, idx, x_inducing_j, kernel_params, a, b):
-    x_idx_i = LazyTensor(x[idx][:, None, :])
-    K_nm_idx = _get_kernel(x_idx_i, x_inducing_j, kernel_params)
-    return n * (K_nm_idx @ a - b[idx]), K_nm_idx
+def _get_table_aux(model, idx, w, table):
+    x_idx_i = LazyTensor(model.x[idx][:, None, :])
+    K_nm_idx = _get_kernel(x_idx_i, model.x_inducing_j, model.kernel_params)
+    new_weights = model.n * (K_nm_idx @ w - model.b[idx])
+    aux = K_nm_idx.T @ (new_weights - table[idx])
+    return new_weights, aux
 
 
 def _apply_precond(v, precond):
