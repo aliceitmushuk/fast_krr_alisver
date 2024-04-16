@@ -1,49 +1,35 @@
 import torch
 
 from .opt_utils_bcd import (
-    _get_needed_quantities,
+    _get_blocks,
     _get_block_properties,
     _get_block_update,
 )
 
 
 class Skotch:
-    def __init__(self, B, alpha=0.5, precond_params=None):
+    def __init__(self, model, B, alpha=0.5, precond_params=None):
+        self.model = model
         self.B = B
         self.alpha = alpha
         self.precond_params = precond_params
 
     def run(
         self,
-        x,
-        b,
-        x_tst,
-        b_tst,
-        kernel_params,
-        lambd,
-        task,
-        a0,
         max_iter,
-        device,
         logger=None,
     ):
-
-        x_j, K, K_tst, b_norm, blocks = _get_needed_quantities(
-            x, x_tst, kernel_params, b, self.B
-        )
+        blocks = _get_blocks(self.model.n, self.B)
 
         logger_enabled = False
         if logger is not None:
             logger_enabled = True
 
-            def metric_lin_op(v):
-                return K @ v + lambd * v
-
         if logger_enabled:
             logger.reset_timer()
 
         block_preconds, block_etas, block_Ls = _get_block_properties(
-            x, kernel_params, lambd, blocks, self.precond_params, device
+            self.model, blocks, self.precond_params
         )
 
         S_alpha = sum([L**self.alpha for L in block_Ls])
@@ -51,11 +37,9 @@ class Skotch:
         block_probs = torch.tensor([L**self.alpha / S_alpha for L in block_Ls])
         sampling_dist = torch.distributions.categorical.Categorical(block_probs)
 
-        a = a0.clone()
-
         if logger_enabled:
             logger.compute_log_reset(
-                metric_lin_op, K_tst, a, b, b_tst, b_norm, task, -1, False
+                self.model.lin_op, self.model.K_tst, self.model.w, self.model.b, self.model.b_tst, self.model.b_norm, self.model.task, -1, False
             )
 
         for i in range(max_iter):
@@ -64,24 +48,17 @@ class Skotch:
 
             # Get the block, step size, and update direction
             block, eta, dir = _get_block_update(
+                self.model,
                 block_idx,
                 blocks,
                 block_preconds,
-                block_etas,
-                x,
-                x_j,
-                kernel_params,
-                a,
-                b,
-                lambd,
+                block_etas
             )
 
             # Update block
-            a[block] -= eta * dir
+            self.model.w[block] -= eta * dir
 
             if logger_enabled:
                 logger.compute_log_reset(
-                    metric_lin_op, K_tst, a, b, b_tst, b_norm, task, i, False
+                    self.model.lin_op, self.model.K_tst, self.model.w, self.model.b, self.model.b_tst, self.model.b_norm, self.model.task, i, False
                 )
-
-        return a

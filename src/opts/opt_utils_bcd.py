@@ -3,7 +3,7 @@ from pykeops.torch import LazyTensor
 
 from .opt_utils import _get_L
 from ..preconditioners.nystrom import Nystrom
-from ..kernels.kernel_inits import _get_kernel, _get_kernels_start
+from ..kernels.kernel_inits import _get_kernel
 
 
 def _get_blocks(n, B):
@@ -22,16 +22,6 @@ def _get_blocks(n, B):
     blocks = torch.split(idx, sizes)
 
     return blocks
-
-
-# TODO: Give a better name to this function
-def _get_needed_quantities(x, x_tst, kernel_params, b, B):
-    x_j, K, K_tst = _get_kernels_start(x, x_tst, kernel_params)
-
-    b_norm = torch.norm(b)
-    blocks = _get_blocks(x.shape[0], B)
-
-    return x_j, K, K_tst, b_norm, blocks
 
 
 def _get_block_precond_L(Kb, lambd, block, precond_params, device):
@@ -63,15 +53,15 @@ def _get_block_precond_L(Kb, lambd, block, precond_params, device):
     return precond, L
 
 
-def _get_block_properties(x, kernel_params, lambd, blocks, precond_params, device):
+def _get_block_properties(model, blocks, precond_params):
     block_preconds, block_etas, block_Ls = [], [], []
 
     for _, block in enumerate(blocks):
-        xb_i = LazyTensor(x[block][:, None, :])
-        xb_j = LazyTensor(x[block][None, :, :])
-        Kb = _get_kernel(xb_i, xb_j, kernel_params)
+        xb_i = LazyTensor(model.x[block][:, None, :])
+        xb_j = LazyTensor(model.x[block][None, :, :])
+        Kb = _get_kernel(xb_i, xb_j, model.kernel_params)
 
-        precond, L = _get_block_precond_L(Kb, lambd, block, precond_params, device)
+        precond, L = _get_block_precond_L(Kb, model.lambd, block, precond_params, model.device)
 
         block_preconds.append(precond)
         block_Ls.append(L)
@@ -87,17 +77,14 @@ def _get_block_grad(x, x_j, kernel_params, a, b, lambd, block):
     return Kbn @ a + lambd * a[block] - b[block]
 
 
-def _get_block_update(
-    block_idx, blocks, block_preconds, block_etas, x, x_j, kernel_params, a, b, lambd
-):
-
+def _get_block_update(model, block_idx, blocks, block_preconds, block_etas):
     # Get the block and its corresponding preconditioner
     block = blocks[block_idx]
     precond = block_preconds[block_idx]
     eta = block_etas[block_idx]
 
     # Compute the block gradient
-    gb = _get_block_grad(x, x_j, kernel_params, a, b, lambd, block)
+    gb = _get_block_grad(model.x, model.x_j, model.kernel_params, model.w, model.b, model.lambd, block)
 
     # Apply the preconditioner
     if precond is not None:

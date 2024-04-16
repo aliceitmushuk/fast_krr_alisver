@@ -4,6 +4,7 @@ import warnings
 import wandb
 import torch
 
+from src.models.full_krr import FullKRR
 from src.opts.skotch import Skotch
 from src.opts.askotch import ASkotch
 from src.opts.sketchysgd import SketchySGD
@@ -237,11 +238,24 @@ def main():
         # Load the dataset
         Xtr, Xtst, ytr, ytst = load_data(config.dataset, config.seed, config.device)
 
+        # Get the model, initializing at zero
+        if config.opt in ["skotch", "askotch"]:
+            w0 = torch.zeros(Xtr.shape[0], device=config.device)
+            model = FullKRR(Xtr, ytr, Xtst, ytst, config.kernel_params,
+                            config.lambd, config.task, w0, config.device)
+        elif config.opt in [
+            "sketchysgd",
+            "sketchysvrg",
+            "sketchysaga",
+            "sketchykatyusha",
+        ]:
+            w0 = torch.zeros(config.m, device=config.device)
+
         # Select the optimizer
         if config.opt == "skotch":
-            opt = Skotch(config.b, config.alpha, config.precond_params)
+            opt = Skotch(model, config.b, config.alpha, config.precond_params)
         elif config.opt == "askotch":
-            opt = ASkotch(config.b, config.beta, config.precond_params)
+            opt = ASkotch(model, config.b, config.beta, config.precond_params)
         elif config.opt in [
             "sketchysgd",
             "sketchysvrg",
@@ -263,17 +277,6 @@ def main():
                     config.bg, config.bH, config.p, config.lambd, config.precond_params
                 )
 
-        # Initialize at 0
-        if config.opt == "skotch" or config.opt == "askotch":
-            a0 = torch.zeros(Xtr.shape[0], device=config.device)
-        elif config.opt in [
-            "sketchysgd",
-            "sketchysvrg",
-            "sketchysaga",
-            "sketchykatyusha",
-        ]:
-            a0 = torch.zeros(config.m, device=config.device)
-
         # Initialize the logger
         logger = Logger(config.log_freq)
 
@@ -294,25 +297,13 @@ def main():
                     inducing_pts,
                     config.lambd,
                     config.task,
-                    a0,
+                    w0,
                     config.max_iter,
                     config.device,
                     logger,
                 )
             else:
-                opt.run(
-                    Xtr,
-                    ytr,
-                    Xtst,
-                    ytst,
-                    config.kernel_params,
-                    config.lambd,
-                    config.task,
-                    a0,
-                    config.max_iter,
-                    config.device,
-                    logger,
-                )
+                opt.run(config.max_iter, logger)
 
 
 if __name__ == "__main__":
