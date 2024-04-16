@@ -1,8 +1,6 @@
 from .minibatch_generator import MinibatchGenerator
 from .opt_utils_sgd import (
     _get_precond_L_inducing,
-    _get_stochastic_grad_diff_inducing,
-    _get_full_grad_inducing,
     _apply_precond,
     _get_minibatch,
 )
@@ -51,12 +49,10 @@ class SketchySVRG:
         for i in range(max_iter):
             if i % self.update_freq == 0:
                 w_tilde = self.model.w.clone()
-                g_bar = _get_full_grad_inducing(self.model, w_tilde)
+                g_bar = self.model._get_full_grad(w_tilde)
 
             idx = _get_minibatch(generator)
-            g_diff = _get_stochastic_grad_diff_inducing(
-                self.model, idx, self.model.w, w_tilde
-            )
+            g_diff = self.model._get_stochastic_grad_diff(idx, self.model.w, w_tilde)
             dir = _apply_precond(g_diff + g_bar, precond)
 
             # Update parameters

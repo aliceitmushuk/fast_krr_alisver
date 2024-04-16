@@ -3,7 +3,6 @@ import torch
 from .minibatch_generator import MinibatchGenerator
 from .opt_utils_sgd import (
     _get_precond_L_inducing,
-    _get_table_aux,
     _apply_precond,
     _get_minibatch,
 )
@@ -48,7 +47,7 @@ class SketchySAGA:
             idx = _get_minibatch(generator)
 
             # Compute the new table weights and aux vector
-            new_weights, aux = _get_table_aux(self.model, idx, self.model.w, table)
+            new_weights, aux = self.model._get_table_aux(idx, self.model.w, table)
 
             g = u + 1 / idx.shape[0] * aux
 

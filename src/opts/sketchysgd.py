@@ -1,7 +1,6 @@
 from .minibatch_generator import MinibatchGenerator
 from .opt_utils_sgd import (
     _get_precond_L_inducing,
-    _get_stochastic_grad_inducing,
     _apply_precond,
     _get_minibatch,
 )
@@ -41,7 +40,7 @@ class SketchySGD:
 
         for i in range(max_iter):
             idx = _get_minibatch(generator)
-            g = _get_stochastic_grad_inducing(self.model, idx, self.model.w)
+            g = self.model._get_stochastic_grad(idx, self.model.w)
             dir = _apply_precond(g, precond)
 
             # Update parameters

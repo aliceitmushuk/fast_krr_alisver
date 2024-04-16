@@ -3,8 +3,6 @@ import torch
 from .minibatch_generator import MinibatchGenerator
 from .opt_utils_sgd import (
     _get_precond_L_inducing,
-    _get_stochastic_grad_diff_inducing,
-    _get_full_grad_inducing,
     _apply_precond,
     _get_minibatch,
 )
@@ -48,7 +46,7 @@ class SketchyKatyusha:
 
         y = self.model.w.clone()
         z = self.model.w.clone()
-        g_bar = _get_full_grad_inducing(self.model, y)
+        g_bar = self.model._get_full_grad(y)
 
         if (
             logger_enabled
@@ -63,7 +61,7 @@ class SketchyKatyusha:
             x = theta1 * z + self.theta2 * y + (1 - theta1 - self.theta2) * self.model.w
 
             idx = _get_minibatch(generator)
-            g_diff = _get_stochastic_grad_diff_inducing(self.model, idx, x, y)
+            g_diff = self.model._get_stochastic_grad_diff(idx, x, y)
             dir = _apply_precond(g_diff + g_bar, precond)
 
             z_new = 1 / (1 + eta * sigma) * (eta * sigma * x + z - eta / L * dir)
@@ -76,7 +74,7 @@ class SketchyKatyusha:
             # Update snapshot
             if torch.rand(1).item() < self.p:
                 y = self.model.w.clone()
-                g_bar = _get_full_grad_inducing(self.model, y)
+                g_bar = self.model._get_full_grad(y)
 
             if logger_enabled:
                 logger.compute_log_reset(
