@@ -4,7 +4,7 @@ from pykeops.torch import LazyTensor
 
 from .opt_utils import _get_L
 from ..preconditioners.nystrom import Nystrom
-from ..kernels import _get_kernel
+from ..kernels.kernel_inits import _get_kernel
 
 
 def _get_needed_quantities_inducing(x, x_tst, inducing_pts, kernel_params, b):

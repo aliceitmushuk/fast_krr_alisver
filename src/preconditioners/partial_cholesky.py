@@ -1,9 +1,8 @@
 import torch
 from pykeops.torch import LazyTensor
-from kernels import _get_rbf_kernel, _get_l1_laplace_kernel, _get_matern_kernel
+from ..kernels.kernel_inits import _get_kernel_type, _get_kernel
 
-
-class Pivoted_Cholesky:
+class PartialCholesky:
     def __init__(self, device, r, rho=None):
         self.device = device
         self.r = r
@@ -16,27 +15,15 @@ class Pivoted_Cholesky:
         n = x.shape[0]
         L = torch.zeros(self.r, n).to(self.device)
         x_f = LazyTensor(x[:, None, :])
+        kernel_type = _get_kernel_type(kernel_params)
 
         # Get diagonal and function for getting kernel row corresponding to the specified kernel
-        if kernel_params["type"] == "rbf":
-            diag_K = torch.ones(n).to(self.device)
+        diag_K = kernel_type._get_diag_from_dim(n)
 
-            def get_row(x):
-                return _get_rbf_kernel(x_f, x, kernel_params["sigma"])
-
-        elif kernel_params["type"] == "l1_laplace":
-            diag_K = torch.ones(n).to(self.device)
-
-            def get_row(x):
-                return _get_l1_laplace_kernel(x_f, x, kernel_params["sigma"])
-
-        elif kernel_params["type"] == "matern":
-            diag_K = torch.ones(n).to(self.device)
-
-            def get_row(x):
-                return _get_matern_kernel(
-                    x_f, x, kernel_params["sigma"], kernel_params["nu"]
-                )
+        kernel_params_copy = kernel_params.copy()
+        kernel_params_copy.pop("type")
+        def get_row(x):
+            return _get_kernel(x_f, x, kernel_params_copy).K
 
         for i in range(self.r):
             # Find pivot index corresponding to maximum diagonal entry
