@@ -35,16 +35,11 @@ class PCG:
 
         a = a0.clone()
 
+        logger_enabled = False
         if logger is not None:
-
             logger_enabled = True
 
-        else:
-
-            logger_enabled = False
-
         if inducing:
-
             inducing_pts = torch.from_numpy(
                 np.random.choice(a0.shape[0], kernel_params["m"], replace=False)
             )
@@ -60,9 +55,7 @@ class PCG:
 
             Knm_Tb = K_nm.T @ b
             r, z, p = _init_pcg(a, K_Lin_Op, Knm_Tb, precond)
-
         else:
-
             K, K_tst, n, b_norm = _get_kernel_matrices(x, x_tst, kernel_params, b)
             precond = _get_precond(x, n, K, kernel_params, self.precond_params, device)
 
@@ -72,18 +65,15 @@ class PCG:
             r, z, p = _init_pcg(a, K_Lin_Op, b, precond)
 
         for i in range(max_iter):
-
             a, r, z, p = _step_pcg(a, r, z, p, K_Lin_Op, precond)
 
             if logger_enabled:
                 if inducing:
-
                     logger.compute_log_reset(
                         K_Lin_Op, K_tst, a, Knm_Tb, b_tst, b_norm, task, i, True
                     )
 
                 else:
-
                     logger.compute_log_reset(
                         K_Lin_Op, K_tst, a, b, b_tst, b_norm, task, i, False
                     )

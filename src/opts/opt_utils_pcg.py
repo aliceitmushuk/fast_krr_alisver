@@ -2,9 +2,9 @@ import torch
 from pykeops.torch import LazyTensor
 
 from ..preconditioners.nystrom import Nystrom
-from ..preconditioners.partial_cholesky import Pivoted_Cholesky
+from ..preconditioners.partial_cholesky import PartialCholesky
 from ..preconditioners.falkon import Falkon
-from ..kernels import _get_kernel, _get_kernels_start
+from ..kernels.kernel_inits import _get_kernel, _get_kernels_start
 
 
 def _get_kernel_matrices(x, x_tst, kernel_params, b):
@@ -46,11 +46,11 @@ def _get_precond(x, n, K, kernel_params, precond_params, device):
 
             precond = Nystrom(device, **precond_params_sub)
             precond.update(K_Lin_Op, n)
-        elif precond_params["type"] == "pivoted_cholesky":
+        elif precond_params["type"] == "partial_cholesky":
             precond_params_sub = {
                 k: v for k, v in precond_params.items() if k != "type"
             }
-            precond = Pivoted_Cholesky(device, **precond_params_sub)
+            precond = PartialCholesky(device, **precond_params_sub)
             precond.update(x, kernel_params)
     return precond
 
