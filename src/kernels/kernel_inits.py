@@ -4,6 +4,7 @@ from .l1_laplace import L1Laplace
 from .matern import Matern
 from .rbf import Rbf
 
+
 def _get_kernel_type(kernel_params):
     ker_type = None
 
@@ -15,6 +16,7 @@ def _get_kernel_type(kernel_params):
         ker_type = Matern
 
     return ker_type
+
 
 def _get_kernel(x1_lazy, x2_lazy, kernel_params):
     ker_type = _get_kernel_type(kernel_params)

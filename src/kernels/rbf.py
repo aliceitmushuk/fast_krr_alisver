@@ -16,7 +16,7 @@ class Rbf(Kernel):
         Rbf._check_kernel_params(kernel_params)
 
         D = ((x1_lazy - x2_lazy) ** 2).sum(dim=2)
-        K = (-D / (2 * kernel_params["sigma"]**2)).exp()
+        K = (-D / (2 * kernel_params["sigma"] ** 2)).exp()
 
         return K
 

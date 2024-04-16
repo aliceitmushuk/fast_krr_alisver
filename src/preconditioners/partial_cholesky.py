@@ -2,6 +2,7 @@ import torch
 from pykeops.torch import LazyTensor
 from ..kernels.kernel_inits import _get_kernel_type, _get_kernel
 
+
 class PartialCholesky:
     def __init__(self, device, r, rho=None):
         self.device = device
@@ -22,6 +23,7 @@ class PartialCholesky:
 
         kernel_params_copy = kernel_params.copy()
         kernel_params_copy.pop("type")
+
         def get_row(x):
             return _get_kernel(x_f, x, kernel_params_copy).K
 
