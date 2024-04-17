@@ -36,20 +36,8 @@ class SketchySAGA:
             self.model.m, device=self.model.device
         )  # Running average in SAGA
 
-        if (
-            logger_enabled
-        ):  # We use K_nmTb instead of b because we are using inducing points
-            logger.compute_log_reset(
-                self.model.lin_op,
-                self.model.K_tst,
-                self.model.w,
-                self.model.K_nmTb,
-                self.model.b_tst,
-                self.model.b_norm,
-                self.model.task,
-                -1,
-                True,
-            )
+        if logger_enabled:
+            logger.compute_log_reset(-1, self.model.compute_metrics, self.model.w)
 
         generator = MinibatchGenerator(self.model.n, self.bg)
 
@@ -60,7 +48,6 @@ class SketchySAGA:
             new_weights, aux = self.model._get_table_aux(idx, self.model.w, table)
 
             g = u + 1 / idx.shape[0] * aux
-
             u += 1 / self.model.n * aux
 
             # Update the table at the sampled indices
@@ -75,14 +62,4 @@ class SketchySAGA:
             self.model.w -= eta * dir
 
             if logger_enabled:
-                logger.compute_log_reset(
-                    self.model.lin_op,
-                    self.model.K_tst,
-                    self.model.w,
-                    self.model.K_nmTb,
-                    self.model.b_tst,
-                    self.model.b_norm,
-                    self.model.task,
-                    i,
-                    True,
-                )
+                logger.compute_log_reset(i, self.model.compute_metrics, self.model.w)

@@ -22,11 +22,36 @@ class FullKRR:
         self.b_norm = torch.norm(self.b)
 
         self.n = self.x.shape[0]
+        self.n_tst = self.x_tst.shape[0]
 
         self.inducing = False
 
+        self.test_metric_name = "test_acc" if self.task == "classification" else "test_mse"
+
     def lin_op(self, v):
         return self.K @ v + self.lambd * v
+
+    def compute_metrics(self, v):
+        residual = self.lin_op(v) - self.b
+        rel_residual = torch.norm(residual) / self.b_norm
+        loss = 1 / 2 * torch.dot(v, residual - self.b)
+
+        metrics_dict = {"rel_residual": rel_residual, "train_loss": loss}
+
+        pred = self.K_tst @ v
+        if self.task == "classification":
+            test_metric = torch.sum(torch.sign(pred) == self.b_tst) / self.n_tst
+            metrics_dict[self.test_metric_name] = test_metric
+        else:
+            test_metric = 1 / 2 * torch.norm(pred - self.b_tst) ** 2 / self.n_tst
+            smape = (
+                torch.sum((pred - self.b_tst).abs() / ((pred.abs() + self.b_tst.abs()) / 2))
+                / self.n_tst
+            )
+            metrics_dict[self.test_metric_name] = test_metric
+            metrics_dict["smape"] = smape
+
+        return metrics_dict
 
     def _get_block_grad(self, w, block):
         xb_i = LazyTensor(self.x[block][:, None, :])

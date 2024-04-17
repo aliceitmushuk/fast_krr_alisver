@@ -3,6 +3,7 @@ import warnings
 
 import wandb
 import torch
+torch.set_default_dtype(torch.float64)
 
 from src.models.full_krr import FullKRR
 from src.models.inducing_krr import InducingKRR
