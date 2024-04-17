@@ -3,7 +3,6 @@ import warnings
 
 import wandb
 import torch
-torch.set_default_dtype(torch.float64)
 
 from src.models.full_krr import FullKRR
 from src.models.inducing_krr import InducingKRR
@@ -160,6 +159,13 @@ def check_inputs(args):
         # TODO: Check that the required parameters are provided for Nystrom.
         # Note that rho is not required for Skotch/A-Skotch but is required for PROMISE methods
 
+def set_precision(precision):
+    if precision == "float32":
+        torch.set_default_dtype(torch.float32)
+    elif precision == "float64":
+        torch.set_default_dtype(torch.float64)
+    else:
+        raise ValueError("Precision must be either 'float32' or 'float64'")
 
 def get_full_krr(Xtr, ytr, Xtst, ytst, kernel_params, lambd, task, device):
     w0 = torch.zeros(Xtr.shape[0], device=device)
@@ -272,6 +278,7 @@ def main():
     parser.add_argument(
         "--log_freq", type=int, default=100, help="Logging frequency of metrics"
     )
+    parser.add_argument("--precision", choices=["float32", "float64"], default="float32", help="Precision of the computations")
     parser.add_argument("--seed", type=int, default=1234, help="initial seed")
     parser.add_argument("--device", type=str, default=0, help="GPU to use")
     parser.add_argument(
@@ -284,9 +291,11 @@ def main():
     # Check the inputs
     check_inputs(args)
 
+    # Set the precision
+    set_precision(args.precision)
+
     # Set random seed
-    seed = args.seed
-    set_random_seed(seed)
+    set_random_seed(args.seed)
 
     # Organize arguments for the experiment into a dictionary for logging in wandb
     experiment_args = {
@@ -298,7 +307,8 @@ def main():
         "precond_params": args.precond_params,
         "max_iter": args.max_iter,
         "log_freq": args.log_freq,
-        "seed": seed,
+        "precision": args.precision,
+        "seed": args.seed,
         "device": f"cuda:{args.device}",
     }
 
