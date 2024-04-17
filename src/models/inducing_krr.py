@@ -43,29 +43,30 @@ class InducingKRR:
 
         self.inducing = True
 
-        self.test_metric_name = "test_acc" if self.task == "classification" else "test_mse"
+        self.test_metric_name = (
+            "test_acc" if self.task == "classification" else "test_mse"
+        )
 
     def lin_op(self, v):
         return self.K_nm.T @ (self.K_nm @ v) + self.lambd * (self.K_mm @ v)
-    
+
     def compute_metrics(self, v):
         residual = self.lin_op(v) - self.K_nmTb
         rel_residual = torch.norm(residual) / self.K_nmTb_norm
-        loss = 1 / 2 * (torch.dot(v, residual - self.K_nmTb) + self.b_norm ** 2)
+        loss = 1 / 2 * (torch.dot(v, residual - self.K_nmTb) + self.b_norm**2)
 
         metrics_dict = {"rel_residual": rel_residual, "train_loss": loss}
 
         pred = self.K_tst @ v
         if self.task == "classification":
-            test_metric = torch.sum(torch.sign(
-                pred) == self.b_tst) / self.n_tst
+            test_metric = torch.sum(torch.sign(pred) == self.b_tst) / self.n_tst
             metrics_dict[self.test_metric_name] = test_metric
         else:
-            test_metric = 1 / 2 * \
-                torch.norm(pred - self.b_tst) ** 2 / self.n_tst
+            test_metric = 1 / 2 * torch.norm(pred - self.b_tst) ** 2 / self.n_tst
             smape = (
-                torch.sum((pred - self.b_tst).abs() /
-                          ((pred.abs() + self.b_tst.abs()) / 2))
+                torch.sum(
+                    (pred - self.b_tst).abs() / ((pred.abs() + self.b_tst.abs()) / 2)
+                )
                 / self.n_tst
             )
             metrics_dict[self.test_metric_name] = test_metric

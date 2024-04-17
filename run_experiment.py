@@ -159,6 +159,7 @@ def check_inputs(args):
         # TODO: Check that the required parameters are provided for Nystrom.
         # Note that rho is not required for Skotch/A-Skotch but is required for PROMISE methods
 
+
 def set_precision(precision):
     if precision == "float32":
         torch.set_default_dtype(torch.float32)
@@ -166,6 +167,7 @@ def set_precision(precision):
         torch.set_default_dtype(torch.float64)
     else:
         raise ValueError("Precision must be either 'float32' or 'float64'")
+
 
 def get_full_krr(Xtr, ytr, Xtst, ytst, kernel_params, lambd, task, device):
     w0 = torch.zeros(Xtr.shape[0], device=device)
@@ -278,7 +280,12 @@ def main():
     parser.add_argument(
         "--log_freq", type=int, default=100, help="Logging frequency of metrics"
     )
-    parser.add_argument("--precision", choices=["float32", "float64"], default="float32", help="Precision of the computations")
+    parser.add_argument(
+        "--precision",
+        choices=["float32", "float64"],
+        default="float32",
+        help="Precision of the computations",
+    )
     parser.add_argument("--seed", type=int, default=1234, help="initial seed")
     parser.add_argument("--device", type=str, default=0, help="GPU to use")
     parser.add_argument(

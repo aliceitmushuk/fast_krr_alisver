@@ -26,7 +26,9 @@ class FullKRR:
 
         self.inducing = False
 
-        self.test_metric_name = "test_acc" if self.task == "classification" else "test_mse"
+        self.test_metric_name = (
+            "test_acc" if self.task == "classification" else "test_mse"
+        )
 
     def lin_op(self, v):
         return self.K @ v + self.lambd * v
@@ -45,7 +47,9 @@ class FullKRR:
         else:
             test_metric = 1 / 2 * torch.norm(pred - self.b_tst) ** 2 / self.n_tst
             smape = (
-                torch.sum((pred - self.b_tst).abs() / ((pred.abs() + self.b_tst.abs()) / 2))
+                torch.sum(
+                    (pred - self.b_tst).abs() / ((pred.abs() + self.b_tst.abs()) / 2)
+                )
                 / self.n_tst
             )
             metrics_dict[self.test_metric_name] = test_metric
