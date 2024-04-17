@@ -41,17 +41,7 @@ class ASkotch:
         z = self.model.w.clone()
 
         if logger_enabled:
-            logger.compute_log_reset(
-                self.model.lin_op,
-                self.model.K_tst,
-                y,
-                self.model.b,
-                self.model.b_tst,
-                self.model.b_norm,
-                self.model.task,
-                -1,
-                False,
-            )
+            logger.compute_log_reset(-1, self.model.compute_metrics, y)
 
         for i in range(max_iter):
             # Randomly select a block
@@ -81,14 +71,4 @@ class ASkotch:
             self.model.w = tau * z + (1 - tau) * y
 
             if logger_enabled:
-                logger.compute_log_reset(
-                    self.model.lin_op,
-                    self.model.K_tst,
-                    y,
-                    self.model.b,
-                    self.model.b_tst,
-                    self.model.b_norm,
-                    self.model.task,
-                    i,
-                    False,
-                )
+                logger.compute_log_reset(i, self.model.compute_metrics, y)
