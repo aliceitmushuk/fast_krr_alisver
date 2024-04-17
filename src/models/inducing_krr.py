@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from pykeops.torch import LazyTensor
 
@@ -63,3 +64,22 @@ class InducingKRR:
         new_weights = self.n * (K_nm_idx @ w - self.b[idx])
         aux = K_nm_idx.T @ (new_weights - table[idx])
         return new_weights, aux
+
+    def _get_subsampled_lin_ops(self, bH):
+        hess_pts = torch.from_numpy(np.random.choice(self.n, bH, replace=False))
+        x_hess_i = LazyTensor(self.x[hess_pts][:, None, :])
+        K_sm = _get_kernel(x_hess_i, self.x_inducing_j, self.kernel_params)
+
+        hess_pts_lr = torch.from_numpy(np.random.choice(self.n, bH, replace=False))
+        x_hess_lr_i = LazyTensor(self.x[hess_pts_lr][:, None, :])
+        K_sm_lr = _get_kernel(x_hess_lr_i, self.x_inducing_j, self.kernel_params)
+
+        adj_factor = self.n / bH
+
+        def K_inducing_sub_lin_op(v):
+            return adj_factor * K_sm.T @ (K_sm @ v)
+
+        def K_inducing_sub_Kmm_lin_op(v):
+            return adj_factor * K_sm_lr.T @ (K_sm_lr @ v) + self.lambd * (self.K_mm @ v)
+
+        return K_inducing_sub_lin_op, K_inducing_sub_Kmm_lin_op

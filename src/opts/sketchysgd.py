@@ -1,6 +1,6 @@
 from .minibatch_generator import MinibatchGenerator
 from .opt_utils_sgd import (
-    _get_precond_L_inducing,
+    _get_precond_L,
     _apply_precond,
     _get_minibatch,
 )
@@ -25,7 +25,7 @@ class SketchySGD:
         if self.bH is None:
             self.bH = int(self.model.n**0.5)
 
-        precond, L = _get_precond_L_inducing(self.model, self.bH, self.precond_params)
+        precond, L = _get_precond_L(self.model, self.bH, self.precond_params)
 
         eta = 0.5 / L
 
