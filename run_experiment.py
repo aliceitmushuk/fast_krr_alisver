@@ -149,8 +149,8 @@ def check_inputs(args):
         # Check that 'type' is provided and 'nystrom' is the only option
         if "type" not in args.precond_params:
             raise ValueError("Preconditioner type must be provided")
-        if args.precond_params["type"] != "nystrom":
-            raise ValueError("Only Nystrom preconditioner is supported")
+        if args.precond_params["type"] not in ["nystrom", "partial_cholesky", "falkon"]:
+            raise ValueError("Only Nystrom, Partial Cholesky, and Falkon preconditioners are supported")
 
         # TODO: Check that the required parameters are provided for Nystrom.
         # Note that rho is not required for Skotch/A-Skotch but is required for PROMISE methods
@@ -190,7 +190,7 @@ def get_opt(model, config):
                 model, config.bg, config.bH, config.p, config.lambd, config.precond_params
             )
     elif config.opt == "pcg":
-        opt = PCG(model, config.inducing, config.precond_params)
+        opt = PCG(model, config.precond_params)
 
     return opt
 
@@ -307,8 +307,11 @@ def main():
         elif args.opt == "sketchykatyusha":
             experiment_args["p"] = args.p
     elif args.opt == "pcg":
-        # True if m is provided, False otherwise
-        experiment_args["inducing"] = args.m is not None 
+        if args.m is not None:
+            experiment_args["m"] = args.m
+            experiment_args["inducing"] = True
+        else:
+            experiment_args["inducing"] = False
 
     with wandb.init(project=args.wandb_project, config=experiment_args):
         # Access the experiment configuration

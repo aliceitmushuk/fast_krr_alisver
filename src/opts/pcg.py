@@ -8,9 +8,8 @@ from .opt_utils_pcg import (
 )
 
 class PCG:
-    def __init__(self, model, inducing, precond_params=None):
+    def __init__(self, model, precond_params=None):
         self.model = model
-        self.inducing = inducing # Should be false for full KRR, true for inducing KRR
         self.precond_params = precond_params
 
     def run(self, max_iter, logger=None, pcg_tol=1e-6):
@@ -21,7 +20,7 @@ class PCG:
         if logger_enabled:
             logger.reset_timer()
 
-        if self.inducing:
+        if self.model.inducing:
             precond = _get_precond_inducing(self.model, self.precond_params, self.model.device)
             rhs = self.model.K_nmTb
         else:
@@ -32,7 +31,7 @@ class PCG:
 
         if logger_enabled:
             logger.compute_log_reset(
-                self.model.lin_op, self.model.K_tst, self.model.w, rhs, self.model.b_tst, self.model.b_norm, self.model.task, -1, self.inducing
+                self.model.lin_op, self.model.K_tst, self.model.w, rhs, self.model.b_tst, self.model.b_norm, self.model.task, -1, self.model.inducing
             )
 
         for i in range(max_iter):
@@ -40,7 +39,7 @@ class PCG:
 
             if logger_enabled:
                 logger.compute_log_reset(
-                    self.model.lin_op, self.model.K_tst, self.model.w, rhs, self.model.b_tst, self.model.b_norm, self.model.task, i, self.inducing
+                    self.model.lin_op, self.model.K_tst, self.model.w, rhs, self.model.b_tst, self.model.b_norm, self.model.task, i, self.model.inducing
                 )
 
             if torch.norm(r) < pcg_tol:

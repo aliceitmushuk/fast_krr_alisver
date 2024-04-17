@@ -12,7 +12,7 @@ class Falkon:
         K_mm = K_mm_lz @ torch.eye(m).to(self.device)
 
         # Shift factor for numerical stability
-        shift = 10**-16 * torch.trace(K_mm)
+        shift = 1e-16 * torch.trace(K_mm)
 
         # Get preconditioning matrices via Cholesky factorization
         T = torch.linalg.cholesky(

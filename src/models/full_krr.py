@@ -21,6 +21,8 @@ class FullKRR:
 
         self.n = self.x.shape[0]
 
+        self.inducing = False
+
     def lin_op(self, v):
         return self.K @ v + self.lambd * v
     

@@ -37,6 +37,8 @@ class InducingKRR:
 
         self.K_nmTb = self.K_nm.T @ self.b # Useful for computing metrics
 
+        self.inducing = True
+
     def lin_op(self, v):
         return self.K_nm.T @ (self.K_nm @ v) + self.lambd * (self.K_mm @ v)
 
