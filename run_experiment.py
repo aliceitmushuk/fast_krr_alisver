@@ -4,12 +4,15 @@ import warnings
 import wandb
 import torch
 
+from src.models.full_krr import FullKRR
+from src.models.inducing_krr import InducingKRR
 from src.opts.skotch import Skotch
 from src.opts.askotch import ASkotch
 from src.opts.sketchysgd import SketchySGD
 from src.opts.sketchysvrg import SketchySVRG
 from src.opts.sketchysaga import SketchySAGA
 from src.opts.sketchykatyusha import SketchyKatyusha
+from src.opts.pcg import PCG
 from src.logger import Logger
 from src.utils import ParseParams, set_random_seed, load_data
 
@@ -20,6 +23,7 @@ OPT_NAMES = {
     "sketchysvrg": SketchySVRG,
     "sketchysaga": SketchySAGA,
     "sketchykatyusha": SketchyKatyusha,
+    "pcg": PCG,
 }
 
 
@@ -109,17 +113,86 @@ def check_inputs(args):
                 warnings.warn(
                     f"Update probability is not provided for {opt_name}. Using default value bg/n"
                 )
+    elif args.opt == "pcg":
+        if args.b is not None:
+            warnings.warn(
+                f"Number of blocks is not used in {opt_name}. Ignoring this parameter"
+            )
+        if args.alpha is not None:
+            warnings.warn(
+                f"Sampling parameter is not used in {opt_name}. Ignoring this parameter"
+            )
+        if args.beta is not None:
+            warnings.warn(f"Beta is not used in {opt_name}. Ignoring this parameter")
+        if args.bg is not None:
+            warnings.warn(
+                f"Gradient batch size is not used in {opt_name}. Ignoring this parameter"
+            )
+        if args.bH is not None:
+            warnings.warn(
+                f"Hessian batch size is not used in {opt_name}. Ignoring this parameter"
+            )
+        if args.update_freq is not None:
+            warnings.warn(
+                f"Update frequency is not used in {opt_name}. Ignoring this parameter"
+            )
+        if args.p is not None:
+            warnings.warn(
+                f"Update probability is not used in {opt_name}. Ignoring this parameter"
+            )
 
+        if args.precond_params is None:
+            raise ValueError(f"Preconditioner parameters must be provided for {opt_name}")
+
+    # TODO: Improve this
     if args.precond_params is not None:
         # Check that 'type' is provided and 'nystrom' is the only option
         if "type" not in args.precond_params:
             raise ValueError("Preconditioner type must be provided")
-        if args.precond_params["type"] != "nystrom":
-            raise ValueError("Only Nystrom preconditioner is supported")
+        if args.precond_params["type"] not in ["nystrom", "partial_cholesky", "falkon"]:
+            raise ValueError("Only Nystrom, Partial Cholesky, and Falkon preconditioners are supported")
 
         # TODO: Check that the required parameters are provided for Nystrom.
         # Note that rho is not required for Skotch/A-Skotch but is required for PROMISE methods
 
+def get_full_krr(Xtr, ytr, Xtst, ytst, kernel_params, lambd, task, device):
+    w0 = torch.zeros(Xtr.shape[0], device=device)
+    return FullKRR(Xtr, ytr, Xtst, ytst, kernel_params, lambd, task, w0, device)
+
+def get_inducing_krr(Xtr, ytr, Xtst, ytst, kernel_params, m, lambd, task, device):
+    w0 = torch.zeros(m, device=device)
+    inducing_pts = torch.randperm(Xtr.shape[0])[:m]
+    return InducingKRR(Xtr, ytr, Xtst, ytst, kernel_params, inducing_pts, lambd, task, w0, device)
+
+def get_opt(model, config):
+    if config.opt == "skotch":
+        opt = Skotch(model, config.b, config.alpha, config.precond_params)
+    elif config.opt == "askotch":
+        opt = ASkotch(model, config.b, config.beta, config.precond_params)
+    elif config.opt in [
+        "sketchysgd",
+        "sketchysvrg",
+        "sketchysaga",
+        "sketchykatyusha",
+    ]:
+        if config.opt == "sketchysgd":
+            opt = SketchySGD(model, config.bg, config.bH,
+                                config.precond_params)
+        elif config.opt == "sketchysvrg":
+            opt = SketchySVRG(
+                model, config.bg, config.bH, config.update_freq, config.precond_params
+            )
+        elif config.opt == "sketchysaga":
+            opt = SketchySAGA(model, config.bg, config.bH,
+                                config.precond_params)
+        elif config.opt == "sketchykatyusha":
+            opt = SketchyKatyusha(
+                model, config.bg, config.bH, config.p, config.lambd, config.precond_params
+            )
+    elif config.opt == "pcg":
+        opt = PCG(model, config.precond_params)
+
+    return opt
 
 def main():
     # Parse arguments
@@ -148,6 +221,7 @@ def main():
             "sketchysvrg",
             "sketchysaga",
             "sketchykatyusha",
+            "pcg",
         ],
         help="Which optimizer to use",
     )
@@ -217,18 +291,27 @@ def main():
     if args.opt == "skotch":
         experiment_args["b"] = args.b
         experiment_args["alpha"] = args.alpha
+        experiment_args["inducing"] = False
     elif args.opt == "askotch":
         experiment_args["b"] = args.b
         experiment_args["beta"] = args.beta
+        experiment_args["inducing"] = False
     elif args.opt in ["sketchysgd", "sketchysvrg", "sketchysaga", "sketchykatyusha"]:
         experiment_args["m"] = args.m
         experiment_args["bg"] = args.bg
         experiment_args["bH"] = args.bH
+        experiment_args["inducing"] = True
 
         if args.opt == "sketchysvrg":
             experiment_args["update_freq"] = args.update_freq
         elif args.opt == "sketchykatyusha":
             experiment_args["p"] = args.p
+    elif args.opt == "pcg":
+        if args.m is not None:
+            experiment_args["m"] = args.m
+            experiment_args["inducing"] = True
+        else:
+            experiment_args["inducing"] = False
 
     with wandb.init(project=args.wandb_project, config=experiment_args):
         # Access the experiment configuration
@@ -237,82 +320,25 @@ def main():
         # Load the dataset
         Xtr, Xtst, ytr, ytst = load_data(config.dataset, config.seed, config.device)
 
+        # Get the model, initializing at zero
+        if config.inducing:
+            model = get_inducing_krr(
+                Xtr, ytr, Xtst, ytst, config.kernel_params, config.m, config.lambd, config.task, config.device
+            )
+        else:
+            model = get_full_krr(
+                Xtr, ytr, Xtst, ytst, config.kernel_params, config.lambd, config.task, config.device
+            )
+
         # Select the optimizer
-        if config.opt == "skotch":
-            opt = Skotch(config.b, config.alpha, config.precond_params)
-        elif config.opt == "askotch":
-            opt = ASkotch(config.b, config.beta, config.precond_params)
-        elif config.opt in [
-            "sketchysgd",
-            "sketchysvrg",
-            "sketchysaga",
-            "sketchykatyusha",
-        ]:
-            inducing_pts = torch.randperm(Xtr.shape[0])[: config.m]
-
-            if config.opt == "sketchysgd":
-                opt = SketchySGD(config.bg, config.bH, config.precond_params)
-            elif config.opt == "sketchysvrg":
-                opt = SketchySVRG(
-                    config.bg, config.bH, config.update_freq, config.precond_params
-                )
-            elif config.opt == "sketchysaga":
-                opt = SketchySAGA(config.bg, config.bH, config.precond_params)
-            elif config.opt == "sketchykatyusha":
-                opt = SketchyKatyusha(
-                    config.bg, config.bH, config.p, config.lambd, config.precond_params
-                )
-
-        # Initialize at 0
-        if config.opt == "skotch" or config.opt == "askotch":
-            a0 = torch.zeros(Xtr.shape[0], device=config.device)
-        elif config.opt in [
-            "sketchysgd",
-            "sketchysvrg",
-            "sketchysaga",
-            "sketchykatyusha",
-        ]:
-            a0 = torch.zeros(config.m, device=config.device)
+        opt = get_opt(model, config)
 
         # Initialize the logger
         logger = Logger(config.log_freq)
 
         # Run the optimizer
         with torch.no_grad():
-            if config.opt in [
-                "sketchysgd",
-                "sketchysvrg",
-                "sketchysaga",
-                "sketchykatyusha",
-            ]:
-                opt.run(
-                    Xtr,
-                    ytr,
-                    Xtst,
-                    ytst,
-                    config.kernel_params,
-                    inducing_pts,
-                    config.lambd,
-                    config.task,
-                    a0,
-                    config.max_iter,
-                    config.device,
-                    logger,
-                )
-            else:
-                opt.run(
-                    Xtr,
-                    ytr,
-                    Xtst,
-                    ytst,
-                    config.kernel_params,
-                    config.lambd,
-                    config.task,
-                    a0,
-                    config.max_iter,
-                    config.device,
-                    logger,
-                )
+            opt.run(config.max_iter, logger)
 
 
 if __name__ == "__main__":

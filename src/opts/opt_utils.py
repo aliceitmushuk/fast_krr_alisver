@@ -1,7 +1,7 @@
 import torch
 
 
-def _get_L(K_lin_op, lambd, precond_inv_sqrt_lin_op, n, device):
+def _get_L(mat_lin_op, precond_inv_sqrt_lin_op, n, device):
     v = torch.randn(n, device=device)
     v = v / torch.linalg.norm(v)
 
@@ -11,7 +11,7 @@ def _get_L(K_lin_op, lambd, precond_inv_sqrt_lin_op, n, device):
         v_old = v.clone()
 
         v = precond_inv_sqrt_lin_op(v)
-        v = K_lin_op(v) + lambd * v
+        v = mat_lin_op(v)
         v = precond_inv_sqrt_lin_op(v)
 
         max_eig = torch.dot(v_old, v)

@@ -78,9 +78,11 @@ def standardize(data_tr, data_tst):
 
 
 def np_to_torch(X, y, device):
-    X = torch.from_numpy(X).float().to(device)
+    X = torch.from_numpy(X)
+    X = X.to(dtype=torch.get_default_dtype(), device=device)
     X.requires_grad = True
-    y = torch.from_numpy(y).float().to(device)
+    y = torch.from_numpy(y)
+    y = y.to(dtype=torch.get_default_dtype(), device=device)
 
     return X, y
 

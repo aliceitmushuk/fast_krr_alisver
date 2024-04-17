@@ -19,13 +19,10 @@ class PartialCholesky:
         kernel_type = _get_kernel_type(kernel_params)
 
         # Get diagonal and function for getting kernel row corresponding to the specified kernel
-        diag_K = kernel_type._get_diag_from_dim(n)
-
-        kernel_params_copy = kernel_params.copy()
-        kernel_params_copy.pop("type")
+        diag_K = kernel_type._get_diag_from_dim(n).to(self.device)
 
         def get_row(x):
-            return _get_kernel(x_f, x, kernel_params_copy).K
+            return _get_kernel(x_f, x, kernel_params)
 
         for i in range(self.r):
             # Find pivot index corresponding to maximum diagonal entry
