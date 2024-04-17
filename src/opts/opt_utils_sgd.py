@@ -1,6 +1,7 @@
 from .opt_utils import _get_L
 from ..preconditioners.nystrom import Nystrom
 
+
 def _get_precond_L(model, bH, precond_params):
     subsampled_lin_op, subsampled_reg_lin_op = model._get_subsampled_lin_ops(bH)
 

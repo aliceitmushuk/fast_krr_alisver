@@ -4,6 +4,7 @@ from ..preconditioners.nystrom import Nystrom
 from ..preconditioners.partial_cholesky import PartialCholesky
 from ..preconditioners.falkon import Falkon
 
+
 def _get_precond(model, precond_params, device):
     precond = None
     if precond_params is not None:

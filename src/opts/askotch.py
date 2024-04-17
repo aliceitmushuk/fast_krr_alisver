@@ -42,7 +42,15 @@ class ASkotch:
 
         if logger_enabled:
             logger.compute_log_reset(
-                self.model.lin_op, self.model.K_tst, y, self.model.b, self.model.b_tst, self.model.b_norm, self.model.task, -1, False
+                self.model.lin_op,
+                self.model.K_tst,
+                y,
+                self.model.b,
+                self.model.b_tst,
+                self.model.b_norm,
+                self.model.task,
+                -1,
+                False,
             )
 
         for i in range(max_iter):
@@ -51,12 +59,7 @@ class ASkotch:
 
             # Get the block, step size, and update direction
             block, eta, dir = _get_block_update(
-                self.model,
-                self.model.w,
-                block_idx,
-                blocks,
-                block_preconds,
-                block_etas
+                self.model, self.model.w, block_idx, blocks, block_preconds, block_etas
             )
 
             # Update y
@@ -64,7 +67,9 @@ class ASkotch:
             y[block] -= eta * dir
 
             # Update z
-            z = (1 / (1 + gamma * self.model.lambd)) * (z + gamma * self.model.lambd * self.model.w)
+            z = (1 / (1 + gamma * self.model.lambd)) * (
+                z + gamma * self.model.lambd * self.model.w
+            )
             z[block] -= (
                 (1 / (1 + gamma * self.model.lambd))
                 * gamma
@@ -77,5 +82,13 @@ class ASkotch:
 
             if logger_enabled:
                 logger.compute_log_reset(
-                    self.model.lin_op, self.model.K_tst, y, self.model.b, self.model.b_tst, self.model.b_norm, self.model.task, i, False
+                    self.model.lin_op,
+                    self.model.K_tst,
+                    y,
+                    self.model.b,
+                    self.model.b_tst,
+                    self.model.b_norm,
+                    self.model.task,
+                    i,
+                    False,
                 )

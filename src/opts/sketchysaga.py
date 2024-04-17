@@ -32,13 +32,23 @@ class SketchySAGA:
         eta = 0.5 / L
 
         table = torch.zeros(self.model.n, device=self.model.device)
-        u = torch.zeros(self.model.m, device=self.model.device)  # Running average in SAGA
+        u = torch.zeros(
+            self.model.m, device=self.model.device
+        )  # Running average in SAGA
 
         if (
             logger_enabled
         ):  # We use K_nmTb instead of b because we are using inducing points
             logger.compute_log_reset(
-                self.model.lin_op, self.model.K_tst, self.model.w, self.model.K_nmTb, self.model.b_tst, self.model.b_norm, self.model.task, -1, True
+                self.model.lin_op,
+                self.model.K_tst,
+                self.model.w,
+                self.model.K_nmTb,
+                self.model.b_tst,
+                self.model.b_norm,
+                self.model.task,
+                -1,
+                True,
             )
 
         generator = MinibatchGenerator(self.model.n, self.bg)
@@ -57,13 +67,22 @@ class SketchySAGA:
             table[idx] = new_weights
 
             # Update parameters, taking regularization into account
-            dir = _apply_precond(g + self.model.lambd * (self.model.K_mm @ self.model.w), precond)
+            dir = _apply_precond(
+                g + self.model.lambd * (self.model.K_mm @ self.model.w), precond
+            )
 
             # Update parameters
             self.model.w -= eta * dir
 
             if logger_enabled:
                 logger.compute_log_reset(
-                    self.model.lin_op, self.model.K_tst, self.model.w, self.model.K_nmTb, self.model.b_tst, self.model.b_norm, self.model.task, i, True
+                    self.model.lin_op,
+                    self.model.K_tst,
+                    self.model.w,
+                    self.model.K_nmTb,
+                    self.model.b_tst,
+                    self.model.b_norm,
+                    self.model.task,
+                    i,
+                    True,
                 )
-

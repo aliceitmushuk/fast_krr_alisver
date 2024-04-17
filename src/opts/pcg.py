@@ -7,6 +7,7 @@ from .opt_utils_pcg import (
     _step_pcg,
 )
 
+
 class PCG:
     def __init__(self, model, precond_params=None):
         self.model = model
@@ -21,7 +22,9 @@ class PCG:
             logger.reset_timer()
 
         if self.model.inducing:
-            precond = _get_precond_inducing(self.model, self.precond_params, self.model.device)
+            precond = _get_precond_inducing(
+                self.model, self.precond_params, self.model.device
+            )
             rhs = self.model.K_nmTb
         else:
             precond = _get_precond(self.model, self.precond_params, self.model.device)
@@ -31,17 +34,37 @@ class PCG:
 
         if logger_enabled:
             logger.compute_log_reset(
-                self.model.lin_op, self.model.K_tst, self.model.w, rhs, self.model.b_tst, self.model.b_norm, self.model.task, -1, self.model.inducing
+                self.model.lin_op,
+                self.model.K_tst,
+                self.model.w,
+                rhs,
+                self.model.b_tst,
+                self.model.b_norm,
+                self.model.task,
+                -1,
+                self.model.inducing,
             )
 
         for i in range(max_iter):
-            self.model.w, r, z, p = _step_pcg(self.model.w, r, z, p, self.model.lin_op, precond)
+            self.model.w, r, z, p = _step_pcg(
+                self.model.w, r, z, p, self.model.lin_op, precond
+            )
 
             if logger_enabled:
                 logger.compute_log_reset(
-                    self.model.lin_op, self.model.K_tst, self.model.w, rhs, self.model.b_tst, self.model.b_norm, self.model.task, i, self.model.inducing
+                    self.model.lin_op,
+                    self.model.K_tst,
+                    self.model.w,
+                    rhs,
+                    self.model.b_tst,
+                    self.model.b_norm,
+                    self.model.task,
+                    i,
+                    self.model.inducing,
                 )
 
             if torch.norm(r) < pcg_tol:
-                print(f"PCG has converged with residual {torch.norm(r)} at iteration {i}")
+                print(
+                    f"PCG has converged with residual {torch.norm(r)} at iteration {i}"
+                )
                 break

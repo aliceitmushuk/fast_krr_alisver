@@ -16,7 +16,9 @@ class FullKRR:
         self.w = w0
         self.device = device
 
-        self.x_j, self.K, self.K_tst = _get_kernels_start(self.x, self.x_tst, self.kernel_params)
+        self.x_j, self.K, self.K_tst = _get_kernels_start(
+            self.x, self.x_tst, self.kernel_params
+        )
         self.b_norm = torch.norm(self.b)
 
         self.n = self.x.shape[0]
@@ -25,7 +27,7 @@ class FullKRR:
 
     def lin_op(self, v):
         return self.K @ v + self.lambd * v
-    
+
     def _get_block_grad(self, w, block):
         xb_i = LazyTensor(self.x[block][:, None, :])
         Kbn = _get_kernel(xb_i, self.x_j, self.kernel_params)
@@ -37,7 +39,7 @@ class FullKRR:
             return self.K @ v
 
         return K_lin_op
-    
+
     def _get_block_lin_ops(self, block):
         xb_i = LazyTensor(self.x[block][:, None, :])
         xb_j = LazyTensor(self.x[block][None, :, :])
@@ -48,5 +50,5 @@ class FullKRR:
 
         def Kb_lin_op_reg(v):
             return Kb @ v + self.lambd * v
-        
+
         return Kb_lin_op, Kb_lin_op_reg

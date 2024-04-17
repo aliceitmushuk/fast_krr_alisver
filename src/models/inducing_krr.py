@@ -6,7 +6,9 @@ from ..kernels.kernel_inits import _get_kernel
 
 
 class InducingKRR:
-    def __init__(self, x, b, x_tst, b_tst, kernel_params, inducing_pts, lambd, task, w0, device):
+    def __init__(
+        self, x, b, x_tst, b_tst, kernel_params, inducing_pts, lambd, task, w0, device
+    ):
         self.x = x
         self.b = b
         self.x_tst = x_tst
@@ -35,7 +37,7 @@ class InducingKRR:
         self.n = self.x.shape[0]
         self.b_norm = torch.norm(self.b)
 
-        self.K_nmTb = self.K_nm.T @ self.b # Useful for computing metrics
+        self.K_nmTb = self.K_nm.T @ self.b  # Useful for computing metrics
 
         self.inducing = True
 
@@ -45,7 +47,9 @@ class InducingKRR:
     def _get_stochastic_grad(self, idx, w):
         x_idx_i = LazyTensor(self.x[idx][:, None, :])
         K_nm_idx = _get_kernel(x_idx_i, self.x_inducing_j, self.kernel_params)
-        g = self.n / idx.shape[0] * (K_nm_idx.T @ (K_nm_idx @ w - self.b[idx])) + self.lambd * (self.K_mm @ w)
+        g = self.n / idx.shape[0] * (
+            K_nm_idx.T @ (K_nm_idx @ w - self.b[idx])
+        ) + self.lambd * (self.K_mm @ w)
 
         return g
 
@@ -53,13 +57,15 @@ class InducingKRR:
         x_idx_i = LazyTensor(self.x[idx][:, None, :])
         K_nm_idx = _get_kernel(x_idx_i, self.x_inducing_j, self.kernel_params)
         w_diff = w1 - w2
-        g_diff = self.n / idx.shape[0] * (K_nm_idx.T @ (K_nm_idx @ w_diff)) + self.lambd * (self.K_mm @ w_diff)
+        g_diff = self.n / idx.shape[0] * (
+            K_nm_idx.T @ (K_nm_idx @ w_diff)
+        ) + self.lambd * (self.K_mm @ w_diff)
 
         return g_diff
-    
+
     def _get_full_grad(self, w):
         return self.K_nm.T @ (self.K_nm @ w - self.b) + self.lambd * (self.K_mm @ w)
-    
+
     def _get_table_aux(self, idx, w, table):
         x_idx_i = LazyTensor(self.x[idx][:, None, :])
         K_nm_idx = _get_kernel(x_idx_i, self.x_inducing_j, self.kernel_params)

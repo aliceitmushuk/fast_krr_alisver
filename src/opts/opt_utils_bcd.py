@@ -3,6 +3,7 @@ import torch
 from .opt_utils import _get_L
 from ..preconditioners.nystrom import Nystrom
 
+
 def _get_blocks(n, B):
     # Permute the indices
     idx = torch.randperm(n)
@@ -21,7 +22,9 @@ def _get_blocks(n, B):
     return blocks
 
 
-def _get_block_precond_L(block_lin_op, block_lin_op_reg, lambd, block, precond_params, device):
+def _get_block_precond_L(
+    block_lin_op, block_lin_op_reg, lambd, block, precond_params, device
+):
     precond = None
 
     if precond_params is not None:
@@ -54,7 +57,8 @@ def _get_block_properties(model, blocks, precond_params):
         Kb_lin_op, Kb_lin_op_reg = model._get_block_lin_ops(block)
 
         precond, L = _get_block_precond_L(
-            Kb_lin_op, Kb_lin_op_reg, model.lambd, block, precond_params, model.device)
+            Kb_lin_op, Kb_lin_op_reg, model.lambd, block, precond_params, model.device
+        )
 
         block_preconds.append(precond)
         block_Ls.append(L)

@@ -142,7 +142,9 @@ def check_inputs(args):
             )
 
         if args.precond_params is None:
-            raise ValueError(f"Preconditioner parameters must be provided for {opt_name}")
+            raise ValueError(
+                f"Preconditioner parameters must be provided for {opt_name}"
+            )
 
     # TODO: Improve this
     if args.precond_params is not None:
@@ -150,19 +152,26 @@ def check_inputs(args):
         if "type" not in args.precond_params:
             raise ValueError("Preconditioner type must be provided")
         if args.precond_params["type"] not in ["nystrom", "partial_cholesky", "falkon"]:
-            raise ValueError("Only Nystrom, Partial Cholesky, and Falkon preconditioners are supported")
+            raise ValueError(
+                "Only Nystrom, Partial Cholesky, and Falkon preconditioners are supported"
+            )
 
         # TODO: Check that the required parameters are provided for Nystrom.
         # Note that rho is not required for Skotch/A-Skotch but is required for PROMISE methods
+
 
 def get_full_krr(Xtr, ytr, Xtst, ytst, kernel_params, lambd, task, device):
     w0 = torch.zeros(Xtr.shape[0], device=device)
     return FullKRR(Xtr, ytr, Xtst, ytst, kernel_params, lambd, task, w0, device)
 
+
 def get_inducing_krr(Xtr, ytr, Xtst, ytst, kernel_params, m, lambd, task, device):
     w0 = torch.zeros(m, device=device)
     inducing_pts = torch.randperm(Xtr.shape[0])[:m]
-    return InducingKRR(Xtr, ytr, Xtst, ytst, kernel_params, inducing_pts, lambd, task, w0, device)
+    return InducingKRR(
+        Xtr, ytr, Xtst, ytst, kernel_params, inducing_pts, lambd, task, w0, device
+    )
+
 
 def get_opt(model, config):
     if config.opt == "skotch":
@@ -176,23 +185,27 @@ def get_opt(model, config):
         "sketchykatyusha",
     ]:
         if config.opt == "sketchysgd":
-            opt = SketchySGD(model, config.bg, config.bH,
-                                config.precond_params)
+            opt = SketchySGD(model, config.bg, config.bH, config.precond_params)
         elif config.opt == "sketchysvrg":
             opt = SketchySVRG(
                 model, config.bg, config.bH, config.update_freq, config.precond_params
             )
         elif config.opt == "sketchysaga":
-            opt = SketchySAGA(model, config.bg, config.bH,
-                                config.precond_params)
+            opt = SketchySAGA(model, config.bg, config.bH, config.precond_params)
         elif config.opt == "sketchykatyusha":
             opt = SketchyKatyusha(
-                model, config.bg, config.bH, config.p, config.lambd, config.precond_params
+                model,
+                config.bg,
+                config.bH,
+                config.p,
+                config.lambd,
+                config.precond_params,
             )
     elif config.opt == "pcg":
         opt = PCG(model, config.precond_params)
 
     return opt
+
 
 def main():
     # Parse arguments
@@ -323,11 +336,26 @@ def main():
         # Get the model, initializing at zero
         if config.inducing:
             model = get_inducing_krr(
-                Xtr, ytr, Xtst, ytst, config.kernel_params, config.m, config.lambd, config.task, config.device
+                Xtr,
+                ytr,
+                Xtst,
+                ytst,
+                config.kernel_params,
+                config.m,
+                config.lambd,
+                config.task,
+                config.device,
             )
         else:
             model = get_full_krr(
-                Xtr, ytr, Xtst, ytst, config.kernel_params, config.lambd, config.task, config.device
+                Xtr,
+                ytr,
+                Xtst,
+                ytst,
+                config.kernel_params,
+                config.lambd,
+                config.task,
+                config.device,
             )
 
         # Select the optimizer
