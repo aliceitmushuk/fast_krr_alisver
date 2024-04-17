@@ -29,6 +29,12 @@ class FullKRR:
         Kbn = _get_kernel(xb_i, self.x_j, self.kernel_params)
 
         return Kbn @ w + self.lambd * self.w[block] - self.b[block]
+
+    def _get_full_lin_op(self):
+        def K_lin_op(v):
+            return self.K @ v
+
+        return K_lin_op
     
     def _get_block_lin_ops(self, block):
         xb_i = LazyTensor(self.x[block][:, None, :])

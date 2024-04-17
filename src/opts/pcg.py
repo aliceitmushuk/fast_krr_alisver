@@ -1,96 +1,48 @@
 import torch
-import numpy as np
 
-from opt_utils_pcg import (
+from .opt_utils_pcg import (
     _get_precond,
     _get_precond_inducing,
-    _get_kernel_matrices,
-    _get_kernel_matrices_inducing,
     _init_pcg,
     _step_pcg,
 )
 
-
 class PCG:
-    def __init__(self, precond_params):
+    def __init__(self, model, inducing, precond_params=None):
+        self.model = model
+        self.inducing = inducing # Should be false for full KRR, true for inducing KRR
         self.precond_params = precond_params
 
-    def run(
-        self,
-        x,
-        b,
-        x_tst,
-        b_tst,
-        kernel_params,
-        lambd,
-        task,
-        a0,
-        max_iter,
-        device,
-        inducing=False,
-        logger=None,
-        pcg_tol=10**-6,
-        verbose=False,
-    ):
-
-        a = a0.clone()
-
+    def run(self, max_iter, logger=None, pcg_tol=1e-6):
         logger_enabled = False
         if logger is not None:
             logger_enabled = True
 
-        if inducing:
-            inducing_pts = torch.from_numpy(
-                np.random.choice(a0.shape[0], kernel_params["m"], replace=False)
-            )
-            K_mm, K_nm, K_tst, m, n, b_norm = _get_kernel_matrices_inducing(
-                x, x_tst, inducing_pts, kernel_params, b
-            )
-            precond = _get_precond_inducing(
-                K_mm, n, m, lambd, self.precond_params, device
-            )
+        if logger_enabled:
+            logger.reset_timer()
 
-            def K_Lin_Op(v):
-                return K_nm.T @ (K_nm @ v) + lambd * (K_mm @ v)
-
-            Knm_Tb = K_nm.T @ b
-            r, z, p = _init_pcg(a, K_Lin_Op, Knm_Tb, precond)
+        if self.inducing:
+            precond = _get_precond_inducing(self.model, self.precond_params, self.model.device)
+            rhs = self.model.K_nmTb
         else:
-            K, K_tst, n, b_norm = _get_kernel_matrices(x, x_tst, kernel_params, b)
-            precond = _get_precond(x, n, K, kernel_params, self.precond_params, device)
+            precond = _get_precond(self.model, self.precond_params, self.model.device)
+            rhs = self.model.b
 
-            def K_Lin_Op(v):
-                return K @ v + lambd * v
+        r, z, p = _init_pcg(self.model.w, self.model.lin_op, rhs, precond)
 
-            r, z, p = _init_pcg(a, K_Lin_Op, b, precond)
+        if logger_enabled:
+            logger.compute_log_reset(
+                self.model.lin_op, self.model.K_tst, self.model.w, rhs, self.model.b_tst, self.model.b_norm, self.model.task, -1, self.inducing
+            )
 
         for i in range(max_iter):
-            a, r, z, p = _step_pcg(a, r, z, p, K_Lin_Op, precond)
+            self.model.w, r, z, p = _step_pcg(self.model.w, r, z, p, self.model.lin_op, precond)
 
             if logger_enabled:
-                if inducing:
-                    logger.compute_log_reset(
-                        K_Lin_Op, K_tst, a, Knm_Tb, b_tst, b_norm, task, i, True
-                    )
+                logger.compute_log_reset(
+                    self.model.lin_op, self.model.K_tst, self.model.w, rhs, self.model.b_tst, self.model.b_norm, self.model.task, i, self.inducing
+                )
 
-                else:
-                    logger.compute_log_reset(
-                        K_Lin_Op, K_tst, a, b, b_tst, b_norm, task, i, False
-                    )
-
-            r_norm = torch.linalg.norm(r)
-
-            if verbose:
-                print("Current PCG residual:" + repr(r_norm))
-
-            if torch.linalg.norm(r_norm) <= pcg_tol:
-                print("PCG has converged with residual:" + repr(r_norm))
+            if torch.norm(r) < pcg_tol:
+                print(f"PCG has converged with residual {torch.norm(r)} at iteration {i}")
                 break
-
-        if r_norm > pcg_tol:
-            print(
-                "PCG has reached max number of iterations without reaching convergence tolerance:"
-                + repr(r_norm)
-            )
-
-        return a
