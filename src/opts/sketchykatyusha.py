@@ -27,8 +27,7 @@ class SketchyKatyusha:
         if self.mu is None:
             self.mu = self.model.lambd
 
-        self.precond, self.L = _get_precond_L(
-            self.model, self.bH, self.precond_params)
+        self.precond, self.L = _get_precond_L(self.model, self.bH, self.precond_params)
         self.eta = 0.5 / self.L
         self.generator = MinibatchGenerator(self.model.n, self.bg)
         self.sigma = self.mu / self.L
@@ -40,13 +39,21 @@ class SketchyKatyusha:
         self.g_bar = self.model._get_full_grad(self.y)
 
     def step(self):
-        x = self.theta1 * self.z + self.theta2 * self.y + (1 - self.theta1 - self.theta2) * self.model.w
+        x = (
+            self.theta1 * self.z
+            + self.theta2 * self.y
+            + (1 - self.theta1 - self.theta2) * self.model.w
+        )
 
         idx = _get_minibatch(self.generator)
         g_diff = self.model._get_stochastic_grad_diff(idx, x, self.y)
         dir = _apply_precond(g_diff + self.g_bar, self.precond)
 
-        z_new = 1 / (1 + self.eta * self.sigma) * (self.eta * self.sigma * x + self.z - self.eta / self.L * dir)
+        z_new = (
+            1
+            / (1 + self.eta * self.sigma)
+            * (self.eta * self.sigma * x + self.z - self.eta / self.L * dir)
+        )
 
         # Update parameters
         self.model.w = x + self.theta1 * (z_new - self.z)

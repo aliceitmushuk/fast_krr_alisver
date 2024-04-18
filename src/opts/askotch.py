@@ -20,8 +20,12 @@ class ASkotch:
             self.model, self.blocks, self.precond_params
         )
         self.S_alpha = sum([L**self.alpha for L in self.block_Ls])
-        self.block_probs = torch.tensor([L**self.alpha / self.S_alpha for L in self.block_Ls])
-        self.sampling_dist = torch.distributions.categorical.Categorical(self.block_probs)
+        self.block_probs = torch.tensor(
+            [L**self.alpha / self.S_alpha for L in self.block_Ls]
+        )
+        self.sampling_dist = torch.distributions.categorical.Categorical(
+            self.block_probs
+        )
         self.tau = 2 / (1 + (4 * (self.S_alpha**2) / self.model.lambd + 1) ** 0.5)
         self.gamma = 1 / (self.tau * self.S_alpha**2)
 
@@ -34,7 +38,12 @@ class ASkotch:
 
         # Get the block, step size, and update direction
         block, eta, dir = _get_block_update(
-            self.model, self.model.w, block_idx, self.blocks, self.block_preconds, self.block_etas
+            self.model,
+            self.model.w,
+            block_idx,
+            self.blocks,
+            self.block_preconds,
+            self.block_etas,
         )
 
         # Update y

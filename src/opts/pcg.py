@@ -19,7 +19,8 @@ class PCG:
             self.rhs = self.model.K_nmTb
         else:
             self.precond = _get_precond(
-                self.model, self.precond_params, self.model.device)
+                self.model, self.precond_params, self.model.device
+            )
             self.rhs = self.model.b
 
         self.r, self.z, self.p = self._init_pcg()
