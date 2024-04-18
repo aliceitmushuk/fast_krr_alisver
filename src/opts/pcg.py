@@ -3,8 +3,7 @@ import torch
 from .opt_utils_pcg import (
     _get_precond,
     _get_precond_inducing,
-    _init_pcg,
-    _step_pcg,
+    _apply_precond,
 )
 
 
@@ -13,38 +12,30 @@ class PCG:
         self.model = model
         self.precond_params = precond_params
 
-    def run(self, max_iter, logger=None, pcg_tol=1e-6):
-        logger_enabled = False
-        if logger is not None:
-            logger_enabled = True
-
-        if logger_enabled:
-            logger.reset_timer()
-
         if self.model.inducing:
-            precond = _get_precond_inducing(
+            self.precond = _get_precond_inducing(
                 self.model, self.precond_params, self.model.device
             )
-            rhs = self.model.K_nmTb
+            self.rhs = self.model.K_nmTb
         else:
-            precond = _get_precond(self.model, self.precond_params, self.model.device)
-            rhs = self.model.b
+            self.precond = _get_precond(
+                self.model, self.precond_params, self.model.device)
+            self.rhs = self.model.b
 
-        r, z, p = _init_pcg(self.model.w, self.model.lin_op, rhs, precond)
+        self.r, self.z, self.p = self._init_pcg()
 
-        if logger_enabled:
-            logger.compute_log_reset(-1, self.model.compute_metrics, self.model.w)
+    def _init_pcg(self):
+        r = self.rhs - self.model.lin_op(self.model.w)
+        z = _apply_precond(r, self.precond)
+        p = z.clone()
+        return r, z, p
 
-        for i in range(max_iter):
-            self.model.w, r, z, p = _step_pcg(
-                self.model.w, r, z, p, self.model.lin_op, precond
-            )
-
-            if logger_enabled:
-                logger.compute_log_reset(i, self.model.compute_metrics, self.model.w)
-
-            if torch.norm(r) < pcg_tol:
-                print(
-                    f"PCG has converged with residual {torch.norm(r)} at iteration {i}"
-                )
-                break
+    def step(self):
+        Kp = self.model.lin_op(self.p)
+        r0_dot_z0 = torch.dot(self.r, self.z)
+        alpha = r0_dot_z0 / torch.dot(self.p, Kp)
+        self.model.w += alpha * self.p
+        self.r -= alpha * Kp
+        self.z = _apply_precond(self.r, self.precond)
+        beta = torch.dot(self.r, self.z) / r0_dot_z0
+        self.p = self.z + beta * self.p

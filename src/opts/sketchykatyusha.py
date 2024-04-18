@@ -19,57 +19,41 @@ class SketchyKatyusha:
 
         self.theta2 = 0.5
 
-    def run(self, max_iter, logger=None):
-        logger_enabled = False
-        if logger is not None:
-            logger_enabled = True
-
-        if logger_enabled:
-            logger.reset_timer()
-
         # Set hyperparameters if not provided
         if self.bH is None:
             self.bH = int(self.model.n**0.5)
-
-        precond, L = _get_precond_L(self.model, self.bH, self.precond_params)
-
-        # Set hyperparameters if not provided
         if self.p is None:
             self.p = self.bg / self.model.n
         if self.mu is None:
             self.mu = self.model.lambd
 
-        sigma = self.mu / L
-        theta1 = min(torch.sqrt(2 / 3 * self.model.n * sigma), 0.5)
-        eta = self.theta2 / ((1 + self.theta2) * theta1)
+        self.precond, self.L = _get_precond_L(
+            self.model, self.bH, self.precond_params)
+        self.eta = 0.5 / self.L
+        self.generator = MinibatchGenerator(self.model.n, self.bg)
+        self.sigma = self.mu / self.L
+        self.theta1 = min(torch.sqrt(2 / 3 * self.model.n * self.sigma), 0.5)
+        self.eta = self.theta2 / ((1 + self.theta2) * self.theta1)
 
-        y = self.model.w.clone()
-        z = self.model.w.clone()
-        g_bar = self.model._get_full_grad(y)
+        self.y = self.model.w.clone()
+        self.z = self.model.w.clone()
+        self.g_bar = self.model._get_full_grad(self.y)
 
-        if logger_enabled:
-            logger.compute_log_reset(-1, self.model.compute_metrics, self.model.w)
+    def step(self):
+        x = self.theta1 * self.z + self.theta2 * self.y + (1 - self.theta1 - self.theta2) * self.model.w
 
-        generator = MinibatchGenerator(self.model.n, self.bg)
+        idx = _get_minibatch(self.generator)
+        g_diff = self.model._get_stochastic_grad_diff(idx, x, self.y)
+        dir = _apply_precond(g_diff + self.g_bar, self.precond)
 
-        for i in range(max_iter):
-            x = theta1 * z + self.theta2 * y + (1 - theta1 - self.theta2) * self.model.w
+        z_new = 1 / (1 + self.eta * self.sigma) * (self.eta * self.sigma * x + self.z - self.eta / self.L * dir)
 
-            idx = _get_minibatch(generator)
-            g_diff = self.model._get_stochastic_grad_diff(idx, x, y)
-            dir = _apply_precond(g_diff + g_bar, precond)
+        # Update parameters
+        self.model.w = x + self.theta1 * (z_new - self.z)
 
-            z_new = 1 / (1 + eta * sigma) * (eta * sigma * x + z - eta / L * dir)
+        self.z = z_new.clone()
 
-            # Update parameters
-            self.model.w = x + theta1 * (z_new - z)
-
-            z = z_new.clone()
-
-            # Update snapshot
-            if torch.rand(1).item() < self.p:
-                y = self.model.w.clone()
-                g_bar = self.model._get_full_grad(y)
-
-            if logger_enabled:
-                logger.compute_log_reset(i, self.model.compute_metrics, self.model.w)
+        # Update snapshot
+        if torch.rand(1).item() < self.p:
+            self.y = self.model.w.clone()
+            self.g_bar = self.model._get_full_grad(self.y)

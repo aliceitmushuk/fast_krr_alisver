@@ -14,45 +14,31 @@ class SketchySVRG:
         self.update_freq = update_freq
         self.precond_params = precond_params
 
-    def run(self, max_iter, logger=None):
-        logger_enabled = False
-        if logger is not None:
-            logger_enabled = True
-
-        if logger_enabled:
-            logger.reset_timer()
-
         # Set hyperparameters if not provided
         if self.bH is None:
             self.bH = int(self.model.n**0.5)
-
-        precond, L = _get_precond_L(self.model, self.bH, self.precond_params)
-
-        # Set hyperparameters if not provided
         if self.update_freq is None:
             self.update_freq = self.model.n // self.bg
 
-        eta = 0.5 / L
+        self.precond, L = _get_precond_L(self.model, self.bH, self.precond_params)
+        self.eta = 0.5 / L
+        self.generator = MinibatchGenerator(self.model.n, self.bg)
+        
+        self.w_tilde = None
+        self.g_bar = None
 
-        w_tilde = None
-        g_bar = None
+        self.n_iter = 0
 
-        if logger_enabled:
-            logger.compute_log_reset(-1, self.model.compute_metrics, self.model.w)
+    def step(self):
+        if self.n_iter % self.update_freq == 0:
+            self.w_tilde = self.model.w.clone()
+            self.g_bar = self.model._get_full_grad(self.w_tilde)
 
-        generator = MinibatchGenerator(self.model.n, self.bg)
+        idx = _get_minibatch(self.generator)
+        g_diff = self.model._get_stochastic_grad_diff(idx, self.model.w, self.w_tilde)
+        dir = _apply_precond(g_diff + self.g_bar, self.precond)
 
-        for i in range(max_iter):
-            if i % self.update_freq == 0:
-                w_tilde = self.model.w.clone()
-                g_bar = self.model._get_full_grad(w_tilde)
+        # Update parameters
+        self.model.w -= self.eta * dir
 
-            idx = _get_minibatch(generator)
-            g_diff = self.model._get_stochastic_grad_diff(idx, self.model.w, w_tilde)
-            dir = _apply_precond(g_diff + g_bar, precond)
-
-            # Update parameters
-            self.model.w -= eta * dir
-
-            if logger_enabled:
-                logger.compute_log_reset(i, self.model.compute_metrics, self.model.w)
+        self.n_iter += 1

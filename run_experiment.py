@@ -376,15 +376,27 @@ def main():
                 config.device,
             )
 
-        # Select the optimizer
-        opt = get_opt(model, config)
-
         # Initialize the logger
         logger = Logger(config.log_freq)
 
-        # Run the optimizer
         with torch.no_grad():
-            opt.run(config.max_iter, logger)
+            # Select the optimizer
+            logger.reset_timer()
+            opt = get_opt(model, config)
+            if config.opt == "askotch":
+                eval_loc = opt.y
+            else:
+                eval_loc = model.w
+            logger.compute_log_reset(-1, model.compute_metrics, eval_loc)
+
+            # Run the optimizer
+            for i in range(config.max_iter):
+                opt.step()
+                if config.opt == "askotch":
+                    eval_loc = opt.y
+                else:
+                    eval_loc = model.w
+                logger.compute_log_reset(i, model.compute_metrics, eval_loc)
 
 
 if __name__ == "__main__":
