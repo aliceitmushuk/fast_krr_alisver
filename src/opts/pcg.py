@@ -1,10 +1,7 @@
 import torch
 
-from .opt_utils_pcg import (
-    _get_precond,
-    _get_precond_inducing,
-    _apply_precond,
-)
+from .opt_utils import _apply_precond
+from .opt_utils_pcg import _get_precond, _get_precond_inducing
 
 
 class PCG:

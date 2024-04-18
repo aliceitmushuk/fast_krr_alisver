@@ -1,6 +1,6 @@
 import torch
 
-from .opt_utils import _get_L
+from .opt_utils import _get_L, _apply_precond
 from ..preconditioners.nystrom import Nystrom
 
 
@@ -77,9 +77,6 @@ def _get_block_update(model, w, block_idx, blocks, block_preconds, block_etas):
     gb = model._get_block_grad(w, block)
 
     # Apply the preconditioner
-    if precond is not None:
-        dir = precond.inv_lin_op(gb)
-    else:
-        dir = gb
+    dir = _apply_precond(gb, precond)
 
     return block, eta, dir
