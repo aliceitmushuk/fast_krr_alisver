@@ -14,61 +14,43 @@ class ASkotch:
         self.beta = beta
         self.precond_params = precond_params
 
-    def run(self, max_iter, logger=None):
-        blocks = _get_blocks(self.model.n, self.B)
+        self.blocks = _get_blocks(self.model.n, self.B)
+        self.alpha = (1 - self.beta) / 2  # Controls acceleration
+        self.block_preconds, self.block_etas, self.block_Ls = _get_block_properties(
+            self.model, self.blocks, self.precond_params
+        )
+        self.S_alpha = sum([L**self.alpha for L in self.block_Ls])
+        self.block_probs = torch.tensor([L**self.alpha / self.S_alpha for L in self.block_Ls])
+        self.sampling_dist = torch.distributions.categorical.Categorical(self.block_probs)
+        self.tau = 2 / (1 + (4 * (self.S_alpha**2) / self.model.lambd + 1) ** 0.5)
+        self.gamma = 1 / (self.tau * self.S_alpha**2)
 
-        alpha = (1 - self.beta) / 2  # Controls acceleration
+        self.y = self.model.w.clone()
+        self.z = self.model.w.clone()
 
-        logger_enabled = False
-        if logger is not None:
-            logger_enabled = True
+    def step(self):
+        # Randomly select a block
+        block_idx = self.sampling_dist.sample()
 
-        if logger_enabled:
-            logger.reset_timer()
-
-        block_preconds, block_etas, block_Ls = _get_block_properties(
-            self.model, blocks, self.precond_params
+        # Get the block, step size, and update direction
+        block, eta, dir = _get_block_update(
+            self.model, self.model.w, block_idx, self.blocks, self.block_preconds, self.block_etas
         )
 
-        S_alpha = sum([L**alpha for L in block_Ls])
+        # Update y
+        self.y = self.model.w.clone()
+        self.y[block] -= eta * dir
 
-        block_probs = torch.tensor([L**alpha / S_alpha for L in block_Ls])
-        sampling_dist = torch.distributions.categorical.Categorical(block_probs)
-        tau = 2 / (1 + (4 * (S_alpha**2) / self.model.lambd + 1) ** 0.5)
-        gamma = 1 / (tau * S_alpha**2)
+        # Update z
+        self.z = (1 / (1 + self.gamma * self.model.lambd)) * (
+            self.z + self.gamma * self.model.lambd * self.model.w
+        )
+        self.z[block] -= (
+            (1 / (1 + self.gamma * self.model.lambd))
+            * self.gamma
+            / (self.block_probs[block_idx] * (self.block_Ls[block_idx] ** self.beta))
+            * dir
+        )
 
-        y = self.model.w.clone()
-        z = self.model.w.clone()
-
-        if logger_enabled:
-            logger.compute_log_reset(-1, self.model.compute_metrics, y)
-
-        for i in range(max_iter):
-            # Randomly select a block
-            block_idx = sampling_dist.sample()
-
-            # Get the block, step size, and update direction
-            block, eta, dir = _get_block_update(
-                self.model, self.model.w, block_idx, blocks, block_preconds, block_etas
-            )
-
-            # Update y
-            y = self.model.w.clone()
-            y[block] -= eta * dir
-
-            # Update z
-            z = (1 / (1 + gamma * self.model.lambd)) * (
-                z + gamma * self.model.lambd * self.model.w
-            )
-            z[block] -= (
-                (1 / (1 + gamma * self.model.lambd))
-                * gamma
-                / (block_probs[block_idx] * (block_Ls[block_idx] ** self.beta))
-                * dir
-            )
-
-            # Update w
-            self.model.w = tau * z + (1 - tau) * y
-
-            if logger_enabled:
-                logger.compute_log_reset(i, self.model.compute_metrics, y)
+        # Update w
+        self.model.w = self.tau * self.z + (1 - self.tau) * self.y

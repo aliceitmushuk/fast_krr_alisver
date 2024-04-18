@@ -14,39 +14,22 @@ class Skotch:
         self.alpha = alpha
         self.precond_params = precond_params
 
-    def run(self, max_iter, logger=None):
-        blocks = _get_blocks(self.model.n, self.B)
+        self.blocks = _get_blocks(self.model.n, self.B)
+        self.block_preconds, self.block_etas, self.block_Ls = _get_block_properties(
+            self.model, self.blocks, self.precond_params
+        )
+        self.S_alpha = sum([L**self.alpha for L in self.block_Ls])
+        self.block_probs = torch.tensor([L**self.alpha / self.S_alpha for L in self.block_Ls])
+        self.sampling_dist = torch.distributions.categorical.Categorical(self.block_probs)
 
-        logger_enabled = False
-        if logger is not None:
-            logger_enabled = True
+    def step(self):
+        # Randomly select a block
+        block_idx = self.sampling_dist.sample()
 
-        if logger_enabled:
-            logger.reset_timer()
-
-        block_preconds, block_etas, block_Ls = _get_block_properties(
-            self.model, blocks, self.precond_params
+        # Get the block, step size, and update direction
+        block, eta, dir = _get_block_update(
+            self.model, self.model.w, block_idx, self.blocks, self.block_preconds, self.block_etas
         )
 
-        S_alpha = sum([L**self.alpha for L in block_Ls])
-
-        block_probs = torch.tensor([L**self.alpha / S_alpha for L in block_Ls])
-        sampling_dist = torch.distributions.categorical.Categorical(block_probs)
-
-        if logger_enabled:
-            logger.compute_log_reset(-1, self.model.compute_metrics, self.model.w)
-
-        for i in range(max_iter):
-            # Randomly select a block
-            block_idx = sampling_dist.sample()
-
-            # Get the block, step size, and update direction
-            block, eta, dir = _get_block_update(
-                self.model, self.model.w, block_idx, blocks, block_preconds, block_etas
-            )
-
-            # Update block
-            self.model.w[block] -= eta * dir
-
-            if logger_enabled:
-                logger.compute_log_reset(i, self.model.compute_metrics, self.model.w)
+        # Update block
+        self.model.w[block] -= eta * dir
