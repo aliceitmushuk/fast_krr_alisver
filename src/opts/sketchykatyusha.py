@@ -1,11 +1,8 @@
 import torch
 
 from .minibatch_generator import MinibatchGenerator
-from .opt_utils_sgd import (
-    _get_precond_L,
-    _apply_precond,
-    _get_minibatch,
-)
+from .opt_utils import _apply_precond
+from .opt_utils_sgd import _get_precond_L, _get_minibatch
 
 
 class SketchyKatyusha:

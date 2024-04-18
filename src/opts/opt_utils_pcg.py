@@ -29,10 +29,3 @@ def _get_precond_inducing(model, precond_params, device):
         precond = Falkon(device)
         precond.update(model.K_mm, model.n, model.m, model.lambd)
     return precond
-
-
-def _apply_precond(v, precond):
-    if precond is not None:
-        return precond.inv_lin_op(v)
-    else:
-        return v

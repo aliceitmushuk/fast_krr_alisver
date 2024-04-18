@@ -22,14 +22,6 @@ def _get_precond_L(model, bH, precond_params):
 
     return precond, L
 
-
-def _apply_precond(v, precond):
-    if precond is not None:
-        return precond.inv_lin_op(v)
-    else:
-        return v
-
-
 def _get_minibatch(generator):
     try:
         idx = next(generator)
