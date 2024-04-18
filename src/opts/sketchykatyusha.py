@@ -9,7 +9,7 @@ from .opt_utils_sgd import (
 
 
 class SketchyKatyusha:
-    def __init__(self, model, bg, bH=None, p=None, mu=None, precond_params=None):
+    def __init__(self, model, bg, bH, p, mu, precond_params=None):
         self.model = model
         self.bg = bg
         self.bH = bH
@@ -18,14 +18,6 @@ class SketchyKatyusha:
         self.precond_params = precond_params
 
         self.theta2 = 0.5
-
-        # Set hyperparameters if not provided
-        if self.bH is None:
-            self.bH = int(self.model.n**0.5)
-        if self.p is None:
-            self.p = self.bg / self.model.n
-        if self.mu is None:
-            self.mu = self.model.lambd
 
         self.precond, self.L = _get_precond_L(self.model, self.bH, self.precond_params)
         self.eta = 0.5 / self.L

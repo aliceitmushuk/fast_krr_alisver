@@ -7,15 +7,11 @@ from .opt_utils_sgd import (
 
 
 class SketchySGD:
-    def __init__(self, model, bg, bH=None, precond_params=None):
+    def __init__(self, model, bg, bH, precond_params=None):
         self.model = model
         self.bg = bg
         self.bH = bH
         self.precond_params = precond_params
-
-        # Set hyperparameters if not provided
-        if self.bH is None:
-            self.bH = int(self.model.n**0.5)
 
         self.precond, L = _get_precond_L(self.model, self.bH, self.precond_params)
         self.eta = 0.5 / L

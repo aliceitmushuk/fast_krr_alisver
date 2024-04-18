@@ -7,18 +7,12 @@ from .opt_utils_sgd import (
 
 
 class SketchySVRG:
-    def __init__(self, model, bg, bH=None, update_freq=None, precond_params=None):
+    def __init__(self, model, bg, bH, update_freq, precond_params=None):
         self.model = model
         self.bg = bg
         self.bH = bH
         self.update_freq = update_freq
         self.precond_params = precond_params
-
-        # Set hyperparameters if not provided
-        if self.bH is None:
-            self.bH = int(self.model.n**0.5)
-        if self.update_freq is None:
-            self.update_freq = self.model.n // self.bg
 
         self.precond, L = _get_precond_L(self.model, self.bH, self.precond_params)
         self.eta = 0.5 / L
