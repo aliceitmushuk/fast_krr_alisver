@@ -22,6 +22,7 @@ def _get_precond_L(model, bH, precond_params):
 
     return precond, L
 
+
 def _get_minibatch(generator):
     try:
         idx = next(generator)
