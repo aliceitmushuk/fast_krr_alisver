@@ -1,6 +1,4 @@
-import argparse
 import os
-import random
 
 import numpy as np
 import pandas as pd
@@ -16,45 +14,6 @@ DATA_FILES = {
     "homo": "homo.mat",
     "susy": "SUSY",
 }
-
-
-# Custom action to parse parameters
-class ParseParams(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        # Split the input string into individual elements
-        elements = values.split()
-        print(elements)
-        params_dict = {}
-        # Iterate over the elements two at a time (key-value pairs)
-        for i in range(0, len(elements), 2):
-            key = elements[i]
-            value = elements[i + 1]
-            # Attempt to convert numeric values to float, otherwise keep as string
-            try:
-                if key == "r":  # Rank parameter in preconditioner is int, not float
-                    value = int(value)
-                else:
-                    value = float(value)
-            except ValueError:
-                # If conversion fails, value remains a string
-                pass
-            params_dict[key] = value
-        setattr(namespace, self.dest, params_dict)
-
-
-"""
-Helper function for setting seed for the random number generator in various packages.
-
-INPUT: 
-- seed: integer
-"""
-
-
-def set_random_seed(seed):
-    np.random.seed(seed)
-    random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
 
 
 def standardize(data_tr, data_tst):
