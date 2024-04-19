@@ -1,7 +1,12 @@
 import argparse
 
 from src.experiment import Experiment
-from src.experiment_utils import ParseParams, check_inputs, set_precision, set_random_seed
+from src.experiment_utils import (
+    ParseParams,
+    check_inputs,
+    set_precision,
+    set_random_seed,
+)
 
 
 def main():
@@ -60,7 +65,10 @@ def main():
         "--p", type=float, default=None, help="Update probability in SketchyKatyusha"
     )
     parser.add_argument(
-        "--mu", type=float, default=None, help="Strong convexity parameter in SketchyKatyusha"
+        "--mu",
+        type=float,
+        default=None,
+        help="Strong convexity parameter in SketchyKatyusha",
     )
     parser.add_argument(
         "--precond_params",

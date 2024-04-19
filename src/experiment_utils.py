@@ -25,6 +25,7 @@ OPT_NAMES = {
     "pcg": PCG,
 }
 
+
 # Custom action to parse parameters
 class ParseParams(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
@@ -58,14 +59,11 @@ def check_inputs(args):
                 f"Number of inducing points is not used in {opt_name}. Ignoring this parameter"
             )
         if args.b is None:
-            raise ValueError(
-                f"Number of blocks must be provided for {opt_name}")
+            raise ValueError(f"Number of blocks must be provided for {opt_name}")
         if args.alpha is None:
-            raise ValueError(
-                f"Sampling parameter must be provided for {opt_name}")
+            raise ValueError(f"Sampling parameter must be provided for {opt_name}")
         if args.beta is not None:
-            warnings.warn(
-                f"Beta is not used in {opt_name}. Ignoring this parameter")
+            warnings.warn(f"Beta is not used in {opt_name}. Ignoring this parameter")
         if args.bg is not None:
             warnings.warn(
                 f"Gradient batch size is not used in {opt_name}. Ignoring this parameter"
@@ -80,15 +78,13 @@ def check_inputs(args):
                 f"Number of inducing points is not used in {opt_name}. Ignoring this parameter"
             )
         if args.b is None:
-            raise ValueError(
-                f"Number of blocks must be provided for {opt_name}")
+            raise ValueError(f"Number of blocks must be provided for {opt_name}")
         if args.alpha is not None:
             warnings.warn(
                 f"Sampling parameter is not used in {opt_name}. Ignoring this parameter"
             )
         if args.beta is None:
-            raise ValueError(
-                f"Acceleration parameter must be provided for {opt_name}")
+            raise ValueError(f"Acceleration parameter must be provided for {opt_name}")
         if args.bg is not None:
             warnings.warn(
                 f"Gradient batch size is not used in {opt_name}. Ignoring this parameter"
@@ -111,11 +107,9 @@ def check_inputs(args):
                 f"Sampling parameter is not used in {opt_name}. Ignoring this parameter"
             )
         if args.beta is not None:
-            warnings.warn(
-                f"Beta is not used in {opt_name}. Ignoring this parameter")
+            warnings.warn(f"Beta is not used in {opt_name}. Ignoring this parameter")
         if args.bg is None:
-            raise ValueError(
-                f"Gradient batch size must be provided for {opt_name}")
+            raise ValueError(f"Gradient batch size must be provided for {opt_name}")
         if args.bH is None:
             warnings.warn(
                 f"Hessian batch size is not provided for {opt_name}. Using default value int(n**0.5)"
@@ -163,8 +157,7 @@ def check_inputs(args):
                 f"Sampling parameter is not used in {opt_name}. Ignoring this parameter"
             )
         if args.beta is not None:
-            warnings.warn(
-                f"Beta is not used in {opt_name}. Ignoring this parameter")
+            warnings.warn(f"Beta is not used in {opt_name}. Ignoring this parameter")
         if args.bg is not None:
             warnings.warn(
                 f"Gradient batch size is not used in {opt_name}. Ignoring this parameter"
@@ -216,6 +209,8 @@ Helper function for setting seed for the random number generator in various pack
 INPUT: 
 - seed: integer
 """
+
+
 def set_random_seed(seed):
     np.random.seed(seed)
     random.seed(seed)
@@ -248,15 +243,13 @@ def get_opt(model, config):
         "sketchykatyusha",
     ]:
         if config.opt == "sketchysgd":
-            opt = SketchySGD(model, config.bg, config.bH,
-                             config.precond_params)
+            opt = SketchySGD(model, config.bg, config.bH, config.precond_params)
         elif config.opt == "sketchysvrg":
             opt = SketchySVRG(
                 model, config.bg, config.bH, config.update_freq, config.precond_params
             )
         elif config.opt == "sketchysaga":
-            opt = SketchySAGA(model, config.bg, config.bH,
-                              config.precond_params)
+            opt = SketchySAGA(model, config.bg, config.bH, config.precond_params)
         elif config.opt == "sketchykatyusha":
             opt = SketchyKatyusha(
                 model,

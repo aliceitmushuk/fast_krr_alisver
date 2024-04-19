@@ -5,6 +5,7 @@ from .experiment_utils import get_full_krr, get_inducing_krr, get_opt
 from .data_utils import load_data
 from .logger import Logger
 
+
 class Experiment:
     def __init__(self, exp_args):
         self.exp_args = exp_args.copy()
@@ -12,7 +13,7 @@ class Experiment:
     def _modify_opt_args(self, model):
         if self.exp_args["opt"].startswith("sketchy"):
             if self.exp_args["bH"] is None:
-                self.exp_args["bH"] = int(model.n ** 0.5)
+                self.exp_args["bH"] = int(model.n**0.5)
 
             if self.exp_args["opt"] == "sketchysvrg":
                 if self.exp_args["update_freq"] is None:
@@ -32,13 +33,26 @@ class Experiment:
         # Load model
         if self.exp_args["model"] == "full_krr":
             model = get_full_krr(
-                Xtr, ytr, Xtst, ytst, self.exp_args["kernel_params"],
-                  self.exp_args["lambd"], self.exp_args["task"], self.exp_args["device"]
+                Xtr,
+                ytr,
+                Xtst,
+                ytst,
+                self.exp_args["kernel_params"],
+                self.exp_args["lambd"],
+                self.exp_args["task"],
+                self.exp_args["device"],
             )
         elif self.exp_args["model"] == "inducing_krr":
             model = get_inducing_krr(
-                Xtr, ytr, Xtst, ytst, self.exp_args["kernel_params"], self.exp_args["m"],
-                self.exp_args["lambd"], self.exp_args["task"], self.exp_args["device"]
+                Xtr,
+                ytr,
+                Xtst,
+                ytst,
+                self.exp_args["kernel_params"],
+                self.exp_args["m"],
+                self.exp_args["lambd"],
+                self.exp_args["task"],
+                self.exp_args["device"],
             )
 
         # Set optimizer args if needed
@@ -69,4 +83,3 @@ class Experiment:
                     else:
                         eval_loc = model.w
                     logger.compute_log_reset(i, model.compute_metrics, eval_loc)
-        
