@@ -33,6 +33,7 @@ class Kernel(ABC):
     def __getattr__(self, name):
         """Handle attribute access for attributes not explicitly defined."""
         if name == "T":
-                return self.K.T
+            return self.K.T
         raise AttributeError(
-            f"'{self.__class__.__name__}' object has no attribute '{name}'")
+            f"'{self.__class__.__name__}' object has no attribute '{name}'"
+        )

@@ -57,7 +57,13 @@ def _get_block_properties(model, blocks, precond_params):
         Kb_lin_op, Kb_lin_op_reg, Kb_trace = model._get_block_lin_ops(block)
 
         precond, L = _get_block_precond_L(
-            Kb_lin_op, Kb_lin_op_reg, Kb_trace, model.lambd, block, precond_params, model.device
+            Kb_lin_op,
+            Kb_lin_op_reg,
+            Kb_trace,
+            model.lambd,
+            block,
+            precond_params,
+            model.device,
         )
 
         block_preconds.append(precond)
