@@ -11,16 +11,17 @@ def _get_precond(model, precond_params, device):
                 k: v for k, v in precond_params.items() if k != "type"
             }
 
-            K_lin_op = model._get_full_lin_op()
+            K_lin_op, K_trace = model._get_full_lin_op()
 
             precond = Nystrom(device, **precond_params_sub)
-            precond.update(K_lin_op, model.n)
+            precond.update(K_lin_op, K_trace, model.n)
         elif precond_params["type"] == "partial_cholesky":
             precond_params_sub = {
                 k: v for k, v in precond_params.items() if k != "type"
             }
             precond = PartialCholesky(device, **precond_params_sub)
-            precond.update(model.x, model.kernel_params)
+            diag_K = model._get_diag()
+            precond.update(model.x, model.kernel_params, diag_K)
     return precond
 
 

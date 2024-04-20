@@ -27,7 +27,3 @@ class Rbf(Kernel):
 
     def get_trace(self):
         return self.get_diag().sum().item()
-
-    @staticmethod
-    def _get_diag_from_dim(n):
-        return torch.ones(n)

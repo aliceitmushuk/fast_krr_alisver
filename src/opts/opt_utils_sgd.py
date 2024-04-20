@@ -3,7 +3,7 @@ from ..preconditioners.nystrom import Nystrom
 
 
 def _get_precond_L(model, bH, precond_params):
-    subsampled_lin_op, subsampled_reg_lin_op = model._get_subsampled_lin_ops(bH)
+    subsampled_lin_op, subsampled_reg_lin_op, subsampled_trace = model._get_subsampled_lin_ops(bH)
 
     precond = None
 
@@ -13,7 +13,7 @@ def _get_precond_L(model, bH, precond_params):
                 k: v for k, v in precond_params.items() if k != "type"
             }
             precond = Nystrom(model.device, **precond_params_sub)
-            precond.update(subsampled_lin_op, model.m)
+            precond.update(subsampled_lin_op, subsampled_trace, model.m)
             L = _get_L(
                 subsampled_reg_lin_op, precond.inv_sqrt_lin_op, model.m, model.device
             )

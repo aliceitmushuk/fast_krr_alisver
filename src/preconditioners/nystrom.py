@@ -10,7 +10,7 @@ class Nystrom:
         self.U = None
         self.S = None
 
-    def update(self, K_lin_op, n):
+    def update(self, K_lin_op, K_trace, n):
         # Calculate sketch
         Phi = torch.randn((n, self.r), device=self.device) / (n**0.5)
         Phi = torch.linalg.qr(Phi, mode="reduced")[0]
@@ -18,7 +18,7 @@ class Nystrom:
         Y = K_lin_op(Phi)
 
         # Calculate shift
-        shift = torch.finfo(Y.dtype).eps
+        shift = torch.finfo(Y.dtype).eps * K_trace
         Y_shifted = Y + shift * Phi
 
         # Calculate Phi^T * K * Phi (w/ shift) for Cholesky

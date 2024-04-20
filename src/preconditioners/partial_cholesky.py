@@ -1,6 +1,6 @@
 import torch
 from pykeops.torch import LazyTensor
-from ..kernels.kernel_inits import _get_kernel_type, _get_kernel
+from ..kernels.kernel_inits import _get_kernel
 
 
 class PartialCholesky:
@@ -12,14 +12,11 @@ class PartialCholesky:
         self.U = None
         self.S = None
 
-    def update(self, x, kernel_params, tol=10**-6):
+    def update(self, x, kernel_params, diag_K, tol=10**-6):
         n = x.shape[0]
         L = torch.zeros(self.r, n).to(self.device)
         x_f = LazyTensor(x[:, None, :])
-        kernel_type = _get_kernel_type(kernel_params)
-
-        # Get diagonal and function for getting kernel row corresponding to the specified kernel
-        diag_K = kernel_type._get_diag_from_dim(n).to(self.device)
+        diag_K = diag_K.to(self.device)
 
         def get_row(x):
             return _get_kernel(x_f, x, kernel_params)
