@@ -25,3 +25,14 @@ class Kernel(ABC):
     def get_trace(self):
         """Return the trace of the kernel matrix."""
         pass
+
+    def __matmul__(self, v):
+        """Handle the matrix multiplication operator @ for Kernel instances."""
+        return self.K @ v
+
+    def __getattr__(self, name):
+        """Handle attribute access for attributes not explicitly defined."""
+        if name == "T":
+                return self.K.T
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{name}'")

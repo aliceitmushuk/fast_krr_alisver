@@ -23,7 +23,7 @@ def _get_blocks(n, B):
 
 
 def _get_block_precond_L(
-    block_lin_op, block_lin_op_reg, lambd, block, precond_params, device
+    block_lin_op, block_lin_op_reg, block_trace, lambd, block, precond_params, device
 ):
     precond = None
 
@@ -33,7 +33,7 @@ def _get_block_precond_L(
                 k: v for k, v in precond_params.items() if k != "type"
             }
             precond = Nystrom(device, **precond_params_sub)
-            precond.update(block_lin_op, block.shape[0])
+            precond.update(block_lin_op, block_trace, block.shape[0])
 
             # Automatically set rho to lambda + S[-1] if not provided
             precond.rho = (
@@ -54,10 +54,10 @@ def _get_block_properties(model, blocks, precond_params):
     block_preconds, block_etas, block_Ls = [], [], []
 
     for _, block in enumerate(blocks):
-        Kb_lin_op, Kb_lin_op_reg = model._get_block_lin_ops(block)
+        Kb_lin_op, Kb_lin_op_reg, Kb_trace = model._get_block_lin_ops(block)
 
         precond, L = _get_block_precond_L(
-            Kb_lin_op, Kb_lin_op_reg, model.lambd, block, precond_params, model.device
+            Kb_lin_op, Kb_lin_op_reg, Kb_trace, model.lambd, block, precond_params, model.device
         )
 
         block_preconds.append(precond)

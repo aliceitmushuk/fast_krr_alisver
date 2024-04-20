@@ -123,4 +123,6 @@ class InducingKRR:
         def K_inducing_sub_Kmm_lin_op(v):
             return adj_factor * K_sm_lr.T @ (K_sm_lr @ v) + self.lambd * (self.K_mm @ v)
 
-        return K_inducing_sub_lin_op, K_inducing_sub_Kmm_lin_op
+        K_inducing_trace = adj_factor * (K_sm.K ** 2).sum()
+
+        return K_inducing_sub_lin_op, K_inducing_sub_Kmm_lin_op, K_inducing_trace
