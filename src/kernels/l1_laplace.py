@@ -29,3 +29,7 @@ class L1Laplace(Kernel):
 
     def get_trace(self):
         return self.get_diag().sum().item()
+    
+    def get_row(self ,x, x_i, kernel_params):
+        D = (torch.abs(x_i-x)).sum(dim=1)
+        return (-D / kernel_params["sigma"]).exp()
