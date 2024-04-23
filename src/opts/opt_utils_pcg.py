@@ -21,7 +21,7 @@ def _get_precond(model, precond_params, device):
             }
             precond = PartialCholesky(device, **precond_params_sub)
             diag_K = model._get_diag()
-            precond.update(model.x, model.kernel_params, diag_K)
+            precond.update(model.x, model.kernel_params, model.K, diag_K)
     return precond
 
 
