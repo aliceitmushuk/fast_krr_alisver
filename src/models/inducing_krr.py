@@ -119,17 +119,20 @@ class InducingKRR:
         x_hess_i = LazyTensor(self.x[hess_pts][:, None, :])
         K_sm = _get_kernel(x_hess_i, self.x_inducing_j, self.kernel_params)
 
-        hess_pts_lr = torch.from_numpy(np.random.choice(self.n, bH, replace=False))
+        bH2 = self.n // 50 # TODO: Make this a parameter
+
+        hess_pts_lr = torch.from_numpy(np.random.choice(self.n, bH2, replace=False))
         x_hess_lr_i = LazyTensor(self.x[hess_pts_lr][:, None, :])
         K_sm_lr = _get_kernel(x_hess_lr_i, self.x_inducing_j, self.kernel_params)
 
         adj_factor = self.n / bH
+        adj_factor2 = self.n / bH2
 
         def K_inducing_sub_lin_op(v):
             return adj_factor * K_sm.T @ (K_sm @ v)
 
         def K_inducing_sub_Kmm_lin_op(v):
-            return adj_factor * K_sm_lr.T @ (K_sm_lr @ v) + self.lambd * (self.K_mm @ v)
+            return adj_factor2 * K_sm_lr.T @ (K_sm_lr @ v) + self.lambd * (self.K_mm @ v)
 
         K_inducing_fro_norm2 = torch.sum((K_sm.K**2).sum() @ torch.ones(1, device=self.device)).item()
         K_inducing_trace = adj_factor * K_inducing_fro_norm2
