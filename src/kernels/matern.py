@@ -40,20 +40,20 @@ class Matern(Kernel):
 
     def get_trace(self):
         return self.get_diag().sum().item()
-    
+
     def get_row(self, x_i, x, kernel_params):
         nu = kernel_params["nu"]
         sigma = kernel_params["sigma"]
-        
-        D = ((x_i-x)**2).sum(dim = 1).sqrt()
+
+        D = ((x_i - x) ** 2).sum(dim=1).sqrt()
 
         if nu == 0.5:
             k_i = (-D / sigma).exp()
         elif nu == 1.5:
             D_adj = torch.sqrt(torch.tensor(3.0)) * D / sigma
             k_i = (1 + D_adj) * (-D_adj).exp()
-        else: # nu == 2.5
+        else:  # nu == 2.5
             D_adj = torch.sqrt(torch.tensor(5.0)) * D / sigma
             k_i = (1 + D_adj + 5 * D**2 / (3 * sigma**2)) * (-D_adj).exp()
-        
+
         return k_i

@@ -27,7 +27,7 @@ class Rbf(Kernel):
 
     def get_trace(self):
         return self.get_diag().sum().item()
-    
+
     def get_row(self, x_i, x, kernel_params):
-        D = ((x_i-x)**2).sum(dim=1)
-        return (-D / (2 * kernel_params["sigma"]**2)).exp()
+        D = ((x_i - x) ** 2).sum(dim=1)
+        return (-D / (2 * kernel_params["sigma"] ** 2)).exp()
