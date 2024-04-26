@@ -61,7 +61,9 @@ class InducingKRR:
         K_mmv = self._Kmm_lin_op(v)
         residual = self.K_nm.T @ K_nmv + self.lambd * K_mmv - self.K_nmTb
         rel_residual = torch.norm(residual) / self.K_nmTb_norm
-        loss = 1 / 2 * torch.norm(K_nmv - self.b)**2 + self.lambd / 2 * torch.dot(v, K_mmv)
+        loss = 1 / 2 * torch.norm(K_nmv - self.b) ** 2 + self.lambd / 2 * torch.dot(
+            v, K_mmv
+        )
 
         metrics_dict = {"rel_residual": rel_residual, "train_loss": loss}
 
@@ -130,9 +132,13 @@ class InducingKRR:
             return adj_factor * K_sm.T @ (K_sm @ v)
 
         def K_inducing_sub_Kmm_lin_op(v):
-            return adj_factor2 * K_sm_lr.T @ (K_sm_lr @ v) + self.lambd * (self.K_mm @ v)
+            return adj_factor2 * K_sm_lr.T @ (K_sm_lr @ v) + self.lambd * (
+                self.K_mm @ v
+            )
 
-        K_inducing_fro_norm2 = torch.sum((K_sm.K**2).sum() @ torch.ones(1, device=self.device)).item()
+        K_inducing_fro_norm2 = torch.sum(
+            (K_sm.K**2).sum() @ torch.ones(1, device=self.device)
+        ).item()
         K_inducing_trace = adj_factor * K_inducing_fro_norm2
 
         return K_inducing_sub_lin_op, K_inducing_sub_Kmm_lin_op, K_inducing_trace

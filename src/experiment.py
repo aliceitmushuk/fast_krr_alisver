@@ -34,7 +34,7 @@ class Experiment:
             if n_iters >= self.exp_args["max_iter"]:
                 return True
         return False
-    
+
     def _get_eval_loc(self, config, opt, model):
         if config.opt == "askotch":
             return opt.y
@@ -96,8 +96,8 @@ class Experiment:
                 # Terminate if max allowed time is exceeded
                 if self._time_exceeded(0, logger.cum_time):
                     return
-                
-                i = 0 # Iteration counter
+
+                i = 0  # Iteration counter
 
                 # Run the optimizer
                 while True:
@@ -105,13 +105,13 @@ class Experiment:
                     eval_loc = self._get_eval_loc(config, opt, model)
 
                     logger.update_cum_time()
-                    
+
                     # Terminate when max allowed time is exceeded
                     if self._time_exceeded(i + 1, logger.cum_time):
                         # Log the last iteration; we use -1 as a hack
                         logger.compute_log_reset(-1, model.compute_metrics, eval_loc)
                         return
-                    
+
                     logger.compute_log_reset(i, model.compute_metrics, eval_loc)
 
                     i += 1

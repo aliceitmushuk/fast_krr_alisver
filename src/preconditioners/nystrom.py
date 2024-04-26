@@ -38,7 +38,6 @@ class Nystrom:
         # Set indices of self.S that are equal to 0 to a small value
         self.S[self.S < torch.finfo(self.S.dtype).eps] = 1e-4
 
-
     def inv_lin_op(self, v):
         if self.L is None:
             self.L = torch.linalg.cholesky(

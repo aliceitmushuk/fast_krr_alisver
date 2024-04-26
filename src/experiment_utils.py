@@ -263,13 +263,22 @@ def get_opt(model, config):
         "sketchykatyusha",
     ]:
         if config.opt == "sketchysgd":
-            opt = SketchySGD(model, config.bg, config.bH, config.bH2, config.precond_params)
+            opt = SketchySGD(
+                model, config.bg, config.bH, config.bH2, config.precond_params
+            )
         elif config.opt == "sketchysvrg":
             opt = SketchySVRG(
-                model, config.bg, config.bH, config.bH2, config.update_freq, config.precond_params
+                model,
+                config.bg,
+                config.bH,
+                config.bH2,
+                config.update_freq,
+                config.precond_params,
             )
         elif config.opt == "sketchysaga":
-            opt = SketchySAGA(model, config.bg, config.bH, config.bH2, config.precond_params)
+            opt = SketchySAGA(
+                model, config.bg, config.bH, config.bH2, config.precond_params
+            )
         elif config.opt == "sketchykatyusha":
             opt = SketchyKatyusha(
                 model,

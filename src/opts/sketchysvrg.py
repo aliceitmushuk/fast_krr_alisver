@@ -12,7 +12,9 @@ class SketchySVRG:
         self.update_freq = update_freq
         self.precond_params = precond_params
 
-        self.precond, L = _get_precond_L(self.model, self.bH, self.bH2, self.precond_params)
+        self.precond, L = _get_precond_L(
+            self.model, self.bH, self.bH2, self.precond_params
+        )
         self.eta = 0.5 / L
         self.generator = MinibatchGenerator(self.model.n, self.bg)
 

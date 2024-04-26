@@ -59,7 +59,10 @@ def main():
         "--bH", type=int, default=None, help="Hessian batch size in SGD-type methods"
     )
     parser.add_argument(
-        "--bH2", type=int, default=None, help="Hessian batch size for eig calculations in SGD-type methods"
+        "--bH2",
+        type=int,
+        default=None,
+        help="Hessian batch size for eig calculations in SGD-type methods",
     )
     parser.add_argument(
         "--update_freq", type=int, default=None, help="Update frequency in SketchySVRG"
@@ -83,7 +86,10 @@ def main():
         "--max_iter", type=int, default=None, help="Number of iterations"
     )
     parser.add_argument(
-        "--max_time", type=float, default=None, help="Maximum time (in seconds) to run the optimizer"
+        "--max_time",
+        type=float,
+        default=None,
+        help="Maximum time (in seconds) to run the optimizer",
     )
     parser.add_argument(
         "--log_freq", type=int, default=100, help="Logging frequency of metrics"
