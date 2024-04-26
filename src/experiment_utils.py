@@ -51,8 +51,12 @@ class ParseParams(argparse.Action):
 
 
 def check_inputs(args):
+    # Check that at least one of max_time or max_iter is provided
+    if "max_time" not in args and "max_iter" not in args:
+        raise ValueError("At least one of max_time or max_iter must be provided")
+
     opt_name = OPT_NAMES[args.opt]
-    # Input checking
+    # Input checking for optimizers
     if args.opt == "skotch":
         if args.m is not None:
             warnings.warn(
@@ -71,6 +75,10 @@ def check_inputs(args):
         if args.bH is not None:
             warnings.warn(
                 f"Hessian batch size is not used in {opt_name}. Ignoring this parameter"
+            )
+        if args.bH2 is not None:
+            warnings.warn(
+                f"Hessian batch size for eig calculations is not used in {opt_name}. Ignoring this parameter"
             )
     elif args.opt == "askotch":
         if args.m is not None:
@@ -93,6 +101,10 @@ def check_inputs(args):
             warnings.warn(
                 f"Hessian batch size is not used in {opt_name}. Ignoring this parameter"
             )
+        if args.bH2 is not None:
+            warnings.warn(
+                f"Hessian batch size for eig calculations is not used in {opt_name}. Ignoring this parameter"
+            )
     elif args.opt in ["sketchysgd", "sketchysvrg", "sketchysaga", "sketchykatyusha"]:
         if args.m is None:
             raise ValueError(
@@ -113,6 +125,10 @@ def check_inputs(args):
         if args.bH is None:
             warnings.warn(
                 f"Hessian batch size is not provided for {opt_name}. Using default value int(n**0.5)"
+            )
+        if args.bH2 is None:
+            warnings.warn(
+                f"Hessian batch size for eig calculations is not provided for {opt_name}. Using default value max(1, n // 50)"
             )
 
         if args.opt in ["sketchysgd", "sketchysaga", "sketchykatyusha"]:
@@ -165,6 +181,10 @@ def check_inputs(args):
         if args.bH is not None:
             warnings.warn(
                 f"Hessian batch size is not used in {opt_name}. Ignoring this parameter"
+            )
+        if args.bH2 is not None:
+            warnings.warn(
+                f"Hessian batch size for eig calculations is not used in {opt_name}. Ignoring this parameter"
             )
         if args.update_freq is not None:
             warnings.warn(
@@ -243,18 +263,19 @@ def get_opt(model, config):
         "sketchykatyusha",
     ]:
         if config.opt == "sketchysgd":
-            opt = SketchySGD(model, config.bg, config.bH, config.precond_params)
+            opt = SketchySGD(model, config.bg, config.bH, config.bH2, config.precond_params)
         elif config.opt == "sketchysvrg":
             opt = SketchySVRG(
-                model, config.bg, config.bH, config.update_freq, config.precond_params
+                model, config.bg, config.bH, config.bH2, config.update_freq, config.precond_params
             )
         elif config.opt == "sketchysaga":
-            opt = SketchySAGA(model, config.bg, config.bH, config.precond_params)
+            opt = SketchySAGA(model, config.bg, config.bH, config.bH2, config.precond_params)
         elif config.opt == "sketchykatyusha":
             opt = SketchyKatyusha(
                 model,
                 config.bg,
                 config.bH,
+                config.bH2,
                 config.p,
                 config.mu,
                 config.precond_params,

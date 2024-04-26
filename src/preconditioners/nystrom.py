@@ -35,6 +35,10 @@ class Nystrom:
         self.U = U
         self.S = S
 
+        # Set indices of self.S that are equal to 0 to a small value
+        self.S[self.S < torch.finfo(self.S.dtype).eps] = 1e-4
+
+
     def inv_lin_op(self, v):
         if self.L is None:
             self.L = torch.linalg.cholesky(
@@ -49,5 +53,13 @@ class Nystrom:
             self.L.t(), L_inv_UTv, upper=True, left=True
         )
         v = (v - self.U @ torch.squeeze(LT_inv_L_inv_UTv, 1)) / self.rho
+
+        return v
+
+    def inv_sqrt_lin_op(self, v):
+        UTv = self.U.t() @ v
+        v = self.U @ (UTv / ((self.S + self.rho) ** (0.5))) + 1 / (self.rho**0.5) * (
+            v - self.U @ UTv
+        )
 
         return v

@@ -59,6 +59,9 @@ def main():
         "--bH", type=int, default=None, help="Hessian batch size in SGD-type methods"
     )
     parser.add_argument(
+        "--bH2", type=int, default=None, help="Hessian batch size for eig calculations in SGD-type methods"
+    )
+    parser.add_argument(
         "--update_freq", type=int, default=None, help="Update frequency in SketchySVRG"
     )
     parser.add_argument(
@@ -77,7 +80,10 @@ def main():
         help='Preconditioner parameters in the form of a string: "type nystrom r 100 rho 0.1"',
     )
     parser.add_argument(
-        "--max_iter", type=int, default=100, help="Number of iterations"
+        "--max_iter", type=int, default=None, help="Number of iterations"
+    )
+    parser.add_argument(
+        "--max_time", type=float, default=None, help="Maximum time (in seconds) to run the optimizer"
     )
     parser.add_argument(
         "--log_freq", type=int, default=100, help="Logging frequency of metrics"
@@ -115,13 +121,20 @@ def main():
         "lambd": args.lambd,
         "opt": args.opt,
         "precond_params": args.precond_params,
-        "max_iter": args.max_iter,
         "log_freq": args.log_freq,
         "precision": args.precision,
         "seed": args.seed,
         "device": f"cuda:{args.device}",
         "wandb_project": args.wandb_project,
     }
+
+    if args.model == "inducing_krr":
+        experiment_args["m"] = args.m
+
+    if args.max_iter is not None:
+        experiment_args["max_iter"] = args.max_iter
+    if args.max_time is not None:
+        experiment_args["max_time"] = args.max_time
 
     if args.opt == "skotch":
         experiment_args["b"] = args.b
@@ -132,15 +145,13 @@ def main():
     elif args.opt in ["sketchysgd", "sketchysvrg", "sketchysaga", "sketchykatyusha"]:
         experiment_args["bg"] = args.bg
         experiment_args["bH"] = args.bH
+        experiment_args["bH2"] = args.bH2
 
         if args.opt == "sketchysvrg":
             experiment_args["update_freq"] = args.update_freq
         elif args.opt == "sketchykatyusha":
             experiment_args["p"] = args.p
             experiment_args["mu"] = args.mu
-
-    if args.model == "inducing_krr":
-        experiment_args["m"] = args.m
 
     exp = Experiment(experiment_args)
     exp.run()
