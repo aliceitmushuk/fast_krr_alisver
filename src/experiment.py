@@ -24,6 +24,11 @@ class Experiment:
                 if self.exp_args["mu"] is None:
                     self.exp_args["mu"] = model.lambd
 
+    def _time_exceeded(self, time_elapsed):
+        if "max_time" not in self.exp_args:
+            return False
+        return time_elapsed >= self.exp_args["max_time"]
+
     def run(self):
         # Load data
         Xtr, Xtst, ytr, ytst = load_data(
@@ -75,6 +80,10 @@ class Experiment:
                     eval_loc = model.w
                 logger.compute_log_reset(-1, model.compute_metrics, eval_loc)
 
+                # Terminate if max allowed time is exceeded
+                if self._time_exceeded(logger.cum_time):
+                    return
+
                 # Run the optimizer
                 for i in range(config.max_iter):
                     opt.step()
@@ -83,3 +92,7 @@ class Experiment:
                     else:
                         eval_loc = model.w
                     logger.compute_log_reset(i, model.compute_metrics, eval_loc)
+
+                    # Terminate if max allowed time is exceeded
+                    if self._time_exceeded(logger.cum_time):
+                        return

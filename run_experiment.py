@@ -80,6 +80,9 @@ def main():
         "--max_iter", type=int, default=100, help="Number of iterations"
     )
     parser.add_argument(
+        "--max_time", type=float, default=None, help="Maximum time (in seconds) for the experiment"
+    )
+    parser.add_argument(
         "--log_freq", type=int, default=100, help="Logging frequency of metrics"
     )
     parser.add_argument(
@@ -123,6 +126,12 @@ def main():
         "wandb_project": args.wandb_project,
     }
 
+    if args.model == "inducing_krr":
+        experiment_args["m"] = args.m
+
+    if args.max_time is not None:
+        experiment_args["max_time"] = args.max_time
+
     if args.opt == "skotch":
         experiment_args["b"] = args.b
         experiment_args["alpha"] = args.alpha
@@ -138,9 +147,6 @@ def main():
         elif args.opt == "sketchykatyusha":
             experiment_args["p"] = args.p
             experiment_args["mu"] = args.mu
-
-    if args.model == "inducing_krr":
-        experiment_args["m"] = args.m
 
     exp = Experiment(experiment_args)
     exp.run()
