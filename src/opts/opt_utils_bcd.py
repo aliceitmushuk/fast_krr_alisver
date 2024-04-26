@@ -42,7 +42,7 @@ def _get_block_precond_L(
                 else precond_params_sub["rho"]
             )
             L = _get_L(
-                block_lin_op_reg, precond.inv_sqrt_lin_op, block.shape[0], device
+                block_lin_op_reg, precond.inv_lin_op, block.shape[0], device
             )
     else:  # No preconditioner
         L = _get_L(block_lin_op_reg, lambda x: x, block.shape[0], device)

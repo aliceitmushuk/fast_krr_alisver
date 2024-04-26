@@ -17,7 +17,7 @@ def _get_precond_L(model, bH, precond_params):
             precond = Nystrom(model.device, **precond_params_sub)
             precond.update(subsampled_lin_op, subsampled_trace, model.m)
             L = _get_L(
-                subsampled_reg_lin_op, precond.inv_sqrt_lin_op, model.m, model.device
+                subsampled_reg_lin_op, precond.inv_lin_op, model.m, model.device
             )
     else:  # No preconditioner
         L = _get_L(subsampled_reg_lin_op, lambda x: x, model.m, model.device)
