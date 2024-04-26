@@ -6,17 +6,18 @@ from .opt_utils_sgd import _get_precond_L, _get_minibatch
 
 
 class SketchyKatyusha:
-    def __init__(self, model, bg, bH, p, mu, precond_params=None):
+    def __init__(self, model, bg, bH, bH2, p, mu, precond_params=None):
         self.model = model
         self.bg = bg
         self.bH = bH
+        self.bH2 = bH2
         self.p = p
         self.mu = mu
         self.precond_params = precond_params
 
         self.theta2 = 0.5
 
-        self.precond, self.L = _get_precond_L(self.model, self.bH, self.precond_params)
+        self.precond, self.L = _get_precond_L(self.model, self.bH, self.bH2, self.precond_params)
         self.eta = 0.5 / self.L
         self.generator = MinibatchGenerator(self.model.n, self.bg)
         self.sigma = self.mu / self.L

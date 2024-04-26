@@ -59,6 +59,9 @@ def main():
         "--bH", type=int, default=None, help="Hessian batch size in SGD-type methods"
     )
     parser.add_argument(
+        "--bH2", type=int, default=None, help="Hessian batch size for eig calculations in SGD-type methods"
+    )
+    parser.add_argument(
         "--update_freq", type=int, default=None, help="Update frequency in SketchySVRG"
     )
     parser.add_argument(
@@ -141,6 +144,7 @@ def main():
     elif args.opt in ["sketchysgd", "sketchysvrg", "sketchysaga", "sketchykatyusha"]:
         experiment_args["bg"] = args.bg
         experiment_args["bH"] = args.bH
+        experiment_args["bH2"] = args.bH2
 
         if args.opt == "sketchysvrg":
             experiment_args["update_freq"] = args.update_freq

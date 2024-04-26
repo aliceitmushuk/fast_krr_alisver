@@ -14,6 +14,8 @@ class Experiment:
         if self.exp_args["opt"].startswith("sketchy"):
             if self.exp_args["bH"] is None:
                 self.exp_args["bH"] = int(model.n**0.5)
+            if self.exp_args["bH2"] is None:
+                self.exp_args["bH2"] = max(1, model.n // 50)
 
             if self.exp_args["opt"] == "sketchysvrg":
                 if self.exp_args["update_freq"] is None:

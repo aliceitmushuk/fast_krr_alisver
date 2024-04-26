@@ -114,12 +114,10 @@ class InducingKRR:
         aux = K_nm_idx.T @ (new_weights - table[idx])
         return new_weights, aux
 
-    def _get_subsampled_lin_ops(self, bH):
+    def _get_subsampled_lin_ops(self, bH, bH2):
         hess_pts = torch.from_numpy(np.random.choice(self.n, bH, replace=False))
         x_hess_i = LazyTensor(self.x[hess_pts][:, None, :])
         K_sm = _get_kernel(x_hess_i, self.x_inducing_j, self.kernel_params)
-
-        bH2 = self.n // 50 # TODO: Make this a parameter
 
         hess_pts_lr = torch.from_numpy(np.random.choice(self.n, bH2, replace=False))
         x_hess_lr_i = LazyTensor(self.x[hess_pts_lr][:, None, :])
