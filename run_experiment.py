@@ -80,10 +80,10 @@ def main():
         help='Preconditioner parameters in the form of a string: "type nystrom r 100 rho 0.1"',
     )
     parser.add_argument(
-        "--max_iter", type=int, default=100, help="Number of iterations"
+        "--max_iter", type=int, default=None, help="Number of iterations"
     )
     parser.add_argument(
-        "--max_time", type=float, default=None, help="Maximum time (in seconds) for the experiment"
+        "--max_time", type=float, default=None, help="Maximum time (in seconds) to run the optimizer"
     )
     parser.add_argument(
         "--log_freq", type=int, default=100, help="Logging frequency of metrics"
@@ -121,7 +121,6 @@ def main():
         "lambd": args.lambd,
         "opt": args.opt,
         "precond_params": args.precond_params,
-        "max_iter": args.max_iter,
         "log_freq": args.log_freq,
         "precision": args.precision,
         "seed": args.seed,
@@ -132,6 +131,8 @@ def main():
     if args.model == "inducing_krr":
         experiment_args["m"] = args.m
 
+    if args.max_iter is not None:
+        experiment_args["max_iter"] = args.max_iter
     if args.max_time is not None:
         experiment_args["max_time"] = args.max_time
 

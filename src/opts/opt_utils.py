@@ -19,8 +19,6 @@ def _get_L(mat_lin_op, precond_inv_sqrt_lin_op, n, device):
 
         v = v / torch.linalg.norm(v)
 
-    print("max_eig: ", max_eig)
-
     return max_eig
 
 def _apply_precond(v, precond):

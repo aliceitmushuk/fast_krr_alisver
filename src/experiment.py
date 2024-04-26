@@ -26,10 +26,20 @@ class Experiment:
                 if self.exp_args["mu"] is None:
                     self.exp_args["mu"] = model.lambd
 
-    def _time_exceeded(self, time_elapsed):
-        if "max_time" not in self.exp_args:
-            return False
-        return time_elapsed >= self.exp_args["max_time"]
+    def _time_exceeded(self, n_iters, time_elapsed):
+        if "max_time" in self.exp_args:
+            if time_elapsed >= self.exp_args["max_time"]:
+                return True
+        if "max_iter" in self.exp_args:
+            if n_iters >= self.exp_args["max_iter"]:
+                return True
+        return False
+    
+    def _get_eval_loc(self, config, opt, model):
+        if config.opt == "askotch":
+            return opt.y
+        else:
+            return model.w
 
     def run(self):
         # Load data
@@ -76,25 +86,32 @@ class Experiment:
                 # Select and initialize the optimizer
                 logger.reset_timer()
                 opt = get_opt(model, config)
-                if config.opt == "askotch":
-                    eval_loc = opt.y
-                else:
-                    eval_loc = model.w
+                eval_loc = self._get_eval_loc(config, opt, model)
+
+                logger.update_cum_time()
+
+                # Always log metrics at the start
                 logger.compute_log_reset(-1, model.compute_metrics, eval_loc)
 
                 # Terminate if max allowed time is exceeded
-                if self._time_exceeded(logger.cum_time):
+                if self._time_exceeded(0, logger.cum_time):
                     return
+                
+                i = 0 # Iteration counter
 
                 # Run the optimizer
-                for i in range(config.max_iter):
+                while True:
                     opt.step()
-                    if config.opt == "askotch":
-                        eval_loc = opt.y
-                    else:
-                        eval_loc = model.w
+                    eval_loc = self._get_eval_loc(config, opt, model)
+
+                    logger.update_cum_time()
+                    
+                    # Terminate when max allowed time is exceeded
+                    if self._time_exceeded(i + 1, logger.cum_time):
+                        # Log the last iteration; we use -1 as a hack
+                        logger.compute_log_reset(-1, model.compute_metrics, eval_loc)
+                        return
+                    
                     logger.compute_log_reset(i, model.compute_metrics, eval_loc)
 
-                    # Terminate if max allowed time is exceeded
-                    if self._time_exceeded(logger.cum_time):
-                        return
+                    i += 1

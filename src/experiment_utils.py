@@ -51,8 +51,12 @@ class ParseParams(argparse.Action):
 
 
 def check_inputs(args):
+    # Check that at least one of max_time or max_iter is provided
+    if "max_time" not in args and "max_iter" not in args:
+        raise ValueError("At least one of max_time or max_iter must be provided")
+
     opt_name = OPT_NAMES[args.opt]
-    # Input checking
+    # Input checking for optimizers
     if args.opt == "skotch":
         if args.m is not None:
             warnings.warn(
