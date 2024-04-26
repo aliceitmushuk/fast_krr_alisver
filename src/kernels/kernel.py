@@ -26,6 +26,11 @@ class Kernel(ABC):
         """Return the trace of the kernel matrix."""
         pass
 
+    @abstractmethod
+    def get_row(self):
+        """Returns row of kernel matrix corresponding to training point x_i as a dense tensor"""
+        pass
+
     def __matmul__(self, v):
         """Handle the matrix multiplication operator @ for Kernel instances."""
         return self.K @ v
