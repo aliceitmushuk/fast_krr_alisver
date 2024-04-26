@@ -47,13 +47,21 @@ class InducingKRR:
             "test_acc" if self.task == "classification" else "test_mse"
         )
 
+    def _Knm_lin_op(self, v):
+        return self.K_nm @ v
+
+    def _Kmm_lin_op(self, v):
+        return self.K_mm @ v
+
     def lin_op(self, v):
-        return self.K_nm.T @ (self.K_nm @ v) + self.lambd * (self.K_mm @ v)
+        return self.K_nm.T @ self._Knm_lin_op(v) + self.lambd * self._Kmm_lin_op(v)
 
     def compute_metrics(self, v):
-        residual = self.lin_op(v) - self.K_nmTb
+        K_nmv = self._Knm_lin_op(v)
+        K_mmv = self._Kmm_lin_op(v)
+        residual = self.K_nm.T @ K_nmv + self.lambd * K_mmv - self.K_nmTb
         rel_residual = torch.norm(residual) / self.K_nmTb_norm
-        loss = 1 / 2 * (torch.dot(v, residual - self.K_nmTb) + self.b_norm**2)
+        loss = 1 / 2 * torch.norm(K_nmv - self.b)**2 + self.lambd / 2 * torch.dot(v, K_mmv)
 
         metrics_dict = {"rel_residual": rel_residual, "train_loss": loss}
 
@@ -123,6 +131,7 @@ class InducingKRR:
         def K_inducing_sub_Kmm_lin_op(v):
             return adj_factor * K_sm_lr.T @ (K_sm_lr @ v) + self.lambd * (self.K_mm @ v)
 
-        K_inducing_trace = adj_factor * (K_sm.K**2).sum()
+        K_inducing_fro_norm2 = torch.sum((K_sm.K**2).sum() @ torch.ones(1, device=self.device)).item()
+        K_inducing_trace = adj_factor * K_inducing_fro_norm2
 
         return K_inducing_sub_lin_op, K_inducing_sub_Kmm_lin_op, K_inducing_trace
