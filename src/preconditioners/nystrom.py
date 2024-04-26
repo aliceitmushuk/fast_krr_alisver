@@ -9,6 +9,7 @@ class Nystrom:
 
         self.U = None
         self.S = None
+        self.L = None
 
     def update(self, K_lin_op, K_trace, n):
         # Calculate sketch
@@ -34,16 +35,14 @@ class Nystrom:
         self.U = U
         self.S = S
 
+
     def inv_lin_op(self, v):
-        UTv = self.U.t() @ v
-        v = self.U @ (UTv / (self.S + self.rho)) + 1 / (self.rho) * (v - self.U @ UTv)
+        if self.L is None:
+            self.L = torch.linalg.cholesky(self.rho * torch.diag(self.S ** -1) + self.U.T @ self.U)
 
-        return v
-
-    def inv_sqrt_lin_op(self, v):
         UTv = self.U.t() @ v
-        v = self.U @ (UTv / ((self.S + self.rho) ** (0.5))) + 1 / (self.rho**0.5) * (
-            v - self.U @ UTv
-        )
+        L_inv_UTv = torch.linalg.solve_triangular(self.L, torch.unsqueeze(UTv, 1), upper=False, left=True)
+        LT_inv_L_inv_UTv = torch.linalg.solve_triangular(self.L.t(), L_inv_UTv, upper=True, left=True)
+        v = (v - self.U @ torch.squeeze(LT_inv_L_inv_UTv, 1)) / self.rho
 
         return v
