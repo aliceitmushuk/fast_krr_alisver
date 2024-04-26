@@ -35,14 +35,19 @@ class Nystrom:
         self.U = U
         self.S = S
 
-
     def inv_lin_op(self, v):
         if self.L is None:
-            self.L = torch.linalg.cholesky(self.rho * torch.diag(self.S ** -1) + self.U.T @ self.U)
+            self.L = torch.linalg.cholesky(
+                self.rho * torch.diag(self.S**-1) + self.U.T @ self.U
+            )
 
         UTv = self.U.t() @ v
-        L_inv_UTv = torch.linalg.solve_triangular(self.L, torch.unsqueeze(UTv, 1), upper=False, left=True)
-        LT_inv_L_inv_UTv = torch.linalg.solve_triangular(self.L.t(), L_inv_UTv, upper=True, left=True)
+        L_inv_UTv = torch.linalg.solve_triangular(
+            self.L, torch.unsqueeze(UTv, 1), upper=False, left=True
+        )
+        LT_inv_L_inv_UTv = torch.linalg.solve_triangular(
+            self.L.t(), L_inv_UTv, upper=True, left=True
+        )
         v = (v - self.U @ torch.squeeze(LT_inv_L_inv_UTv, 1)) / self.rho
 
         return v

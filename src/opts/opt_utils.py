@@ -20,6 +20,7 @@ from scipy.sparse.linalg import LinearOperator, eigs
 
 #     return max_eig
 
+
 def _get_L(mat_lin_op, precond_inv_lin_op, n, device):
     v = torch.randn(n, device=device)
     v = v / torch.linalg.norm(v)
@@ -55,6 +56,7 @@ def _get_L(mat_lin_op, precond_inv_lin_op, n, device):
 
     # Return real part of max_eig as a torch tensor
     return torch.tensor(max_eig, device=device).real
+
 
 def _apply_precond(v, precond):
     if precond is not None:
