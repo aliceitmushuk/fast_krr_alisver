@@ -57,12 +57,12 @@ def np_to_torch_tr_tst(Xtr, Xtst, ytr, ytst, device):
 # Modify to accomodate other datasets
 def load_data(dataset, seed, device):
     if dataset == "synthetic":
-        Xtr = torch.randn(10000, 10, device=device)
-        Xtst = torch.randn(1000, 10, device=device)
+        Xtr = np.random.randn(10000, 10)
+        Xtst = np.random.randn(1000, 10)
 
-        a = torch.randn(10, device=device)
-        ytr = torch.sign(Xtr @ a)
-        ytst = torch.sign(Xtst @ a)
+        a = np.random.randn(10)
+        ytr = np.sign(Xtr @ a)
+        ytst = np.sign(Xtst @ a)
     elif dataset == "airlines":
         X = pd.read_pickle(os.path.join(DATA_DIR, DATA_FILES[dataset][0]))
         y = pd.read_pickle(os.path.join(DATA_DIR, DATA_FILES[dataset][1]))

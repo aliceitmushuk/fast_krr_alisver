@@ -31,7 +31,7 @@ class ParseParams(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         # Split the input string into individual elements
         elements = values.split()
-        print(elements)
+        # print(elements) # Useful for debugging
         params_dict = {}
         # Iterate over the elements two at a time (key-value pairs)
         for i in range(0, len(elements), 2):
