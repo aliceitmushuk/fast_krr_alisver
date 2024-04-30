@@ -15,7 +15,7 @@ class Nystrom:
         # Calculate sketch
         Phi = torch.randn((n, self.r), device=self.device) / (n**0.5)
         Phi = torch.linalg.qr(Phi, mode="reduced")[0]
-        Phi = Phi.contiguous() # Ensure memory is contiguous to prevent pyKeOps warning
+        Phi = Phi.contiguous()  # Ensure memory is contiguous to prevent pyKeOps warning
 
         Y = K_lin_op(Phi)
 
