@@ -39,7 +39,8 @@ def standardize(data_tr, data_tst):
 def np_to_torch(X, y, device):
     X = torch.from_numpy(X)
     X = X.to(dtype=torch.get_default_dtype(), device=device)
-    X.requires_grad = True
+    # X.requires_grad = True
+    X.requires_grad = False
     y = torch.from_numpy(y)
     y = y.to(dtype=torch.get_default_dtype(), device=device)
 
@@ -56,10 +57,8 @@ def np_to_torch_tr_tst(Xtr, Xtst, ytr, ytst, device):
 # Modify to accomodate other datasets
 def load_data(dataset, seed, device):
     if dataset == "synthetic":
-        Xtr = torch.randn(100000, 10, device=device)
-        Xtst = torch.randn(10000, 10, device=device)
-        Xtr.requires_grad = True
-        Xtst.requires_grad = True
+        Xtr = torch.randn(10000, 10, device=device)
+        Xtst = torch.randn(1000, 10, device=device)
 
         a = torch.randn(10, device=device)
         ytr = torch.sign(Xtr @ a)
@@ -125,8 +124,6 @@ def load_data(dataset, seed, device):
         Xtst[:, :6] = Xtst_std_col
 
         ytr, ytst = standardize(ytr, ytst)
-
-        Xtr, Xtst, ytr, ytst = np_to_torch_tr_tst(Xtr, Xtst, ytr, ytst, device)
     elif dataset == "homo":
         data = loadmat(os.path.join(DATA_DIR, DATA_FILES[dataset]))
 
@@ -139,8 +136,6 @@ def load_data(dataset, seed, device):
 
         Xtr, Xtst = standardize(Xtr, Xtst)
         # ytr, ytst = standardize(ytr, ytst)
-
-        Xtr, Xtst, ytr, ytst = np_to_torch_tr_tst(Xtr, Xtst, ytr, ytst, device)
     elif dataset == "susy":
         data = load_svmlight_file(os.path.join(DATA_DIR, DATA_FILES[dataset]))
 
@@ -154,9 +149,9 @@ def load_data(dataset, seed, device):
         ytst = y[4500000:]
 
         Xtr, Xtst = standardize(Xtr, Xtst)
-
-        Xtr, Xtst, ytr, ytst = np_to_torch_tr_tst(Xtr, Xtst, ytr, ytst, device)
     else:
         raise ValueError("We do not currently support this dataset")
+
+    Xtr, Xtst, ytr, ytst = np_to_torch_tr_tst(Xtr, Xtst, ytr, ytst, device)
 
     return Xtr, Xtst, ytr, ytst
