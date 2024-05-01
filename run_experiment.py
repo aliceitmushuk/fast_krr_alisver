@@ -13,7 +13,7 @@ def main():
     # Parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--dataset", type=str, default="susy", help="Which dataset to use"
+        "--dataset", type=str, choices=["synthetic", "homo", "susy", "higgs"], help="Which dataset to use"
     )
     parser.add_argument(
         "--model", choices=["full_krr", "inducing_krr"], help="Type of model"

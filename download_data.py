@@ -62,7 +62,7 @@ def main():
 
     # From LIBSVM
     url_stem = "https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary"
-    datasets = ["SUSY.xz"]
+    datasets = ["SUSY.xz", "HIGGS.xz"]
 
     download_libsvm(url_stem, datasets, directory)
 
