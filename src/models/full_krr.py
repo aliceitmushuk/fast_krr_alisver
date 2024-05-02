@@ -33,14 +33,16 @@ class FullKRR:
     def lin_op(self, v):
         return self.K @ v + self.lambd * v
 
-    def compute_metrics(self, v):
-        v_lin_op = self.lin_op(v)
-        residual = v_lin_op - self.b
-        rel_residual = torch.norm(residual) / self.b_norm
-        # loss = 1 / 2 * torch.dot(v, residual - self.b)
-        loss = 1 / 2 * torch.dot(v, v_lin_op) - torch.dot(self.b, v)
+    def compute_metrics(self, v, log_test_only):
+        metrics_dict = {}
+        if not log_test_only:
+            v_lin_op = self.lin_op(v)
+            residual = v_lin_op - self.b
+            rel_residual = torch.norm(residual) / self.b_norm
+            loss = 1 / 2 * torch.dot(v, v_lin_op) - torch.dot(self.b, v)
 
-        metrics_dict = {"rel_residual": rel_residual, "train_loss": loss}
+            metrics_dict["rel_residual"] = rel_residual
+            metrics_dict["train_loss"] = loss
 
         pred = self.K_tst @ v
         if self.task == "classification":

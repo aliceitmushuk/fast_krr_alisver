@@ -56,16 +56,19 @@ class InducingKRR:
     def lin_op(self, v):
         return self.K_nm.T @ self._Knm_lin_op(v) + self.lambd * self._Kmm_lin_op(v)
 
-    def compute_metrics(self, v):
-        K_nmv = self._Knm_lin_op(v)
-        K_mmv = self._Kmm_lin_op(v)
-        residual = self.K_nm.T @ K_nmv + self.lambd * K_mmv - self.K_nmTb
-        rel_residual = torch.norm(residual) / self.K_nmTb_norm
-        loss = 1 / 2 * torch.norm(K_nmv - self.b) ** 2 + self.lambd / 2 * torch.dot(
-            v, K_mmv
-        )
+    def compute_metrics(self, v, log_test_only):
+        metrics_dict = {}
+        if not log_test_only:
+            K_nmv = self._Knm_lin_op(v)
+            K_mmv = self._Kmm_lin_op(v)
+            residual = self.K_nm.T @ K_nmv + self.lambd * K_mmv - self.K_nmTb
+            rel_residual = torch.norm(residual) / self.K_nmTb_norm
+            loss = 1 / 2 * torch.norm(K_nmv - self.b) ** 2 + self.lambd / 2 * torch.dot(
+                v, K_mmv
+            )
 
-        metrics_dict = {"rel_residual": rel_residual, "train_loss": loss}
+            metrics_dict["rel_residual"] = rel_residual
+            metrics_dict["train_loss"] = loss
 
         pred = self.K_tst @ v
         if self.task == "classification":

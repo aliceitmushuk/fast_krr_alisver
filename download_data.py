@@ -66,9 +66,9 @@ def main():
 
     download_libsvm(url_stem, datasets, directory)
 
-    datasets = [("airlines", 42728)]
+    # datasets = [("airlines", 42728)]
 
-    download_openml(datasets, directory)
+    # download_openml(datasets, directory)
 
 
 if __name__ == "__main__":

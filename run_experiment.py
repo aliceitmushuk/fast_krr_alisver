@@ -95,6 +95,9 @@ def main():
         "--log_freq", type=int, default=100, help="Logging frequency of metrics"
     )
     parser.add_argument(
+        "--log_test_only", action="store_true", help="Log test metrics only"
+    )
+    parser.add_argument(
         "--precision",
         choices=["float32", "float64"],
         default="float32",
@@ -128,6 +131,7 @@ def main():
         "opt": args.opt,
         "precond_params": args.precond_params,
         "log_freq": args.log_freq,
+        "log_test_only": args.log_test_only,
         "precision": args.precision,
         "seed": args.seed,
         "device": f"cuda:{args.device}",
