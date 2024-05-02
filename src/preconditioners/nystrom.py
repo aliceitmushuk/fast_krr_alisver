@@ -29,7 +29,12 @@ class Nystrom:
         # Perform Cholesky decomposition
         C = torch.linalg.cholesky(choleskytarget)
 
-        B = torch.linalg.solve_triangular(C.t(), Y_shifted, upper=True, left=False)
+        try:
+            B = torch.linalg.solve_triangular(C.t(), Y_shifted, upper=True, left=False)
+        # temporary fix for issue @ https://github.com/pytorch/pytorch/issues/97211
+        except:
+            B = torch.linalg.solve_triangular(C.t().to('cpu'), Y_shifted.to(
+                'cpu'), upper=True, left=False).to(self.device)
         U, S, _ = torch.linalg.svd(B, full_matrices=False)
         S = torch.max(torch.square(S) - shift, torch.tensor(0.0))
 
