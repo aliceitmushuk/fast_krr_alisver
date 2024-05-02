@@ -1,6 +1,6 @@
 #!/bin/bash
 
-prefix="./config/susy/"
+prefix="./config/higgs/"
 
 full_krr_pcg_scripts=(
     "full_krr_chol_pcg.sh"
