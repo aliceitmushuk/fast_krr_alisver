@@ -12,7 +12,7 @@ full_krr_bcd_scripts=(
     "full_krr_askotch.sh"
     "full_krr_skotch.sh"
 )
-bs=(1000 500 200 100 50 20 10 5 2 1)
+bs=(2000 1000 500 200 100 50)
 
 for precision in "${precisions[@]}"
 do

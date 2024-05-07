@@ -9,12 +9,12 @@ kernel_params="type $kernel_type sigma $sigma"
 lambd=0.315
 opt=pcg
 precond_type=partial_cholesky
-ranks=(10 20 50 100 200 500 1000 2000)
-max_time=3600
+ranks=(10 20 50 100 200 500)
+max_time=7200
 log_freq=50
 precision=$1
 seed=0
-devices=(7 6 5 4 3 2 1 0)
+devices=(6 5 4 3 2 1)
 wandb_project=higgs_full_krr
 
 # Initialize the counter
