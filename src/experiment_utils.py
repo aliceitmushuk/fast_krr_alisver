@@ -243,11 +243,11 @@ def get_full_krr(Xtr, ytr, Xtst, ytst, kernel_params, Ktr_needed, lambd, task, d
     return FullKRR(Xtr, ytr, Xtst, ytst, kernel_params, Ktr_needed, lambd, task, w0, device)
 
 
-def get_inducing_krr(Xtr, ytr, Xtst, ytst, kernel_params, m, lambd, task, device):
+def get_inducing_krr(Xtr, ytr, Xtst, ytst, kernel_params, Knm_needed, m, lambd, task, device):
     w0 = torch.zeros(m, device=device)
     inducing_pts = torch.randperm(Xtr.shape[0])[:m]
     return InducingKRR(
-        Xtr, ytr, Xtst, ytst, kernel_params, inducing_pts, lambd, task, w0, device
+        Xtr, ytr, Xtst, ytst, kernel_params, Knm_needed, inducing_pts, lambd, task, w0, device
     )
 
 
