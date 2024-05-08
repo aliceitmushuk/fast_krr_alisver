@@ -15,12 +15,22 @@ class Falkon:
         shift = torch.finfo(K_mm.dtype).eps * K_mm_lz.get_trace()
 
         # Get preconditioning matrices via Cholesky factorization
-        T = torch.linalg.cholesky(
-            K_mm + shift * torch.eye(m).to(self.device), upper=True
-        )
-        R = torch.linalg.cholesky(
-            n / m * (T @ T.T) + lambd * torch.eye(m).to(self.device), upper=True
-        )
+        try:
+            T = torch.linalg.cholesky(
+                K_mm + shift * torch.eye(m).to(self.device), upper=True
+            )
+            R = torch.linalg.cholesky(
+                n / m * (T @ T.T) + lambd * torch.eye(m).to(self.device), upper=True
+            )
+        except RuntimeError: # Perform calculations on CPU and transfer back if we run out of memory
+            T = torch.linalg.cholesky(
+                K_mm.cpu() + shift * torch.eye(m).cpu(), upper=True
+            )
+            R = torch.linalg.cholesky(
+                n / m * (T @ T.T) + lambd * torch.eye(m).cpu(), upper=True
+            )
+            T = T.to(self.device)
+            R = R.to(self.device)
 
         self.T = T
         self.R = R
