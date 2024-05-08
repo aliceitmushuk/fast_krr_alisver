@@ -55,7 +55,7 @@ class Experiment:
                 Xtst,
                 ytst,
                 self.exp_args["kernel_params"],
-                self.exp_args["log_test_only"],
+                not self.exp_args["log_test_only"],
                 self.exp_args["lambd"],
                 self.exp_args["task"],
                 self.exp_args["device"],

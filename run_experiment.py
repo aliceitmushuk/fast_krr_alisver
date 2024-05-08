@@ -53,6 +53,9 @@ def main():
         "--beta", type=float, default=None, help="Acceleration parameter in ASkotch"
     )
     parser.add_argument(
+        "--no_store_precond", action="store_true", help="If true, do not store preconditioners in Skotch/ASkotch"
+    )
+    parser.add_argument(
         "--bg", type=int, default=None, help="Gradient batch size in SGD-type methods"
     )
     parser.add_argument(
@@ -149,9 +152,11 @@ def main():
     if args.opt == "skotch":
         experiment_args["b"] = args.b
         experiment_args["alpha"] = args.alpha
+        experiment_args["no_store_precond"] = args.no_store_precond
     elif args.opt == "askotch":
         experiment_args["b"] = args.b
         experiment_args["beta"] = args.beta
+        experiment_args["no_store_precond"] = args.no_store_precond
     elif args.opt in ["sketchysgd", "sketchysvrg", "sketchysaga", "sketchykatyusha"]:
         experiment_args["bg"] = args.bg
         experiment_args["bH"] = args.bH

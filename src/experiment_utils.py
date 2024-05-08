@@ -253,9 +253,9 @@ def get_inducing_krr(Xtr, ytr, Xtst, ytst, kernel_params, m, lambd, task, device
 
 def get_opt(model, config):
     if config.opt == "skotch":
-        opt = Skotch(model, config.b, config.alpha, config.precond_params)
+        opt = Skotch(model, config.b, config.no_store_precond, config.alpha, config.precond_params)
     elif config.opt == "askotch":
-        opt = ASkotch(model, config.b, config.beta, config.precond_params)
+        opt = ASkotch(model, config.b, config.no_store_precond, config.beta, config.precond_params)
     elif config.opt in [
         "sketchysgd",
         "sketchysvrg",

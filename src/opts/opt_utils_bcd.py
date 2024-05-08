@@ -21,10 +21,9 @@ def _get_blocks(n, B):
 
     return blocks
 
-
-def _get_block_precond_L(
-    block_lin_op, block_lin_op_reg, block_trace, lambd, block, precond_params, device
-):
+def _get_block_precond(model, block, precond_params):
+    block_lin_op, block_lin_op_reg, block_trace = model._get_block_lin_ops(block)
+    
     precond = None
 
     if precond_params is not None:
@@ -32,53 +31,49 @@ def _get_block_precond_L(
             precond_params_sub = {
                 k: v for k, v in precond_params.items() if k != "type"
             }
-            precond = Nystrom(device, **precond_params_sub)
+            precond = Nystrom(model.device, **precond_params_sub)
             precond.update(block_lin_op, block_trace, block.shape[0])
 
             # Automatically set rho to lambda + S[-1] if not provided
             precond.rho = (
-                lambd + precond.S[-1]
+                model.lambd + precond.S[-1]
                 if "rho" not in precond_params_sub
                 else precond_params_sub["rho"]
             )
-            L = _get_L(
-                block_lin_op_reg, precond.inv_sqrt_lin_op, block.shape[0], device
-            )
+
+    return precond, block_lin_op_reg
+
+
+def _get_block_precond_L(
+    model, block, precond_params
+):
+    precond, block_lin_op_reg = _get_block_precond(model, block, precond_params)
+        
+    if precond is not None:
+        L = _get_L(
+            block_lin_op_reg, precond.inv_sqrt_lin_op, block.shape[0], model.device
+        )
     else:  # No preconditioner
-        L = _get_L(block_lin_op_reg, lambda x: x, block.shape[0], device)
+        L = _get_L(block_lin_op_reg, lambda x: x, block.shape[0], model.device)
 
     return precond, L
 
-
-def _get_block_properties(model, blocks, precond_params):
+def _get_block_properties(model, blocks, precond_params, no_store_precond):
     block_preconds, block_etas, block_Ls = [], [], []
 
     for _, block in enumerate(blocks):
-        Kb_lin_op, Kb_lin_op_reg, Kb_trace = model._get_block_lin_ops(block)
-
         precond, L = _get_block_precond_L(
-            Kb_lin_op,
-            Kb_lin_op_reg,
-            Kb_trace,
-            model.lambd,
-            block,
-            precond_params,
-            model.device,
+            model, block, precond_params
         )
 
-        block_preconds.append(precond)
+        if not no_store_precond:
+            block_preconds.append(precond)
         block_Ls.append(L)
         block_etas.append(1 / L)
 
     return block_preconds, block_etas, block_Ls
 
-
-def _get_block_update(model, w, block_idx, blocks, block_preconds, block_etas):
-    # Get the block and its corresponding preconditioner
-    block = blocks[block_idx]
-    precond = block_preconds[block_idx]
-    eta = block_etas[block_idx]
-
+def _get_block_update(model, w, block, precond, eta):
     # Compute the block gradient
     gb = model._get_block_grad(w, block)
 
