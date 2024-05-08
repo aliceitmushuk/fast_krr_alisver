@@ -114,7 +114,7 @@ def load_data(dataset, seed, device):
         )
 
         Xtr, Xtst = standardize(Xtr, Xtst)
-        ytr, ytst = standardize(ytr, ytst)
+        # ytr, ytst = standardize(ytr, ytst)
     else:
         raise ValueError("We do not currently support this dataset")
 

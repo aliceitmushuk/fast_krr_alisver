@@ -83,6 +83,7 @@ class InducingKRR:
                 / self.n_tst
             )
             metrics_dict[self.test_metric_name] = test_metric
+            metrics_dict["test_rmse"] = test_metric ** 0.5
             metrics_dict["smape"] = smape
 
         return metrics_dict
