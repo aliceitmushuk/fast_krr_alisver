@@ -5,7 +5,7 @@ from ..kernels.kernel_inits import _get_kernel, _get_kernels_start
 
 
 class FullKRR:
-    def __init__(self, x, b, x_tst, b_tst, kernel_params, lambd, task, w0, device):
+    def __init__(self, x, b, x_tst, b_tst, kernel_params, Ktr_needed, lambd, task, w0, device):
         self.x = x
         self.b = b
         self.x_tst = x_tst
@@ -17,7 +17,7 @@ class FullKRR:
         self.device = device
 
         self.x_j, self.K, self.K_tst = _get_kernels_start(
-            self.x, self.x_tst, self.kernel_params
+            self.x, self.x_tst, self.kernel_params, Ktr_needed
         )
         self.b_norm = torch.norm(self.b)
 

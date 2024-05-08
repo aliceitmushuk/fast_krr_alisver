@@ -3,6 +3,7 @@ import os
 import numpy as np
 from scipy.io import loadmat
 from sklearn.datasets import load_svmlight_file
+import h5py
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 import torch
@@ -12,6 +13,7 @@ DATA_FILES = {
     "homo": "homo.mat",
     "susy": "SUSY",
     "higgs": "HIGGS",
+    "taxi_sub": "taxi-data/subsampled_data.h5py"
 }
 
 
@@ -100,6 +102,19 @@ def load_data(dataset, seed, device):
         ytst = y[10500000:]
 
         Xtr, Xtst = standardize(Xtr, Xtst)
+    elif dataset == "taxi_sub":
+        with h5py.File(os.path.join(DATA_DIR, DATA_FILES[dataset]), "r") as f:
+            X = f["X"][()]
+            y = f["Y"][()]
+
+        y = np.squeeze(y)
+
+        Xtr, Xtst, ytr, ytst = train_test_split(
+            X, y, train_size=0.999, random_state=seed
+        )
+
+        Xtr, Xtst = standardize(Xtr, Xtst)
+        ytr, ytst = standardize(ytr, ytst)
     else:
         raise ValueError("We do not currently support this dataset")
 

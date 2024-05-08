@@ -238,9 +238,9 @@ def set_random_seed(seed):
     torch.cuda.manual_seed(seed)
 
 
-def get_full_krr(Xtr, ytr, Xtst, ytst, kernel_params, lambd, task, device):
+def get_full_krr(Xtr, ytr, Xtst, ytst, kernel_params, Ktr_needed, lambd, task, device):
     w0 = torch.zeros(Xtr.shape[0], device=device)
-    return FullKRR(Xtr, ytr, Xtst, ytst, kernel_params, lambd, task, w0, device)
+    return FullKRR(Xtr, ytr, Xtst, ytst, kernel_params, Ktr_needed, lambd, task, w0, device)
 
 
 def get_inducing_krr(Xtr, ytr, Xtst, ytst, kernel_params, m, lambd, task, device):
