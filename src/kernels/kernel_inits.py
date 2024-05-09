@@ -26,12 +26,14 @@ def _get_kernel(x1_lazy, x2_lazy, kernel_params):
     return ker_type(x1_lazy, x2_lazy, kernel_params_copy)
 
 
-def _get_kernels_start(x, x_tst, kernel_params):
+def _get_kernels_start(x, x_tst, kernel_params, Ktr_needed=True):
     x_i = LazyTensor(x[:, None, :])
     x_j = LazyTensor(x[None, :, :])
     x_tst_i = LazyTensor(x_tst[:, None, :])
 
-    K = _get_kernel(x_i, x_j, kernel_params)
+    K = None
+    if Ktr_needed:
+        K = _get_kernel(x_i, x_j, kernel_params)
 
     K_tst = _get_kernel(x_tst_i, x_j, kernel_params)
 

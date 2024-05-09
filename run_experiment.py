@@ -13,7 +13,7 @@ def main():
     # Parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--dataset", type=str, default="susy", help="Which dataset to use"
+        "--dataset", type=str, choices=["synthetic", "homo", "susy", "higgs", "taxi_sub"], help="Which dataset to use"
     )
     parser.add_argument(
         "--model", choices=["full_krr", "inducing_krr"], help="Type of model"
@@ -51,6 +51,9 @@ def main():
     )
     parser.add_argument(
         "--beta", type=float, default=None, help="Acceleration parameter in ASkotch"
+    )
+    parser.add_argument(
+        "--no_store_precond", action="store_true", help="If true, do not store preconditioners in Skotch/ASkotch"
     )
     parser.add_argument(
         "--bg", type=int, default=None, help="Gradient batch size in SGD-type methods"
@@ -95,6 +98,9 @@ def main():
         "--log_freq", type=int, default=100, help="Logging frequency of metrics"
     )
     parser.add_argument(
+        "--log_test_only", action="store_true", help="Log test metrics only"
+    )
+    parser.add_argument(
         "--precision",
         choices=["float32", "float64"],
         default="float32",
@@ -128,6 +134,7 @@ def main():
         "opt": args.opt,
         "precond_params": args.precond_params,
         "log_freq": args.log_freq,
+        "log_test_only": args.log_test_only,
         "precision": args.precision,
         "seed": args.seed,
         "device": f"cuda:{args.device}",
@@ -145,9 +152,11 @@ def main():
     if args.opt == "skotch":
         experiment_args["b"] = args.b
         experiment_args["alpha"] = args.alpha
+        experiment_args["no_store_precond"] = args.no_store_precond
     elif args.opt == "askotch":
         experiment_args["b"] = args.b
         experiment_args["beta"] = args.beta
+        experiment_args["no_store_precond"] = args.no_store_precond
     elif args.opt in ["sketchysgd", "sketchysvrg", "sketchysaga", "sketchykatyusha"]:
         experiment_args["bg"] = args.bg
         experiment_args["bH"] = args.bH

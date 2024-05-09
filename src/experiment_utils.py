@@ -34,19 +34,26 @@ class ParseParams(argparse.Action):
         # print(elements) # Useful for debugging
         params_dict = {}
         # Iterate over the elements two at a time (key-value pairs)
-        for i in range(0, len(elements), 2):
+        i = 0
+        while i < len(elements):
             key = elements[i]
-            value = elements[i + 1]
-            # Attempt to convert numeric values to float, otherwise keep as string
-            try:
-                if key == "r":  # Rank parameter in preconditioner is int, not float
-                    value = int(value)
-                else:
-                    value = float(value)
-            except ValueError:
-                # If conversion fails, value remains a string
-                pass
-            params_dict[key] = value
+            if key == "use_cpu":
+                # Special case for the boolean key
+                params_dict[key] = True
+                i += 1
+            else:
+                value = elements[i + 1]
+                # Attempt to convert numeric values to float, otherwise keep as string
+                try:
+                    if key == "r":  # Rank parameter in preconditioner is int, not float
+                        value = int(value)
+                    else:
+                        value = float(value)
+                except ValueError:
+                    # If conversion fails, value remains a string
+                    pass
+                params_dict[key] = value
+                i += 2
         setattr(namespace, self.dest, params_dict)
 
 
@@ -238,24 +245,24 @@ def set_random_seed(seed):
     torch.cuda.manual_seed(seed)
 
 
-def get_full_krr(Xtr, ytr, Xtst, ytst, kernel_params, lambd, task, device):
+def get_full_krr(Xtr, ytr, Xtst, ytst, kernel_params, Ktr_needed, lambd, task, device):
     w0 = torch.zeros(Xtr.shape[0], device=device)
-    return FullKRR(Xtr, ytr, Xtst, ytst, kernel_params, lambd, task, w0, device)
+    return FullKRR(Xtr, ytr, Xtst, ytst, kernel_params, Ktr_needed, lambd, task, w0, device)
 
 
-def get_inducing_krr(Xtr, ytr, Xtst, ytst, kernel_params, m, lambd, task, device):
+def get_inducing_krr(Xtr, ytr, Xtst, ytst, kernel_params, Knm_needed, m, lambd, task, device):
     w0 = torch.zeros(m, device=device)
     inducing_pts = torch.randperm(Xtr.shape[0])[:m]
     return InducingKRR(
-        Xtr, ytr, Xtst, ytst, kernel_params, inducing_pts, lambd, task, w0, device
+        Xtr, ytr, Xtst, ytst, kernel_params, Knm_needed, inducing_pts, lambd, task, w0, device
     )
 
 
 def get_opt(model, config):
     if config.opt == "skotch":
-        opt = Skotch(model, config.b, config.alpha, config.precond_params)
+        opt = Skotch(model, config.b, config.no_store_precond, config.alpha, config.precond_params)
     elif config.opt == "askotch":
-        opt = ASkotch(model, config.b, config.beta, config.precond_params)
+        opt = ASkotch(model, config.b, config.no_store_precond, config.beta, config.precond_params)
     elif config.opt in [
         "sketchysgd",
         "sketchysvrg",

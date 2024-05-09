@@ -62,13 +62,13 @@ def main():
 
     # From LIBSVM
     url_stem = "https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary"
-    datasets = ["SUSY.xz"]
+    datasets = ["SUSY.xz", "HIGGS.xz"]
 
     download_libsvm(url_stem, datasets, directory)
 
-    datasets = [("airlines", 42728)]
+    # datasets = [("airlines", 42728)]
 
-    download_openml(datasets, directory)
+    # download_openml(datasets, directory)
 
 
 if __name__ == "__main__":

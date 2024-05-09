@@ -7,7 +7,7 @@ from ..kernels.kernel_inits import _get_kernel
 
 class InducingKRR:
     def __init__(
-        self, x, b, x_tst, b_tst, kernel_params, inducing_pts, lambd, task, w0, device
+        self, x, b, x_tst, b_tst, kernel_params, Knm_needed, inducing_pts, lambd, task, w0, device
     ):
         self.x = x
         self.b = b
@@ -26,8 +26,11 @@ class InducingKRR:
         self.K_mm = _get_kernel(x_inducing_i, self.x_inducing_j, self.kernel_params)
 
         # Get kernel between full training set and inducing points
-        x_i = LazyTensor(self.x[:, None, :])
-        self.K_nm = _get_kernel(x_i, self.x_inducing_j, self.kernel_params)
+        if Knm_needed:
+            x_i = LazyTensor(self.x[:, None, :])
+            self.K_nm = _get_kernel(x_i, self.x_inducing_j, self.kernel_params)
+            self.K_nmTb = self.K_nm.T @ self.b  # Useful for computing metrics
+            self.K_nmTb_norm = torch.norm(self.K_nmTb)
 
         # Get kernel for test set
         x_tst_i = LazyTensor(self.x_tst[:, None, :])
@@ -37,9 +40,6 @@ class InducingKRR:
         self.n = self.x.shape[0]
         self.n_tst = self.x_tst.shape[0]
         self.b_norm = torch.norm(self.b)
-
-        self.K_nmTb = self.K_nm.T @ self.b  # Useful for computing metrics
-        self.K_nmTb_norm = torch.norm(self.K_nmTb)
 
         self.inducing = True
 
@@ -56,16 +56,19 @@ class InducingKRR:
     def lin_op(self, v):
         return self.K_nm.T @ self._Knm_lin_op(v) + self.lambd * self._Kmm_lin_op(v)
 
-    def compute_metrics(self, v):
-        K_nmv = self._Knm_lin_op(v)
-        K_mmv = self._Kmm_lin_op(v)
-        residual = self.K_nm.T @ K_nmv + self.lambd * K_mmv - self.K_nmTb
-        rel_residual = torch.norm(residual) / self.K_nmTb_norm
-        loss = 1 / 2 * torch.norm(K_nmv - self.b) ** 2 + self.lambd / 2 * torch.dot(
-            v, K_mmv
-        )
+    def compute_metrics(self, v, log_test_only):
+        metrics_dict = {}
+        if not log_test_only:
+            K_nmv = self._Knm_lin_op(v)
+            K_mmv = self._Kmm_lin_op(v)
+            residual = self.K_nm.T @ K_nmv + self.lambd * K_mmv - self.K_nmTb
+            rel_residual = torch.norm(residual) / self.K_nmTb_norm
+            loss = 1 / 2 * torch.norm(K_nmv - self.b) ** 2 + self.lambd / 2 * torch.dot(
+                v, K_mmv
+            )
 
-        metrics_dict = {"rel_residual": rel_residual, "train_loss": loss}
+            metrics_dict["rel_residual"] = rel_residual
+            metrics_dict["train_loss"] = loss
 
         pred = self.K_tst @ v
         if self.task == "classification":
@@ -80,6 +83,7 @@ class InducingKRR:
                 / self.n_tst
             )
             metrics_dict[self.test_metric_name] = test_metric
+            metrics_dict["test_rmse"] = test_metric ** 0.5
             metrics_dict["smape"] = smape
 
         return metrics_dict

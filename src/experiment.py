@@ -55,6 +55,7 @@ class Experiment:
                 Xtst,
                 ytst,
                 self.exp_args["kernel_params"],
+                not (self.exp_args["log_test_only"] and self.exp_args["opt"] != "pcg"),
                 self.exp_args["lambd"],
                 self.exp_args["task"],
                 self.exp_args["device"],
@@ -66,6 +67,7 @@ class Experiment:
                 Xtst,
                 ytst,
                 self.exp_args["kernel_params"],
+                not (self.exp_args["log_test_only"] and self.exp_args["opt"] in ["sketchysgd", "sketchysaga"]),
                 self.exp_args["m"],
                 self.exp_args["lambd"],
                 self.exp_args["task"],
@@ -91,7 +93,7 @@ class Experiment:
                 logger.update_cum_time()
 
                 # Always log metrics at the start
-                logger.compute_log_reset(-1, model.compute_metrics, eval_loc)
+                logger.compute_log_reset(-1, model.compute_metrics, eval_loc, config.log_test_only)
 
                 # Terminate if max allowed time is exceeded
                 if self._time_exceeded(0, logger.cum_time):
@@ -109,9 +111,9 @@ class Experiment:
                     # Terminate when max allowed time is exceeded
                     if self._time_exceeded(i + 1, logger.cum_time):
                         # Log the last iteration; we use -1 as a hack
-                        logger.compute_log_reset(-1, model.compute_metrics, eval_loc)
+                        logger.compute_log_reset(-1, model.compute_metrics, eval_loc, config.log_test_only)
                         return
 
-                    logger.compute_log_reset(i, model.compute_metrics, eval_loc)
+                    logger.compute_log_reset(i, model.compute_metrics, eval_loc, config.log_test_only)
 
                     i += 1
