@@ -34,19 +34,26 @@ class ParseParams(argparse.Action):
         # print(elements) # Useful for debugging
         params_dict = {}
         # Iterate over the elements two at a time (key-value pairs)
-        for i in range(0, len(elements), 2):
+        i = 0
+        while i < len(elements):
             key = elements[i]
-            value = elements[i + 1]
-            # Attempt to convert numeric values to float, otherwise keep as string
-            try:
-                if key == "r":  # Rank parameter in preconditioner is int, not float
-                    value = int(value)
-                else:
-                    value = float(value)
-            except ValueError:
-                # If conversion fails, value remains a string
-                pass
-            params_dict[key] = value
+            if key == "use_cpu":
+                # Special case for the boolean key
+                params_dict[key] = True
+                i += 1
+            else:
+                value = elements[i + 1]
+                # Attempt to convert numeric values to float, otherwise keep as string
+                try:
+                    if key == "r":  # Rank parameter in preconditioner is int, not float
+                        value = int(value)
+                    else:
+                        value = float(value)
+                except ValueError:
+                    # If conversion fails, value remains a string
+                    pass
+                params_dict[key] = value
+                i += 2
         setattr(namespace, self.dest, params_dict)
 
 
