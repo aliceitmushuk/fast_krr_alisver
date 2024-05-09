@@ -6,7 +6,9 @@ class Nystrom:
         self.device = device
         self.r = r
         self.rho = rho
-        self.use_cpu = use_cpu  # Perform some preconditioner calculations on CPU if True
+        self.use_cpu = (
+            use_cpu  # Perform some preconditioner calculations on CPU if True
+        )
 
         self.U = None
         self.S = None
@@ -33,8 +35,7 @@ class Nystrom:
 
         # Will either be on self.device or "cpu" depending on self.use_cpu
         C = torch.linalg.cholesky(cholesky_target)
-        B = torch.linalg.solve_triangular(
-            C.t(), Y_shifted, upper=True, left=False)
+        B = torch.linalg.solve_triangular(C.t(), Y_shifted, upper=True, left=False)
 
         del cholesky_target, Y_shifted, C, Phi
         torch.cuda.empty_cache()
@@ -67,8 +68,7 @@ class Nystrom:
                     cholesky_target_batch = torch.mm(Phi.t(), Y_shifted_batch)
                     cholesky_target_parts.append(cholesky_target_batch)
                     Y_shifted_parts.append(Y_shifted_batch)
-                cholesky_target = torch.cat(
-                    tuple(cholesky_target_parts), dim=1)
+                cholesky_target = torch.cat(tuple(cholesky_target_parts), dim=1)
                 Y_shifted = torch.cat(tuple(Y_shifted_parts), dim=1)
                 break
             except RuntimeError as e:
@@ -76,7 +76,8 @@ class Nystrom:
                     torch.cuda.empty_cache()
                     if batch_size == 1:
                         raise RuntimeError(
-                            "Batch size of 1 failed due to insufficient memory")
+                            "Batch size of 1 failed due to insufficient memory"
+                        )
                     batch_size = max(1, batch_size // 2)
                     cholesky_target_parts = []
                     Y_shifted_parts = []
@@ -86,10 +87,12 @@ class Nystrom:
         return cholesky_target, Y_shifted
 
     def inv_lin_op(self, v):
-        if torch.get_default_dtype() == torch.float64: # Use the classic implementation
+        if torch.get_default_dtype() == torch.float64:  # Use the classic implementation
             UTv = self.U.t() @ v
-            v = self.U @ (UTv / (self.S + self.rho)) + 1 / (self.rho) * (v - self.U @ UTv)
-        else: # Take a more numerically stable approach
+            v = self.U @ (UTv / (self.S + self.rho)) + 1 / (self.rho) * (
+                v - self.U @ UTv
+            )
+        else:  # Take a more numerically stable approach
             if self.L is None:
                 self.L = torch.linalg.cholesky(
                     self.rho * torch.diag(self.S**-1) + self.U.T @ self.U
@@ -113,7 +116,6 @@ class Nystrom:
         )
 
         return v
-
 
 
 # import torch

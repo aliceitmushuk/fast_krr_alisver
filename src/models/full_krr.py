@@ -5,7 +5,9 @@ from ..kernels.kernel_inits import _get_kernel, _get_kernels_start
 
 
 class FullKRR:
-    def __init__(self, x, b, x_tst, b_tst, kernel_params, Ktr_needed, lambd, task, w0, device):
+    def __init__(
+        self, x, b, x_tst, b_tst, kernel_params, Ktr_needed, lambd, task, w0, device
+    ):
         self.x = x
         self.b = b
         self.x_tst = x_tst
@@ -57,7 +59,7 @@ class FullKRR:
                 / self.n_tst
             )
             metrics_dict[self.test_metric_name] = test_metric
-            metrics_dict["test_rmse"] = test_metric ** 0.5
+            metrics_dict["test_rmse"] = test_metric**0.5
             metrics_dict["smape"] = smape
 
         return metrics_dict

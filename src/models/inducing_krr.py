@@ -7,7 +7,18 @@ from ..kernels.kernel_inits import _get_kernel
 
 class InducingKRR:
     def __init__(
-        self, x, b, x_tst, b_tst, kernel_params, Knm_needed, inducing_pts, lambd, task, w0, device
+        self,
+        x,
+        b,
+        x_tst,
+        b_tst,
+        kernel_params,
+        Knm_needed,
+        inducing_pts,
+        lambd,
+        task,
+        w0,
+        device,
     ):
         self.x = x
         self.b = b
@@ -83,7 +94,7 @@ class InducingKRR:
                 / self.n_tst
             )
             metrics_dict[self.test_metric_name] = test_metric
-            metrics_dict["test_rmse"] = test_metric ** 0.5
+            metrics_dict["test_rmse"] = test_metric**0.5
             metrics_dict["smape"] = smape
 
         return metrics_dict

@@ -13,7 +13,7 @@ DATA_FILES = {
     "homo": "homo.mat",
     "susy": "SUSY",
     "higgs": "HIGGS",
-    "taxi_sub": "taxi-data/subsampled_data.h5py"
+    "taxi_sub": "taxi-data/subsampled_data.h5py",
 }
 
 
