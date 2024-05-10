@@ -37,14 +37,14 @@ class Nystrom:
         C = torch.linalg.cholesky(cholesky_target)
 
         try:
-            B = torch.linalg.solve_triangular(
-                C.t(), Y_shifted, upper=True, left=False)
+            B = torch.linalg.solve_triangular(C.t(), Y_shifted, upper=True, left=False)
         # temporary fix for issue @ https://github.com/pytorch/pytorch/issues/97211
         except RuntimeError as e:
             if "CUBLAS_STATUS_EXECUTION_FAILED" in str(e):
                 torch.cuda.empty_cache()
-                B = torch.linalg.solve_triangular(C.t().to("cpu"), Y_shifted.to(
-                    "cpu"), upper=True, left=False).to(self.device)
+                B = torch.linalg.solve_triangular(
+                    C.t().to("cpu"), Y_shifted.to("cpu"), upper=True, left=False
+                ).to(self.device)
             else:
                 raise e
 
