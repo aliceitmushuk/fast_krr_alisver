@@ -13,7 +13,10 @@ def main():
     # Parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--dataset", type=str, choices=["synthetic", "homo", "susy", "higgs", "taxi_sub"], help="Which dataset to use"
+        "--dataset",
+        type=str,
+        choices=["synthetic", "homo", "susy", "higgs", "taxi_sub"],
+        help="Which dataset to use",
     )
     parser.add_argument(
         "--model", choices=["full_krr", "inducing_krr"], help="Type of model"
@@ -53,7 +56,9 @@ def main():
         "--beta", type=float, default=None, help="Acceleration parameter in ASkotch"
     )
     parser.add_argument(
-        "--no_store_precond", action="store_true", help="If true, do not store preconditioners in Skotch/ASkotch"
+        "--no_store_precond",
+        action="store_true",
+        help="If true, do not store preconditioners in Skotch/ASkotch",
     )
     parser.add_argument(
         "--bg", type=int, default=None, help="Gradient batch size in SGD-type methods"

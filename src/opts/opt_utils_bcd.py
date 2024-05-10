@@ -21,9 +21,10 @@ def _get_blocks(n, B):
 
     return blocks
 
+
 def _get_block_precond(model, block, precond_params):
     block_lin_op, block_lin_op_reg, block_trace = model._get_block_lin_ops(block)
-    
+
     precond = None
 
     if precond_params is not None:
@@ -44,11 +45,9 @@ def _get_block_precond(model, block, precond_params):
     return precond, block_lin_op_reg
 
 
-def _get_block_precond_L(
-    model, block, precond_params
-):
+def _get_block_precond_L(model, block, precond_params):
     precond, block_lin_op_reg = _get_block_precond(model, block, precond_params)
-        
+
     if precond is not None:
         L = _get_L(
             block_lin_op_reg, precond.inv_sqrt_lin_op, block.shape[0], model.device
@@ -58,13 +57,12 @@ def _get_block_precond_L(
 
     return precond, L
 
+
 def _get_block_properties(model, blocks, precond_params, no_store_precond):
     block_preconds, block_etas, block_Ls = [], [], []
 
     for _, block in enumerate(blocks):
-        precond, L = _get_block_precond_L(
-            model, block, precond_params
-        )
+        precond, L = _get_block_precond_L(model, block, precond_params)
 
         if not no_store_precond:
             block_preconds.append(precond)
@@ -72,6 +70,7 @@ def _get_block_properties(model, blocks, precond_params, no_store_precond):
         block_etas.append(1 / L)
 
     return block_preconds, block_etas, block_Ls
+
 
 def _get_block_update(model, w, block, precond, eta):
     # Compute the block gradient

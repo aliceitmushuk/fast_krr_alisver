@@ -40,8 +40,9 @@ class ASkotch:
 
         # Retrieve the block preconditioner -- recompute if necessary
         if self.no_store_precond:
-            block_precond, _ = _get_block_precond(self.model, self.blocks[block_idx], 
-                                               self.precond_params)
+            block_precond, _ = _get_block_precond(
+                self.model, self.blocks[block_idx], self.precond_params
+            )
         else:
             block_precond = self.block_preconds[block_idx]
 
