@@ -15,7 +15,7 @@ log_freq=50
 precision=$1
 seed=0
 devices=(7 6 5 4 3 2 1 0)
-wandb_project=homo_full_krr
+wandb_project=$2
 
 # Initialize the counter
 counter=0

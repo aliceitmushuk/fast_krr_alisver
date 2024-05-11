@@ -1,12 +1,17 @@
 #!/bin/bash
 
-wandb_project_full=homo_full_krr_v2
-wandb_project_inducing=homo_inducing_krr_v2
+wandb_project_full=taxi_full_krr
+wandb_project_inducing=taxi_inducing_krr
 
-prefix="./config/homo/"
+prefix="./config/taxi/"
 
-inducing_krr_scripts=(
+inducing_krr_falkon_scripts=(
     "inducing_krr_falkon.sh"
+)
+
+inducing_krr_sketchy_scripts=(
+    "inducing_krr_saga.sh"
+    "inducing_krr_sksaga.sh"
 )
 
 full_krr_pcg_scripts=(
@@ -19,14 +24,18 @@ full_krr_bcd_scripts=(
     "full_krr_askotch.sh"
     "full_krr_skotch.sh"
 )
-bs=(50 20 10 5 2 1)
 
 for precision in "${precisions[@]}"
 do
-    for script in "${inducing_krr_scripts[@]}"
+    for script in "${inducing_krr_falkon_scripts[@]}"
     do
         bash "${prefix}${script}" "$precision" $wandb_project_inducing
     done
+done
+
+for script in "${inducing_krr_sketchy_scripts[@]}"
+do
+    bash "${prefix}${script}" $wandb_project_inducing
 done
 
 for precision in "${precisions[@]}"
@@ -37,10 +46,7 @@ do
     done
 done
 
-for b in "${bs[@]}"
+for script in "${full_krr_bcd_scripts[@]}"
 do
-    for script in "${full_krr_bcd_scripts[@]}"
-    do
-        bash "${prefix}${script}" "$b" $wandb_project_full
-    done
+    bash "${prefix}${script}" $wandb_project_full
 done

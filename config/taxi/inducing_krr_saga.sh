@@ -7,7 +7,7 @@ kernel_type=rbf
 sigma=1.0
 kernel_params="type $kernel_type sigma $sigma"
 m=1000000
-lambd=19.8
+lambd=20
 opt=sketchysaga
 bg=65536
 max_time=18000
@@ -15,7 +15,7 @@ log_freq=20
 precision=float64
 seed=0
 device=0
-wandb_project=taxi_full_krr_testing
+wandb_project=$1
 
 # Initialize the counter
 counter=0

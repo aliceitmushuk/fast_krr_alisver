@@ -6,16 +6,16 @@ task=regression
 kernel_type=l1_laplace
 sigma=5120
 kernel_params="type $kernel_type sigma $sigma"
-ms=(100 200 500 1000 2000 5000 10000 20000)
+ms=(200 500 1000 2000 5000 10000 20000 50000)
 lambd=1e-3
 opt=pcg
 precond_type=falkon
 max_time=3600
 log_freq=50
-precision=float64
+precision=$1
 seed=0
 devices=(7 6 5 4 3 2 1 0)
-wandb_project=homo_inducing_krr
+wandb_project=$2
 
 # Initialize the counter
 counter=0

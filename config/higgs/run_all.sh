@@ -1,5 +1,7 @@
 #!/bin/bash
 
+wandb_project=higgs_full_krr_v2
+
 prefix="./config/higgs/"
 
 full_krr_pcg_scripts=(
@@ -18,7 +20,7 @@ for precision in "${precisions[@]}"
 do
     for script in "${full_krr_pcg_scripts[@]}"
     do
-        bash "${prefix}${script}" "$precision"
+        bash "${prefix}${script}" "$precision" $wandb_project
     done
 done
 
@@ -26,6 +28,6 @@ for b in "${bs[@]}"
 do
     for script in "${full_krr_bcd_scripts[@]}"
     do
-        bash "${prefix}${script}" "$b"
+        bash "${prefix}${script}" "$b" $wandb_project
     done
 done
