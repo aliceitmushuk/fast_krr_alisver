@@ -88,7 +88,7 @@ HYPERPARAM_LABELS = {
 
 X_AXIS_LABELS = {
     "time": "Time (s)",
-    "datapasses": "Data passes",
+    "datapasses": "Full Data passes",
     "iters": "Iterations",
 }
 
