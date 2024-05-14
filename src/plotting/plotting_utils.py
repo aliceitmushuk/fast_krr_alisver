@@ -1,6 +1,10 @@
+import os
+import warnings
+
 import numpy as np
 import wandb
 import matplotlib.pyplot as plt
+
 
 MAX_SAMPLES = 1000000000 # Hacky way to get everything from wandb
 
@@ -135,6 +139,16 @@ def get_datapasses(run, steps):
 
     return scaling_factor * steps
 
+def get_x(run, steps, x_axis):
+    if x_axis == "time":
+        times_df = run.history(samples=MAX_SAMPLES, keys=["iter_time"])
+        cum_times = np.cumsum(times_df["iter_time"].to_numpy())
+        return cum_times[steps]
+    elif x_axis == "datapasses":
+        return get_datapasses(run, steps)
+    elif x_axis == "iters":
+        return steps
+
 def get_label(run, hparams_to_label_opt):
     label = OPT_LABELS[run.config["opt"]]
 
@@ -173,23 +187,31 @@ def get_style(run, hparams_to_label_opt):
 
     return style
 
-def plot_runs(run_list, hparams_to_label, metric, x_axis, ylim, title):
+def get_save_path(save_dir, save_name):
+    if save_dir is not None and save_name is not None:
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        return os.path.join(save_dir, save_name)
+    elif save_dir is not None and save_name is None:
+        warnings.warn("Must provide save_name if save_dir is provided. Plot will not be saved.")
+        return None
+    elif save_dir is None and save_name is not None:
+        warnings.warn("Must provide save_dir if save_name is provided. Plot will not be saved.")
+        return None
+    else:
+        return None
+
+def plot_runs(run_list, hparams_to_label, metric, x_axis, ylim, title, save_dir=None, save_name=None):
     if x_axis not in ["time", "datapasses", "iters"]:
         raise ValueError(f"Unsupported value of x_axis: {x_axis}")
+    
+    save_path = get_save_path(save_dir, save_name)
 
     for run in run_list:
         y_df = run.history(samples=MAX_SAMPLES, keys=[metric])
         steps = y_df["_step"].to_numpy()
 
-        if x_axis == "time":
-            times_df = run.history(samples=MAX_SAMPLES, keys=["iter_time"])
-            cum_times = np.cumsum(times_df["iter_time"].to_numpy())
-            x = cum_times[steps]
-        elif x_axis == "datapasses":
-            x = get_datapasses(run, steps)
-        elif x_axis == "iters":
-            x = steps
-
+        x = get_x(run, steps, x_axis)
         label = get_label(run, hparams_to_label[run.config["opt"]])
         style = get_style(run, hparams_to_label[run.config["opt"]])
 
@@ -200,3 +222,6 @@ def plot_runs(run_list, hparams_to_label, metric, x_axis, ylim, title):
     plt.xlabel(X_AXIS_LABELS[x_axis])
     plt.ylabel(METRIC_LABELS[metric])
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=3)
+
+    if save_path is not None:
+        plt.savefig(save_path, bbox_inches="tight")
