@@ -1,8 +1,13 @@
 #!/bin/bash
 
-wandb_project=susy_full_krr_v2
+wandb_project_full=susy_full_krr_v2
+wandb_project_inducing=susy_inducing_krr_v2
 
 prefix="./config/susy/"
+
+inducing_krr_scripts=(
+    "inducing_krr_falkon.sh"
+)
 
 full_krr_pcg_scripts=(
     "full_krr_chol_pcg.sh"
@@ -18,9 +23,17 @@ bs=(1000 500 200 100 50 20 10 5 2 1)
 
 for precision in "${precisions[@]}"
 do
+    for script in "${inducing_krr_scripts[@]}"
+    do
+        bash "${prefix}${script}" "$precision" $wandb_project_inducing
+    done
+done
+
+for precision in "${precisions[@]}"
+do
     for script in "${full_krr_pcg_scripts[@]}"
     do
-        bash "${prefix}${script}" "$precision" $wandb_project
+        bash "${prefix}${script}" "$precision" $wandb_project_full
     done
 done
 
@@ -28,6 +41,6 @@ for b in "${bs[@]}"
 do
     for script in "${full_krr_bcd_scripts[@]}"
     do
-        bash "${prefix}${script}" "$b" $wandb_project
+        bash "${prefix}${script}" "$b" $wandb_project_full
     done
 done

@@ -29,7 +29,7 @@ do
     python run_experiment.py --dataset $dataset --model $model --task $task \
                             --kernel_params "$kernel_params" --m $m --lambd $lambd --opt $opt \
                             --precond_params "type $precond_type" \
-                            --max_time $max_time --log_freq $log_freq --precision $precision \
+                            --max_time $max_time --log_freq $log_freq --log_test_only --precision $precision \
                             --seed $seed --device $device --wandb_project $wandb_project &
     counter=$((counter+1))
     # Ensure we don't exceed the number of devices

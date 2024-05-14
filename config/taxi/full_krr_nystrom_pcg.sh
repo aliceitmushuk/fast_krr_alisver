@@ -2,7 +2,7 @@
 
 dataset=taxi_sub
 model=full_krr
-task=classification
+task=regression
 kernel_type=rbf
 sigma=1.0
 kernel_params="type $kernel_type sigma $sigma"
@@ -28,7 +28,7 @@ do
     device=${devices[counter]}
     python run_experiment.py --dataset $dataset --model $model --task $task \
                             --kernel_params "$kernel_params" --lambd $lambd --opt $opt \
-                            --precond_params "type $precond_type r $r rho $lambd" \
+                            --precond_params "type $precond_type r $r rho $lambd use_cpu" \
                             --max_time $max_time --log_freq $log_freq --log_test_only --precision $precision \
                             --seed $seed --device $device --wandb_project $wandb_project &
     counter=$((counter+1))
