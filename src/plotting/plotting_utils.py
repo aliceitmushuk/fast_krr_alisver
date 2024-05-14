@@ -88,7 +88,7 @@ HYPERPARAM_LABELS = {
 
 X_AXIS_LABELS = {
     "time": "Time (s)",
-    "datapasses": "Full Data passes",
+    "datapasses": "Full data passes",
     "iters": "Iterations",
 }
 
@@ -114,26 +114,12 @@ def filter_runs(runs, criteria):
     return [run for run in runs if check_criteria(run, criteria)]
 
 def get_datapasses(run, steps):
-    datapasses = []
     opt = run.config["opt"]
     n = TRAINING_SIZE[run.config["dataset"]]
     m = run.config["m"] if "m" in run.config else None
     bg = run.config["bg"] if "bg" in run.config else None
     p = run.config["p"] if "p" in run.config else None
     scaling_factor = None
-
-    # if opt in ["skotch", "askotch"]:
-    #     return steps / run.config["b"]
-    # elif opt == "pcg":
-    #     if run.config["precond_params"]["type"] == "falkon":
-    #         return steps * run.config["m"] / n
-    #     else:
-    #         return steps
-    # elif opt == "sketchysaga":
-    #     return steps * run.config["bg"] / n
-    # elif opt == "sketchykatyusha":
-    #     # Account for full gradient computations
-    #     return steps * run.config["bg"] / n + steps * run.config["p"]
 
     if opt in ["skotch", "askotch"]:
         scaling_factor = 1 / run.config["b"]
