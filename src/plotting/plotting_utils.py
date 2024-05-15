@@ -207,6 +207,8 @@ def plot_runs(run_list, hparams_to_label, metric, x_axis, ylim, title, save_dir=
     
     save_path = get_save_path(save_dir, save_name)
 
+    plt.figure()
+
     for run in run_list:
         y_df = run.history(samples=MAX_SAMPLES, keys=[metric])
         steps = y_df["_step"].to_numpy()
