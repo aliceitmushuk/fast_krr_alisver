@@ -19,14 +19,36 @@ TRAINING_SIZE = {
 
 LINESTYLES = {
     "askotch": "solid",
-    "skotch": "dotted",
+    "skotch": "solid",
     "pcg": "dashed",
     "sketchysaga": "dashdot",
-    "sketchykatyusha": "dotted",
+    "sketchykatyusha": "dashdot",
 }
 
 # Color is based on rank
-COLORS = {
+# COLORS = {
+#     10: "tab:blue",
+#     20: "tab:orange",
+#     50: "tab:green",
+#     100: "tab:red",
+#     200: "tab:purple",
+#     300: "tab:olive",
+#     500: "tab:brown",
+#     1000: "tab:pink",
+#     2000: "tab:gray",
+# }
+
+# Color of line is based on optimizer
+LINE_COLORS = {
+    "askotch": "tab:blue",
+    "skotch": "tab:orange",
+    "pcg": "k",
+    "sketchysaga": "tab:pink",
+    "sketchykatyusha": "tab:red",
+}
+
+# Color of marker is based on rank
+MARKER_COLORS = {
     10: "tab:blue",
     20: "tab:orange",
     50: "tab:green",
@@ -57,10 +79,18 @@ MARKERS_BCD = {
 MARKERS_PRECOND = {
     "nystrom": "+",
     "partial_cholesky": "x",
-    "falkon": "D",
+    "falkon": "d",
 }
 
-MARKEVERY = 10
+MARKEVERY = {
+    "askotch": 10,
+    "skotch": 10,
+    "pcg": 1,
+    "sketchysaga": 10,
+    "sketchykatyusha": 10,
+}
+
+MARKERSIZE = 5
 
 METRIC_LABELS = {
     "rel_residual": "Relative residual",
@@ -166,24 +196,27 @@ def get_label(run, hparams_to_label_opt):
 
     return label
 
-def get_style(run, hparams_to_label_opt):
+def get_style(run):
     style = {}
     opt = run.config["opt"]
     style["linestyle"] = LINESTYLES[opt]
+    style["color"] = LINE_COLORS[opt]
 
-    for hparam in hparams_to_label_opt:
-        if hparam not in ["r", "b", "precond"]:
-            raise ValueError(f"Unknown hparam: {hparam}")
-
-        if hparam == "r":
-            style["color"] = COLORS[run.config["precond_params"]["r"]]
-        # Set the marker differently depending on the optimization method
-        elif hparam == "b" and opt in ["skotch", "askotch"]:
-            style["marker"] = MARKERS_BCD[run.config["b"]]
-            style["markevery"] = MARKEVERY
-        elif hparam == "precond" and opt == "pcg":
+    if run.config["precond_params"] is not None:
+        if "r" in run.config["precond_params"]:
+            style["markerfacecolor"] = MARKER_COLORS[run.config["precond_params"]["r"]]
+            style["markeredgecolor"] = MARKER_COLORS[run.config["precond_params"]["r"]]
+        else:
+            style["markerfacecolor"] = "k"
+            style["markeredgecolor"] = "k"
+        
+        if opt in ["pcg", "sketchysaga", "sketchykatyusha"]:
             style["marker"] = MARKERS_PRECOND[run.config["precond_params"]["type"]]
-            style["markevery"] = MARKEVERY
+    if "b" in run.config and opt in ["skotch", "askotch"]:
+        style["marker"] = MARKERS_BCD[run.config["b"]]
+    
+    style["markevery"] = MARKEVERY[opt]
+    style["markersize"] = MARKERSIZE
 
     return style
 
@@ -215,7 +248,7 @@ def plot_runs(run_list, hparams_to_label, metric, x_axis, ylim, title, save_dir=
 
         x = get_x(run, steps, x_axis)
         label = get_label(run, hparams_to_label[run.config["opt"]])
-        style = get_style(run, hparams_to_label[run.config["opt"]])
+        style = get_style(run)
 
         plt.plot(x, y_df[metric], label=label, **style)
 
