@@ -19,77 +19,46 @@ TRAINING_SIZE = {
 
 LINESTYLES = {
     "askotch": "solid",
-    "skotch": "solid",
+    "skotch": "dotted",
     "pcg": "dashed",
     "sketchysaga": "dashdot",
-    "sketchykatyusha": "dashdot",
+    "sketchykatyusha": "dashdotdotted",
 }
 
-# Color is based on rank
-# COLORS = {
-#     10: "tab:blue",
-#     20: "tab:orange",
-#     50: "tab:green",
-#     100: "tab:red",
-#     200: "tab:purple",
-#     300: "tab:olive",
-#     500: "tab:brown",
-#     1000: "tab:pink",
-#     2000: "tab:gray",
-# }
-
-# Color of line is based on optimizer
-LINE_COLORS = {
-    "askotch": "tab:blue",
-    "skotch": "tab:orange",
-    "pcg": "k",
-    "sketchysaga": "tab:pink",
-    "sketchykatyusha": "tab:red",
-}
-
-# Color of marker is based on rank
-MARKER_COLORS = {
+RANK_COLORS = {
     10: "tab:blue",
     20: "tab:orange",
     50: "tab:green",
     100: "tab:red",
     200: "tab:purple",
-    300: "tab:olive",
-    500: "tab:brown",
-    1000: "tab:pink",
-    2000: "tab:gray",
+    300: "tab:brown",
+    500: "tab:pink",
+    1000: "tab:gray",
+    2000: "tab:olive",
 }
 
-# Marker is based on number of blocks
-MARKERS_BCD = {
-    1: "o",
-    2: "s",
-    5: "^",
-    10: "v",
-    20: "<",
-    50: ">",
-    100: "p",
-    200: "P",
-    500: "*",
-    1000: "h",
-    2000: "H",
+BLOCK_COLORS = {
+    1: "tab:blue",
+    2: "tab:orange",
+    5: "tab:green",
+    10: "tab:red",
+    20: "tab:purple",
+    50: "tab:brown",
+    100: "tab:pink",
+    200: "tab:gray",
+    500: "tab:olive",
+    1000: "tab:cyan",
+    2000: "gold",
 }
 
 # Useful for distinguishing between PCG methods
 MARKERS_PRECOND = {
-    "nystrom": "+",
-    "partial_cholesky": "x",
-    "falkon": "d",
+    "nystrom": "o",
+    "partial_cholesky": "s",
+    "falkon": None,
 }
 
-MARKEVERY = {
-    "askotch": 10,
-    "skotch": 10,
-    "pcg": 1,
-    "sketchysaga": 10,
-    "sketchykatyusha": 10,
-}
-
+MARKEVERY = 1
 MARKERSIZE = 5
 
 METRIC_LABELS = {
@@ -112,12 +81,12 @@ OPT_LABELS = {
 HYPERPARAM_LABELS = {
     "r": "r",
     "b": "B",
-    # "precond": {"nystrom": r"Nystr$\ddot{\mathrm{o}}$m",
-    #             "partial_cholesky": "Partial Cholesky",
-    #             "falkon": "Falkon",},
-    "precond": {"nystrom": r"Nystrom",
+    "precond": {"nystrom": r"Nystr$\ddot{\mathrm{o}}$m",
                 "partial_cholesky": "Partial Cholesky",
-                "falkon": "Falkon", },
+                "falkon": "Falkon",},
+    # "precond": {"nystrom": r"Nystrom",
+    #             "partial_cholesky": "Partial Cholesky",
+    #             "falkon": "Falkon", },
 }
 
 X_AXIS_LABELS = {
@@ -187,36 +156,38 @@ def get_label(run, hparams_to_label_opt):
             raise ValueError(f"Unknown hparam: {hparam}")
         
         if hparam == "r":
-            label += f", {HYPERPARAM_LABELS[hparam]}={run.config['precond_params']['r']}"
+            label += f", {HYPERPARAM_LABELS[hparam]} = {run.config['precond_params']['r']}"
         elif hparam == "b":
-            label += f", {HYPERPARAM_LABELS[hparam]}={run.config['b']}"
+            label += f", {HYPERPARAM_LABELS[hparam]} = {run.config['b']}"
         elif hparam == "precond":
             precond_type = run.config["precond_params"]["type"]
             label += f", {HYPERPARAM_LABELS[hparam][precond_type]}"
 
     return label
 
-def get_style(run):
+def get_style(run, color_param):
     style = {}
     opt = run.config["opt"]
     style["linestyle"] = LINESTYLES[opt]
-    style["color"] = LINE_COLORS[opt]
 
-    if run.config["precond_params"] is not None:
-        if "r" in run.config["precond_params"]:
-            style["markerfacecolor"] = MARKER_COLORS[run.config["precond_params"]["r"]]
-            style["markeredgecolor"] = MARKER_COLORS[run.config["precond_params"]["r"]]
+    # Get color based on color_param
+    if color_param == "r":
+        if run.config["precond_params"] is not None:
+            if "r" in run.config["precond_params"]:
+                style["color"] = RANK_COLORS[run.config["precond_params"]["r"]]
+            else:
+                style["color"] = "k"
+    elif color_param == "b":
+        if run.config["opt"] in ["skotch", "askotch"]:
+            style["color"] = BLOCK_COLORS[run.config["b"]]
         else:
-            style["markerfacecolor"] = "k"
-            style["markeredgecolor"] = "k"
-        
-        if opt in ["pcg", "sketchysaga", "sketchykatyusha"]:
-            style["marker"] = MARKERS_PRECOND[run.config["precond_params"]["type"]]
-    if "b" in run.config and opt in ["skotch", "askotch"]:
-        style["marker"] = MARKERS_BCD[run.config["b"]]
-    
-    style["markevery"] = MARKEVERY[opt]
-    style["markersize"] = MARKERSIZE
+            style["color"] = "k"
+
+    # Use markers for PCG methods
+    if opt == "pcg":
+        style["marker"] = MARKERS_PRECOND[run.config["precond_params"]["type"]]
+        style["markevery"] = MARKEVERY
+        style["markersize"] = MARKERSIZE
 
     return style
 
@@ -234,9 +205,12 @@ def get_save_path(save_dir, save_name):
     else:
         return None
 
-def plot_runs(run_list, hparams_to_label, metric, x_axis, ylim, title, save_dir=None, save_name=None):
+def plot_runs(run_list, hparams_to_label, color_param, metric, x_axis, ylim, title, save_dir=None, save_name=None):
     if x_axis not in ["time", "datapasses", "iters"]:
         raise ValueError(f"Unsupported value of x_axis: {x_axis}")
+    
+    if color_param not in ["r", "b"]:
+        raise ValueError(f"Unsupported value of color_param: {color_param}")
     
     save_path = get_save_path(save_dir, save_name)
 
@@ -248,7 +222,7 @@ def plot_runs(run_list, hparams_to_label, metric, x_axis, ylim, title, save_dir=
 
         x = get_x(run, steps, x_axis)
         label = get_label(run, hparams_to_label[run.config["opt"]])
-        style = get_style(run)
+        style = get_style(run, color_param)
 
         plt.plot(x, y_df[metric], label=label, **style)
 
