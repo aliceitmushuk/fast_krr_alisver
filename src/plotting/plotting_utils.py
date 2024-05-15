@@ -5,6 +5,8 @@ import numpy as np
 import wandb
 import matplotlib.pyplot as plt
 
+from sorting import sort_data
+
 
 MAX_SAMPLES = 1000000000 # Hacky way to get everything from wandb
 
@@ -211,6 +213,9 @@ def plot_runs(run_list, hparams_to_label, color_param, metric, x_axis, ylim, tit
     
     if color_param not in ["r", "b"]:
         raise ValueError(f"Unsupported value of color_param: {color_param}")
+    
+    # Sort the runs based on opt, color_param, and preconditioner type
+    run_list = sort_data(run_list, sort_keys=["opt", color_param, "preconditioner_type"])
     
     save_path = get_save_path(save_dir, save_name)
 
