@@ -15,7 +15,7 @@ TRAINING_SIZE = {
     "synthetic": 10000,
     "homo": 100000,
     "susy": 4500000,
-    "higgs": 10000000,
+    "higgs": 10500000,
     "taxi_sub": 100000000,
 }
 
