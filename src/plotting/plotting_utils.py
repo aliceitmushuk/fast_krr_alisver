@@ -84,7 +84,7 @@ HYPERPARAM_LABELS = {
     "r": "r",
     "b": "B",
     "precond": {"nystrom": r"Nystr$\ddot{\mathrm{o}}$m",
-                "partial_cholesky": "Partial Cholesky",
+                "partial_cholesky": "Greedy Cholesky",
                 "falkon": "Falkon",},
     # "precond": {"nystrom": r"Nystrom",
     #             "partial_cholesky": "Partial Cholesky",
@@ -223,6 +223,7 @@ def plot_runs(run_list, hparams_to_label, color_param, metric, x_axis, ylim, tit
 
     for run in run_list:
         y_df = run.history(samples=MAX_SAMPLES, keys=[metric])
+
         steps = y_df["_step"].to_numpy()
 
         x = get_x(run, steps, x_axis)
