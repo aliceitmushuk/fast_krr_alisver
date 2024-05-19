@@ -16,10 +16,15 @@ full_krr_pcg_scripts=(
 precisions=(float32 float64)
 
 full_krr_bcd_scripts=(
-    "full_krr_askotch.sh"
-    "full_krr_skotch.sh"
+    # "full_krr_askotch.sh"
+    # "full_krr_skotch.sh"
 )
 bs=(1000 500 200 100 50 20 10 5 2 1)
+
+full_krr_bcd_no_precond_scripts=(
+    "full_krr_abcd.sh"
+    "full_krr_bcd.sh"
+)
 
 for precision in "${precisions[@]}"
 do
@@ -43,4 +48,9 @@ do
     do
         bash "${prefix}${script}" "$b" $wandb_project_full
     done
+done
+
+for script in "${full_krr_bcd_no_precond_scripts[@]}"
+do
+    bash "${prefix}${script}" $wandb_project_full
 done

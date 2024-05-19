@@ -21,6 +21,11 @@ full_krr_bcd_scripts=(
 )
 bs=(50 20 10 5 2 1)
 
+full_krr_bcd_no_precond_scripts=(
+    "full_krr_abcd.sh"
+    "full_krr_bcd.sh"
+)
+
 for precision in "${precisions[@]}"
 do
     for script in "${inducing_krr_scripts[@]}"
@@ -43,4 +48,9 @@ do
     do
         bash "${prefix}${script}" "$b" $wandb_project_full
     done
+done
+
+for script in "${full_krr_bcd_no_precond_scripts[@]}"
+do
+    bash "${prefix}${script}" $wandb_project_full
 done
