@@ -110,6 +110,8 @@ def get_project_runs(entity, project):
     return runs
 
 def check_criteria(run, criteria):
+    # Print run config for debugging
+    # print(run.config)
     for _, criterion in criteria.items():
         if not criterion(run):
             return False
@@ -157,11 +159,11 @@ def get_label(run, hparams_to_label_opt):
         if hparam not in ["r", "b", "precond"]:
             raise ValueError(f"Unknown hparam: {hparam}")
         
-        if hparam == "r":
-            label += f", {HYPERPARAM_LABELS[hparam]} = {run.config['precond_params']['r']}"
-        elif hparam == "b":
-            label += f", {HYPERPARAM_LABELS[hparam]} = {run.config['b']}"
-        elif hparam == "precond":
+        if hparam == "r" and run.config["precond_params"] is not None:
+            label += f", ${HYPERPARAM_LABELS[hparam]} = {run.config['precond_params']['r']}$"
+        elif hparam == "b" and "b" in run.config:
+            label += f", ${HYPERPARAM_LABELS[hparam]} = {run.config['b']}$"
+        elif hparam == "precond" and run.config["precond_params"] is not None:
             precond_type = run.config["precond_params"]["type"]
             label += f", {HYPERPARAM_LABELS[hparam][precond_type]}"
 
@@ -174,11 +176,10 @@ def get_style(run, color_param):
 
     # Get color based on color_param
     if color_param == "r":
-        if run.config["precond_params"] is not None:
-            if "r" in run.config["precond_params"]:
-                style["color"] = RANK_COLORS[run.config["precond_params"]["r"]]
-            else:
-                style["color"] = "k"
+        if run.config["precond_params"] is not None and "r" in run.config["precond_params"]:
+            style["color"] = RANK_COLORS[run.config["precond_params"]["r"]]
+        else:
+            style["color"] = "k"
     elif color_param == "b":
         if run.config["opt"] in ["skotch", "askotch"]:
             style["color"] = BLOCK_COLORS[run.config["b"]]
