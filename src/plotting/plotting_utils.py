@@ -8,8 +8,6 @@ import matplotlib.pyplot as plt
 from sorting import sort_data
 
 
-MAX_SAMPLES = 1000000000 # Hacky way to get everything from wandb
-
 # Not ideal - really should record this within runs
 TRAINING_SIZE = {
     "synthetic": 10000,
@@ -70,6 +68,7 @@ METRIC_LABELS = {
     "test_mse": "Test MSE",
     "test_rmse": "Test RMSE",
     "smape": "SMAPE",
+    "rel_suboptim": "Relative suboptimality",
 }
 
 OPT_LABELS = {
@@ -86,9 +85,6 @@ HYPERPARAM_LABELS = {
     "precond": {"nystrom": r"Nystr$\ddot{\mathrm{o}}$m",
                 "partial_cholesky": "Greedy Cholesky",
                 "falkon": "Falkon",},
-    # "precond": {"nystrom": r"Nystrom",
-    #             "partial_cholesky": "Partial Cholesky",
-    #             "falkon": "Falkon", },
 }
 
 X_AXIS_LABELS = {
@@ -110,8 +106,6 @@ def get_project_runs(entity, project):
     return runs
 
 def check_criteria(run, criteria):
-    # Print run config for debugging
-    # print(run.config)
     for _, criterion in criteria.items():
         if not criterion(run):
             return False
@@ -144,8 +138,9 @@ def get_datapasses(run, steps):
 
 def get_x(run, steps, x_axis):
     if x_axis == "time":
-        times_df = run.history(samples=MAX_SAMPLES, keys=["iter_time"])
-        cum_times = np.cumsum(times_df["iter_time"].to_numpy())
+        times_hist = run.scan_history(keys=["iter_time"])
+        times = np.array([time["iter_time"] for time in times_hist])
+        cum_times = np.cumsum(times)
         return cum_times[steps]
     elif x_axis == "datapasses":
         return get_datapasses(run, steps)
@@ -175,16 +170,14 @@ def get_style(run, color_param):
     style["linestyle"] = LINESTYLES[opt]
 
     # Get color based on color_param
-    if color_param == "r":
-        if run.config["precond_params"] is not None and "r" in run.config["precond_params"]:
-            style["color"] = RANK_COLORS[run.config["precond_params"]["r"]]
-        else:
-            style["color"] = "k"
-    elif color_param == "b":
-        if run.config["opt"] in ["skotch", "askotch"]:
-            style["color"] = BLOCK_COLORS[run.config["b"]]
-        else:
-            style["color"] = "k"
+    if run.config["opt"] != "pcg" and color_param == "r" \
+        and run.config["precond_params"] is not None \
+            and "r" in run.config["precond_params"]:
+        style["color"] = RANK_COLORS[run.config["precond_params"]["r"]]
+    elif run.config["opt"] in ["skotch", "askotch"] and color_param == "b":
+        style["color"] = BLOCK_COLORS[run.config["b"]]
+    else:
+        style["color"] = "k"
 
     # Use markers for PCG methods
     if opt == "pcg":
@@ -208,7 +201,8 @@ def get_save_path(save_dir, save_name):
     else:
         return None
 
-def plot_runs(run_list, hparams_to_label, color_param, metric, x_axis, ylim, title, save_dir=None, save_name=None):
+def plot_runs(run_list, hparams_to_label, color_param, metric, x_axis, ylim, title,
+               save_dir=None, save_name=None):
     if x_axis not in ["time", "datapasses", "iters"]:
         raise ValueError(f"Unsupported value of x_axis: {x_axis}")
     
@@ -223,20 +217,55 @@ def plot_runs(run_list, hparams_to_label, color_param, metric, x_axis, ylim, tit
     plt.figure()
 
     for run in run_list:
-        y_df = run.history(samples=MAX_SAMPLES, keys=[metric])
-
-        steps = y_df["_step"].to_numpy()
+        y_hist = run.scan_history(keys=[metric, "_step"])
+        y = np.array([hist[metric] for hist in y_hist])
+        steps = np.array([hist["_step"] for hist in y_hist])
 
         x = get_x(run, steps, x_axis)
         label = get_label(run, hparams_to_label[run.config["opt"]])
         style = get_style(run, color_param)
 
-        plt.plot(x, y_df[metric], label=label, **style)
+        plt.plot(x, y, label=label, **style)
 
     plt.ylim(ylim)
     plt.title(title)
     plt.xlabel(X_AXIS_LABELS[x_axis])
     plt.ylabel(METRIC_LABELS[metric])
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=3)
+
+    if save_path is not None:
+        plt.savefig(save_path, bbox_inches="tight")
+
+def plot_runs_rel_suboptim(run_list, hparams_to_label, color_param, train_loss_optim, x_axis, ylim, title,
+               save_dir=None, save_name=None):
+    if x_axis not in ["time", "datapasses", "iters"]:
+        raise ValueError(f"Unsupported value of x_axis: {x_axis}")
+    
+    if color_param not in ["r", "b"]:
+        raise ValueError(f"Unsupported value of color_param: {color_param}")
+    
+    # Sort the runs based on opt, color_param, and preconditioner type
+    run_list = sort_data(run_list, sort_keys=["opt", color_param, "preconditioner_type"])
+    
+    save_path = get_save_path(save_dir, save_name)
+
+    plt.figure()
+
+    for run in run_list:
+        y_hist = run.scan_history(keys=["train_loss", "_step"])
+        y = np.array([hist["train_loss"] for hist in y_hist])
+        steps = np.array([hist["_step"] for hist in y_hist])
+
+        x = get_x(run, steps, x_axis)
+        label = get_label(run, hparams_to_label[run.config["opt"]])
+        style = get_style(run, color_param)
+
+        plt.semilogy(x, np.abs((y - train_loss_optim) / train_loss_optim), label=label, **style)
+
+    plt.ylim(ylim)
+    plt.title(title)
+    plt.xlabel(X_AXIS_LABELS[x_axis])
+    plt.ylabel(METRIC_LABELS["rel_suboptim"])
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=3)
 
     if save_path is not None:
