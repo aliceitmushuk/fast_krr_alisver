@@ -168,6 +168,8 @@ def get_label(run, hparams_to_label_opt):
             precond_type = run.config["precond_params"]["type"]
             if run.config["opt"] == "pcg":
                 label = PCG_LABELS[precond_type]
+                if precond_type == "falkon":
+                    label += f", $m = {run.config['m']}$"
             else:
                 label += f", {HYPERPARAM_LABELS[hparam][precond_type]}"
 
