@@ -67,7 +67,7 @@ METRIC_LABELS = {
     "test_acc": "Test accuracy",
     "test_mse": "Test MSE",
     "test_rmse": "Test RMSE",
-    "smape": "SMAPE",
+    "smape": "Test SMAPE",
     "rel_suboptim": "Relative suboptimality",
 }
 
@@ -85,6 +85,12 @@ HYPERPARAM_LABELS = {
     "precond": {"nystrom": r"Nystr$\ddot{\mathrm{o}}$m",
                 "partial_cholesky": "Greedy Cholesky",
                 "falkon": "Falkon",},
+}
+
+PCG_LABELS = {
+    "nystrom": "Nystr$\ddot{\mathrm{o}}$mPCG",
+    "partial_cholesky": "CholeskyPCG",
+    "falkon": "Falkon",
 }
 
 X_AXIS_LABELS = {
@@ -160,7 +166,10 @@ def get_label(run, hparams_to_label_opt):
             label += f", ${HYPERPARAM_LABELS[hparam]} = {run.config['b']}$"
         elif hparam == "precond" and run.config["precond_params"] is not None:
             precond_type = run.config["precond_params"]["type"]
-            label += f", {HYPERPARAM_LABELS[hparam][precond_type]}"
+            if run.config["opt"] == "pcg":
+                label = PCG_LABELS[precond_type]
+            else:
+                label += f", {HYPERPARAM_LABELS[hparam][precond_type]}"
 
     return label
 
