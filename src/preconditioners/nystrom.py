@@ -40,7 +40,8 @@ class Nystrom:
             B = torch.linalg.solve_triangular(C.t(), Y_shifted, upper=True, left=False)
         # temporary fix for issue @ https://github.com/pytorch/pytorch/issues/97211
         except RuntimeError as e:
-            if "CUBLAS_STATUS_EXECUTION_FAILED" in str(e):
+            if "CUBLAS_STATUS_EXECUTION_FAILED" in str(e) or \
+                "CUBLAS_STATUS_NOT_SUPPORTED" in str(e):
                 torch.cuda.empty_cache()
                 B = torch.linalg.solve_triangular(
                     C.t().to("cpu"), Y_shifted.to("cpu"), upper=True, left=False
