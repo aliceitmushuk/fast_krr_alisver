@@ -6,7 +6,7 @@ Companion code for "Have ASkotch: Fast Methods for Large-scale, Memory-constrain
 
 ## Recreating our environment
 
-Please create a Python virtual environment and activate it. After activation, please run `pip install -r requirements.txt`.
+Please create a Python virtual environment (we use Python 3.10.12) and activate it. After activation, please run `pip install -r requirements.txt`.
 
 ## Obtaining the Taxi dataset
 
