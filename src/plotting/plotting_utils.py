@@ -247,8 +247,8 @@ def plot_runs(run_list, hparams_to_label, color_param, metric, x_axis, ylim, tit
     if save_path is not None:
         plt.savefig(save_path, bbox_inches="tight")
 
-def plot_runs_rel_suboptim(run_list, hparams_to_label, color_param, train_loss_optim, x_axis, ylim, title,
-               save_dir=None, save_name=None):
+def plot_runs_rel_suboptim(run_list, hparams_to_label, color_param, train_loss_optim, 
+                           x_axis, xlim, ylim, title, save_dir=None, save_name=None):
     if x_axis not in ["time", "datapasses", "iters"]:
         raise ValueError(f"Unsupported value of x_axis: {x_axis}")
     
@@ -272,6 +272,9 @@ def plot_runs_rel_suboptim(run_list, hparams_to_label, color_param, train_loss_o
         style = get_style(run, color_param)
 
         plt.semilogy(x, np.abs((y - train_loss_optim) / train_loss_optim), label=label, **style)
+
+    if xlim is not None:
+        plt.xlim(xlim)
 
     plt.ylim(ylim)
     plt.title(title)
