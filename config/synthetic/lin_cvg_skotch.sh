@@ -17,7 +17,7 @@ log_freq=10
 precision=float64
 seed=0
 devices=(0 2 3 4)
-wandb_project=linear_convergence_full_krr
+wandb_project=$1
 
 # Initialize the counter
 counter=0
@@ -30,7 +30,7 @@ do
     device=${devices[counter]}
     python run_experiment.py --dataset $dataset --model $model --task $task \
                             --kernel_params "$kernel_params" --lambd $lambd --opt $opt \
-                            --b $b --alpha $alpha --precond_params "type $precond_type r $r" \
+                            --b $b --alpha $alpha --no_store_precond --precond_params "type $precond_type r $r" \
                             --max_iter $max_iter --log_freq $log_freq --precision $precision \
                             --seed $seed --device $device --wandb_project $wandb_project &
     counter=$((counter+1))

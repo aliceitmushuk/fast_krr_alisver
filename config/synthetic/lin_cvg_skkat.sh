@@ -9,16 +9,16 @@ kernel_params="type $kernel_type sigma $sigma"
 m=1000
 lambd=0.1
 opt=sketchykatyusha
-bg=256
+bg=1024
 precond_type=nystrom
 ranks=(50 100 200 500)
 rho=1
-max_iter=15000
+max_iter=100000
 log_freq=10
 precision=float64
 seed=0
 devices=(0 2 3 4)
-wandb_project=linear_convergence_inducing_krr
+wandb_project=$1
 
 # Initialize the counter
 counter=0

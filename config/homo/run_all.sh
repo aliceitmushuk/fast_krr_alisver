@@ -1,5 +1,8 @@
 #!/bin/bash
 
+wandb_project_full=homo_full_krr_v2
+wandb_project_inducing=homo_inducing_krr_v2
+
 prefix="./config/homo/"
 
 inducing_krr_scripts=(
@@ -18,16 +21,24 @@ full_krr_bcd_scripts=(
 )
 bs=(50 20 10 5 2 1)
 
-for script in "${inducing_krr_scripts[@]}"
+full_krr_bcd_no_precond_scripts=(
+    "full_krr_abcd.sh"
+    "full_krr_bcd.sh"
+)
+
+for precision in "${precisions[@]}"
 do
-    bash "${prefix}${script}"
+    for script in "${inducing_krr_scripts[@]}"
+    do
+        bash "${prefix}${script}" "$precision" $wandb_project_inducing
+    done
 done
 
 for precision in "${precisions[@]}"
 do
     for script in "${full_krr_pcg_scripts[@]}"
     do
-        bash "${prefix}${script}" "$precision"
+        bash "${prefix}${script}" "$precision" $wandb_project_full
     done
 done
 
@@ -35,6 +46,11 @@ for b in "${bs[@]}"
 do
     for script in "${full_krr_bcd_scripts[@]}"
     do
-        bash "${prefix}${script}" "$b"
+        bash "${prefix}${script}" "$b" $wandb_project_full
     done
+done
+
+for script in "${full_krr_bcd_no_precond_scripts[@]}"
+do
+    bash "${prefix}${script}" $wandb_project_full
 done

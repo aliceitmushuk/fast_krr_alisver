@@ -15,7 +15,7 @@ log_freq=10
 precision=float64
 seed=0
 device=0
-wandb_project=linear_convergence_inducing_krr
+wandb_project=$1
 
 # Trap SIGINT (Ctrl-C) and SIGTERM to kill child processes
 trap "kill 0" SIGINT SIGTERM

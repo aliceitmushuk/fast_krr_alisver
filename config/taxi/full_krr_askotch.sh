@@ -6,7 +6,7 @@ task=regression
 kernel_type=rbf
 sigma=1.0
 kernel_params="type $kernel_type sigma $sigma"
-lambd=19.8
+lambd=20
 opt=askotch
 b=2000
 beta=0
@@ -16,8 +16,8 @@ max_time=18000
 log_freq=20
 precision=float32
 seed=0
-devices=(7 0 2 3)
-wandb_project=taxi_full_krr_testing
+devices=(0 1 2 3)
+wandb_project=$1
 
 # Initialize the counter
 counter=0

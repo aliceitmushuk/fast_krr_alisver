@@ -20,7 +20,7 @@ class SketchyKatyusha:
         self.precond, self.L = _get_precond_L(
             self.model, self.bH, self.bH2, self.precond_params
         )
-        self.eta = 0.5 / self.L
+        # self.eta = 0.5 / self.L
         self.generator = MinibatchGenerator(self.model.n, self.bg)
         self.sigma = self.mu / self.L
         self.theta1 = min(torch.sqrt(2 / 3 * self.model.n * self.sigma), 0.5)
@@ -47,12 +47,12 @@ class SketchyKatyusha:
             * (self.eta * self.sigma * x + self.z - self.eta / self.L * dir)
         )
 
-        # Update parameters
-        self.model.w = x + self.theta1 * (z_new - self.z)
-
-        self.z = z_new.clone()
-
         # Update snapshot
         if torch.rand(1).item() < self.p:
             self.y = self.model.w.clone()
             self.g_bar = self.model._get_full_grad(self.y)
+
+        # Update parameters
+        self.model.w = x + self.theta1 * (z_new - self.z)
+
+        self.z = z_new.clone()

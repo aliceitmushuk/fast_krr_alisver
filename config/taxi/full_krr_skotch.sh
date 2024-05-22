@@ -1,23 +1,23 @@
 #!/bin/bash
 
-dataset=homo
+dataset=taxi_sub
 model=full_krr
 task=regression
-kernel_type=l1_laplace
-sigma=5120
+kernel_type=rbf
+sigma=1.0
 kernel_params="type $kernel_type sigma $sigma"
-lambd=1e-3
-opt=askotch
-b=$1 # Get from command line
-beta=0
+lambd=20
+opt=skotch
+b=2000
+alpha=0.5
 precond_type=nystrom
-ranks=(10 20 50 100 200 500 1000 2000)
-max_time=3600
-log_freq=50
+ranks=(50 100 200 500)
+max_time=18000
+log_freq=20
 precision=float32
 seed=0
-devices=(7 6 5 4 3 2 1 0)
-wandb_project=$2
+devices=(0 1 2 3)
+wandb_project=$1
 
 # Initialize the counter
 counter=0
@@ -30,8 +30,8 @@ do
     device=${devices[counter]}
     python run_experiment.py --dataset $dataset --model $model --task $task \
                             --kernel_params "$kernel_params" --lambd $lambd --opt $opt \
-                            --b $b --beta $beta --no_store_precond --precond_params "type $precond_type r $r" \
-                            --max_time $max_time --log_freq $log_freq --precision $precision \
+                            --b $b --alpha $alpha --no_store_precond --precond_params "type $precond_type r $r" \
+                            --max_time $max_time --log_freq $log_freq --log_test_only --precision $precision \
                             --seed $seed --device $device --wandb_project $wandb_project &
     counter=$((counter+1))
     # Ensure we don't exceed the number of devices

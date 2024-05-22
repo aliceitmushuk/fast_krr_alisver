@@ -110,7 +110,7 @@ def load_data(dataset, seed, device):
         y = np.squeeze(y)
 
         Xtr, Xtst, ytr, ytst = train_test_split(
-            X, y, train_size=0.99, random_state=seed
+            X, y, train_size=100_000_000, random_state=seed
         )
 
         Xtr, Xtst = standardize(Xtr, Xtst)
