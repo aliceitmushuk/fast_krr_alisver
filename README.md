@@ -4,7 +4,7 @@
 
 Companion code for "Have ASkotch: Fast Methods for Large-scale, Memory-constrained Kernel Ridge Regression".
 
-# Recreating our environment
+## Recreating our environment
 
 Please create a Python virtual environment and activate it. After activation, please run `pip install -r requirements.txt`.
 
@@ -22,6 +22,8 @@ Please run `download_data.py`.
 
 ## Running the experiments
 
-For each dataset, please run the corresponding `run_all.sh` file in the `config` folder. For example, the experiments for HOMO can be run using `./config/homo/run_all.sh`.
+For each dataset, please run the corresponding `run_all.sh` file in the `config` folder. For example, the experiments for HOMO can be run using `./config/homo/run_all.sh`. The runs will log to Weights & Biases.
 
 ## Plotting
+
+After running the experiments, plots can be generated using the Jupyter notebooks in `src/plotting`. You will have to change the `entity_name` and `project_name` in each notebook to access the runs in Weights & Biases.
