@@ -16,9 +16,11 @@ This will genrerate a `.h5py` file for each month from January 2009 to December 
 
 ## Obtaining the HOMO dataset
 
+Please download the HOMO dataset from [this Google Drive link](https://drive.google.com/file/d/1OquScu445v9JU-RyrcYGkgqFswj6uRHe/view?usp=sharing). 
+
 ## Obtaining the SUSY and HIGGS datasets
 
-Please run `download_data.py`.
+Please run `download_data.py` to obtain the SUSY and HIGGS datasets.
 
 ## Running the experiments
 
