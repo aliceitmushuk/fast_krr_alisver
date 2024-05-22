@@ -22,7 +22,9 @@ class Falkon:
             R = torch.linalg.cholesky(
                 n / m * (T @ T.T) + lambd * torch.eye(m).to(self.device), upper=True
             )
-        except RuntimeError as e:  # Perform calculations on CPU and transfer back if we run out of memory
+        except (
+            RuntimeError
+        ) as e:  # Perform calculations on CPU and transfer back if we run out of memory
             if "out of memory" in str(e):
                 torch.cuda.empty_cache()
                 T = torch.linalg.cholesky(
