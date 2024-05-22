@@ -12,7 +12,7 @@ Please create a Python virtual environment (we use Python 3.10.12) and activate 
 
 Please clone [this GitHub repo](https://anonymous.4open.science/r/nyc-taxi-data). Then run `filter_runs.py` and `yellow_taxi_processing.sh` (NOTE: you may have to turn off the move to Google Drive step in this script) in this repo.
 
-This will genrerate a `.h5py` file for each month from January 2009 to December 2015. Move these files to a folder `data/taxi-data` and run `taxi_processing.py` in this repo.
+This will genrerate a `.h5py` file for each month from January 2009 to December 2015. Move these files to a folder `data/taxi-data` and run `taxi_processing.py` in this (the fast_krr) repo.
 
 ## Obtaining the HOMO dataset
 
