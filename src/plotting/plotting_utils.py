@@ -82,9 +82,11 @@ OPT_LABELS = {
 HYPERPARAM_LABELS = {
     "r": "r",
     "b": "B",
-    "precond": {"nystrom": r"Nystr$\ddot{\mathrm{o}}$m",
-                "partial_cholesky": "Greedy Cholesky",
-                "falkon": "Falkon",},
+    "precond": {
+        "nystrom": r"Nystr$\ddot{\mathrm{o}}$m",
+        "partial_cholesky": "Greedy Cholesky",
+        "falkon": "Falkon",
+    },
 }
 
 PCG_LABELS = {
@@ -99,17 +101,20 @@ X_AXIS_LABELS = {
     "iters": "Iterations",
 }
 
+
 def set_fontsize(fontsize):
     plt.rcParams.update({"font.size": fontsize})
 
+
 def render_in_latex():
-    plt.rcParams.update({"text.usetex": True,
-                          "font.family": "serif"})
+    plt.rcParams.update({"text.usetex": True, "font.family": "serif"})
+
 
 def get_project_runs(entity, project):
     api = wandb.Api()
     runs = api.runs(f"{entity}/{project}")
     return runs
+
 
 def check_criteria(run, criteria):
     for _, criterion in criteria.items():
@@ -117,8 +122,10 @@ def check_criteria(run, criteria):
             return False
     return True
 
+
 def filter_runs(runs, criteria):
     return [run for run in runs if check_criteria(run, criteria)]
+
 
 def get_datapasses(run, steps):
     opt = run.config["opt"]
@@ -132,15 +139,16 @@ def get_datapasses(run, steps):
         scaling_factor = 1 / run.config["b"]
     elif opt == "pcg":
         if run.config["precond_params"]["type"] == "falkon":
-            scaling_factor = (2 * m * n + m ** 2) / (n ** 2)
+            scaling_factor = (2 * m * n + m**2) / (n**2)
         else:
             scaling_factor = 1
     elif opt == "sketchysaga":
-        scaling_factor = (2 * m * bg + m ** 2) / (n ** 2)
+        scaling_factor = (2 * m * bg + m**2) / (n**2)
     elif opt == "sketchykatyusha":
-        scaling_factor = (2 * m * bg + m ** 2 + p * 2 * m * n) / (n ** 2)
+        scaling_factor = (2 * m * bg + m**2 + p * 2 * m * n) / (n**2)
 
     return scaling_factor * steps
+
 
 def get_x(run, steps, x_axis):
     if x_axis == "time":
@@ -153,15 +161,18 @@ def get_x(run, steps, x_axis):
     elif x_axis == "iters":
         return steps
 
+
 def get_label(run, hparams_to_label_opt):
     label = OPT_LABELS[run.config["opt"]]
 
     for hparam in hparams_to_label_opt:
         if hparam not in ["r", "b", "precond"]:
             raise ValueError(f"Unknown hparam: {hparam}")
-        
+
         if hparam == "r" and run.config["precond_params"] is not None:
-            label += f", ${HYPERPARAM_LABELS[hparam]} = {run.config['precond_params']['r']}$"
+            label += (
+                f", ${HYPERPARAM_LABELS[hparam]} = {run.config['precond_params']['r']}$"
+            )
         elif hparam == "b" and "b" in run.config:
             label += f", ${HYPERPARAM_LABELS[hparam]} = {run.config['b']}$"
         elif hparam == "precond" and run.config["precond_params"] is not None:
@@ -175,15 +186,19 @@ def get_label(run, hparams_to_label_opt):
 
     return label
 
+
 def get_style(run, color_param):
     style = {}
     opt = run.config["opt"]
     style["linestyle"] = LINESTYLES[opt]
 
     # Get color based on color_param
-    if run.config["opt"] != "pcg" and color_param == "r" \
-        and run.config["precond_params"] is not None \
-            and "r" in run.config["precond_params"]:
+    if (
+        run.config["opt"] != "pcg"
+        and color_param == "r"
+        and run.config["precond_params"] is not None
+        and "r" in run.config["precond_params"]
+    ):
         style["color"] = RANK_COLORS[run.config["precond_params"]["r"]]
     elif run.config["opt"] in ["skotch", "askotch"] and color_param == "b":
         style["color"] = BLOCK_COLORS[run.config["b"]]
@@ -198,31 +213,48 @@ def get_style(run, color_param):
 
     return style
 
+
 def get_save_path(save_dir, save_name):
     if save_dir is not None and save_name is not None:
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
         return os.path.join(save_dir, save_name)
     elif save_dir is not None and save_name is None:
-        warnings.warn("Must provide save_name if save_dir is provided. Plot will not be saved.")
+        warnings.warn(
+            "Must provide save_name if save_dir is provided. Plot will not be saved."
+        )
         return None
     elif save_dir is None and save_name is not None:
-        warnings.warn("Must provide save_dir if save_name is provided. Plot will not be saved.")
+        warnings.warn(
+            "Must provide save_dir if save_name is provided. Plot will not be saved."
+        )
         return None
     else:
         return None
 
-def plot_runs(run_list, hparams_to_label, color_param, metric, x_axis, ylim, title,
-               save_dir=None, save_name=None):
+
+def plot_runs(
+    run_list,
+    hparams_to_label,
+    color_param,
+    metric,
+    x_axis,
+    ylim,
+    title,
+    save_dir=None,
+    save_name=None,
+):
     if x_axis not in ["time", "datapasses", "iters"]:
         raise ValueError(f"Unsupported value of x_axis: {x_axis}")
-    
+
     if color_param not in ["r", "b"]:
         raise ValueError(f"Unsupported value of color_param: {color_param}")
-    
+
     # Sort the runs based on opt, color_param, and preconditioner type
-    run_list = sort_data(run_list, sort_keys=["opt", color_param, "preconditioner_type"])
-    
+    run_list = sort_data(
+        run_list, sort_keys=["opt", color_param, "preconditioner_type"]
+    )
+
     save_path = get_save_path(save_dir, save_name)
 
     plt.figure()
@@ -242,22 +274,35 @@ def plot_runs(run_list, hparams_to_label, color_param, metric, x_axis, ylim, tit
     plt.title(title)
     plt.xlabel(X_AXIS_LABELS[x_axis])
     plt.ylabel(METRIC_LABELS[metric])
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=3)
+    plt.legend(loc="upper center", bbox_to_anchor=(0.5, -0.15), ncol=3)
 
     if save_path is not None:
         plt.savefig(save_path, bbox_inches="tight")
 
-def plot_runs_rel_suboptim(run_list, hparams_to_label, color_param, train_loss_optim, 
-                           x_axis, xlim, ylim, title, save_dir=None, save_name=None):
+
+def plot_runs_rel_suboptim(
+    run_list,
+    hparams_to_label,
+    color_param,
+    train_loss_optim,
+    x_axis,
+    xlim,
+    ylim,
+    title,
+    save_dir=None,
+    save_name=None,
+):
     if x_axis not in ["time", "datapasses", "iters"]:
         raise ValueError(f"Unsupported value of x_axis: {x_axis}")
-    
+
     if color_param not in ["r", "b"]:
         raise ValueError(f"Unsupported value of color_param: {color_param}")
-    
+
     # Sort the runs based on opt, color_param, and preconditioner type
-    run_list = sort_data(run_list, sort_keys=["opt", color_param, "preconditioner_type"])
-    
+    run_list = sort_data(
+        run_list, sort_keys=["opt", color_param, "preconditioner_type"]
+    )
+
     save_path = get_save_path(save_dir, save_name)
 
     plt.figure()
@@ -271,7 +316,9 @@ def plot_runs_rel_suboptim(run_list, hparams_to_label, color_param, train_loss_o
         label = get_label(run, hparams_to_label[run.config["opt"]])
         style = get_style(run, color_param)
 
-        plt.semilogy(x, np.abs((y - train_loss_optim) / train_loss_optim), label=label, **style)
+        plt.semilogy(
+            x, np.abs((y - train_loss_optim) / train_loss_optim), label=label, **style
+        )
 
     if xlim is not None:
         plt.xlim(xlim)
@@ -280,7 +327,7 @@ def plot_runs_rel_suboptim(run_list, hparams_to_label, color_param, train_loss_o
     plt.title(title)
     plt.xlabel(X_AXIS_LABELS[x_axis])
     plt.ylabel(METRIC_LABELS["rel_suboptim"])
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=3)
+    plt.legend(loc="upper center", bbox_to_anchor=(0.5, -0.15), ncol=3)
 
     if save_path is not None:
         plt.savefig(save_path, bbox_inches="tight")
