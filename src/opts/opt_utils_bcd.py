@@ -61,7 +61,7 @@ def _get_block_precond_L(model, block, precond_params):
 def _get_block_properties(model, blocks, precond_params, no_store_precond):
     block_preconds, block_etas, block_Ls = [], [], []
 
-    for _, block in enumerate(blocks):
+    for block in blocks:
         precond, L = _get_block_precond_L(model, block, precond_params)
 
         if not no_store_precond:
