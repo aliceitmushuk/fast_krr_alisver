@@ -27,7 +27,8 @@ def main():
     parser.add_argument(
         "--kernel_params",
         action=ParseParams,
-        help='Kernel parameters in the form of a string: "type matern sigma 1.0 nu 1.5"',
+        help='Kernel parameters in the form of a string: \
+            "type matern sigma 1.0 nu 1.5"',
     )
     parser.add_argument("--m", type=int, default=None, help="Number of inducing points")
     parser.add_argument(
@@ -88,7 +89,8 @@ def main():
         "--precond_params",
         action=ParseParams,
         default=None,
-        help='Preconditioner parameters in the form of a string: "type nystrom r 100 rho 0.1"',
+        help='Preconditioner parameters in the form of a string: \
+         "type nystrom r 100 rho 0.1"',
     )
     parser.add_argument(
         "--max_iter", type=int, default=None, help="Number of iterations"

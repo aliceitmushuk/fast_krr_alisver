@@ -28,7 +28,8 @@ class Kernel(ABC):
 
     @abstractmethod
     def get_row(self):
-        """Returns row of kernel matrix corresponding to training point x_i as a dense tensor"""
+        """Returns row of kernel matrix corresponding to
+        training point x_i as a dense tensor."""
         pass
 
     def __matmul__(self, v):
