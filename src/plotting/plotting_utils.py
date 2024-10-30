@@ -90,7 +90,7 @@ HYPERPARAM_LABELS = {
 }
 
 PCG_LABELS = {
-    "nystrom": "Nystr$\ddot{\mathrm{o}}$mPCG",
+    "nystrom": r"Nystr$\ddot{\mathrm{o}}$mPCG",
     "partial_cholesky": "CholeskyPCG",
     "falkon": "Falkon",
 }

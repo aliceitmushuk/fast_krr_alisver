@@ -3,9 +3,11 @@ from ..preconditioners.nystrom import Nystrom
 
 
 def _get_precond_L(model, bH, bH2, precond_params):
-    subsampled_lin_op, subsampled_reg_lin_op, subsampled_trace = (
-        model._get_subsampled_lin_ops(bH, bH2)
-    )
+    (
+        subsampled_lin_op,
+        subsampled_reg_lin_op,
+        subsampled_trace,
+    ) = model._get_subsampled_lin_ops(bH, bH2)
 
     precond = None
 

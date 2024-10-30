@@ -67,7 +67,8 @@ def check_inputs(args):
     if args.opt == "skotch":
         if args.m is not None:
             warnings.warn(
-                f"Number of inducing points is not used in {opt_name}. Ignoring this parameter"
+                f"Number of inducing points is not used in {opt_name}. \
+                    Ignoring this parameter"
             )
         if args.b is None:
             raise ValueError(f"Number of blocks must be provided for {opt_name}")
@@ -77,20 +78,24 @@ def check_inputs(args):
             warnings.warn(f"Beta is not used in {opt_name}. Ignoring this parameter")
         if args.bg is not None:
             warnings.warn(
-                f"Gradient batch size is not used in {opt_name}. Ignoring this parameter"
+                f"Gradient batch size is not used in {opt_name}. \
+                    Ignoring this parameter"
             )
         if args.bH is not None:
             warnings.warn(
-                f"Hessian batch size is not used in {opt_name}. Ignoring this parameter"
+                f"Hessian batch size is not used in {opt_name}. \
+                    Ignoring this parameter"
             )
         if args.bH2 is not None:
             warnings.warn(
-                f"Hessian batch size for eig calculations is not used in {opt_name}. Ignoring this parameter"
+                f"Hessian batch size for eig calculations is not used in {opt_name}. \
+                    Ignoring this parameter"
             )
     elif args.opt == "askotch":
         if args.m is not None:
             warnings.warn(
-                f"Number of inducing points is not used in {opt_name}. Ignoring this parameter"
+                f"Number of inducing points is not used in {opt_name}. \
+                    Ignoring this parameter"
             )
         if args.b is None:
             raise ValueError(f"Number of blocks must be provided for {opt_name}")
@@ -102,7 +107,8 @@ def check_inputs(args):
             raise ValueError(f"Acceleration parameter must be provided for {opt_name}")
         if args.bg is not None:
             warnings.warn(
-                f"Gradient batch size is not used in {opt_name}. Ignoring this parameter"
+                f"Gradient batch size is not used in {opt_name}. \
+                    Ignoring this parameter"
             )
         if args.bH is not None:
             warnings.warn(
@@ -110,7 +116,8 @@ def check_inputs(args):
             )
         if args.bH2 is not None:
             warnings.warn(
-                f"Hessian batch size for eig calculations is not used in {opt_name}. Ignoring this parameter"
+                f"Hessian batch size for eig calculations is not used in {opt_name}. \
+                    Ignoring this parameter"
             )
     elif args.opt in ["sketchysgd", "sketchysvrg", "sketchysaga", "sketchykatyusha"]:
         if args.m is None:
@@ -119,56 +126,69 @@ def check_inputs(args):
             )
         if args.b is not None:
             warnings.warn(
-                f"Number of blocks is not used in {opt_name}. Ignoring this parameter"
+                f"Number of blocks is not used in {opt_name}. \
+                    Ignoring this parameter"
             )
         if args.alpha is not None:
             warnings.warn(
-                f"Sampling parameter is not used in {opt_name}. Ignoring this parameter"
+                f"Sampling parameter is not used in {opt_name}. \
+                    Ignoring this parameter"
             )
         if args.beta is not None:
-            warnings.warn(f"Beta is not used in {opt_name}. Ignoring this parameter")
+            warnings.warn(
+                f"Beta is not used in {opt_name}. \
+                Ignoring this parameter"
+            )
         if args.bg is None:
             raise ValueError(f"Gradient batch size must be provided for {opt_name}")
         if args.bH is None:
             warnings.warn(
-                f"Hessian batch size is not provided for {opt_name}. Using default value int(n**0.5)"
+                f"Hessian batch size is not provided for {opt_name}. \
+                    Using default value int(n**0.5)"
             )
         if args.bH2 is None:
             warnings.warn(
-                f"Hessian batch size for eig calculations is not provided for {opt_name}. Using default value max(1, n // 50)"
+                f"Hessian batch size for eig calculations is not provided \
+                    for {opt_name}. Using default value max(1, n // 50)"
             )
 
         if args.opt in ["sketchysgd", "sketchysaga", "sketchykatyusha"]:
             if args.update_freq is not None:
                 warnings.warn(
-                    f"Update frequency is not used in {opt_name}. Ignoring this parameter"
+                    f"Update frequency is not used in {opt_name}. \
+                        Ignoring this parameter"
                 )
         elif args.opt == "sketchysvrg":
             if args.update_freq is None:
                 warnings.warn(
-                    f"Update frequency is not provided for {opt_name}. Using default value n // bg"
+                    f"Update frequency is not provided for {opt_name}. \
+                        Using default value n // bg"
                 )
 
         if args.opt in ["sketchysgd", "sketchysvrg", "sketchysaga"]:
             if args.p is not None:
                 warnings.warn(
-                    f"Update probability is not used in {opt_name}. Ignoring this parameter"
+                    f"Update probability is not used in {opt_name}. \
+                        Ignoring this parameter"
                 )
         elif args.opt == "sketchykatyusha":
             if args.p is None:
                 warnings.warn(
-                    f"Update probability is not provided for {opt_name}. Using default value bg/n"
+                    f"Update probability is not provided for {opt_name}. \
+                        Using default value bg/n"
                 )
 
         if args.opt in ["sketchysgd", "sketchysvrg", "sketchysaga"]:
             if args.mu is not None:
                 warnings.warn(
-                    f"Strong convexity parameter is not used in {opt_name}. Ignoring this parameter"
+                    f"Strong convexity parameter is not used in {opt_name}. \
+                        Ignoring this parameter"
                 )
         elif args.opt == "sketchykatyusha":
             if args.mu is None:
                 warnings.warn(
-                    f"Strong convexity parameter is not provided for {opt_name}. Using default value lambd"
+                    f"Strong convexity parameter is not provided for {opt_name}. \
+                        Using default value lambd"
                 )
     elif args.opt == "pcg":
         if args.b is not None:
@@ -183,7 +203,8 @@ def check_inputs(args):
             warnings.warn(f"Beta is not used in {opt_name}. Ignoring this parameter")
         if args.bg is not None:
             warnings.warn(
-                f"Gradient batch size is not used in {opt_name}. Ignoring this parameter"
+                f"Gradient batch size is not used in {opt_name}. \
+                    Ignoring this parameter"
             )
         if args.bH is not None:
             warnings.warn(
@@ -191,7 +212,8 @@ def check_inputs(args):
             )
         if args.bH2 is not None:
             warnings.warn(
-                f"Hessian batch size for eig calculations is not used in {opt_name}. Ignoring this parameter"
+                f"Hessian batch size for eig calculations is not used in {opt_name}. \
+                    Ignoring this parameter"
             )
         if args.update_freq is not None:
             warnings.warn(
@@ -214,11 +236,13 @@ def check_inputs(args):
             raise ValueError("Preconditioner type must be provided")
         if args.precond_params["type"] not in ["nystrom", "partial_cholesky", "falkon"]:
             raise ValueError(
-                "Only Nystrom, Partial Cholesky, and Falkon preconditioners are supported"
+                "Only Nystrom, Partial Cholesky, and Falkon preconditioners \
+                    are supported"
             )
 
         # TODO: Check that the required parameters are provided for Nystrom.
-        # Note that rho is not required for Skotch/A-Skotch but is required for PROMISE methods
+        # Note that rho is not required for Skotch/A-Skotch
+        # but is required for PROMISE methods
 
 
 def set_precision(precision):
@@ -233,7 +257,7 @@ def set_precision(precision):
 """
 Helper function for setting seed for the random number generator in various packages.
 
-INPUT: 
+INPUT:
 - seed: integer
 """
 
