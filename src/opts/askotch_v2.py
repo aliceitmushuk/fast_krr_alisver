@@ -70,17 +70,6 @@ class ASkotchV2:
             self.model, self.y, block, block_precond, block_eta
         )
 
-        # # Try an exact Newton step
-        # gb = self.model._get_block_grad(self.y, block)
-        # _, block_reg_lin_op, _ = self.model._get_block_lin_ops(block)
-        # K_bb_reg = block_reg_lin_op(torch.eye(self.block_sz, \
-        #                               device=self.model.device))
-        # L = torch.linalg.cholesky(K_bb_reg)
-        # dir = torch.linalg.solve_triangular(L, gb.unsqueeze(-1), upper=False)
-        # dir = torch.linalg.solve_triangular(L.T, dir, upper=True)
-        # dir = dir.squeeze()
-        # block_eta = 1.0
-
         self.model.w = self.y.clone()
         self.model.w[block] -= block_eta * dir
         self.v = self.beta * self.v + (1 - self.beta) * self.y

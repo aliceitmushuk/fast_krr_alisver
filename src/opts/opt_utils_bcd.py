@@ -2,6 +2,7 @@ import torch
 
 from .opt_utils import _get_L, _apply_precond
 from ..preconditioners.nystrom import Nystrom
+from ..preconditioners.newton import Newton
 
 
 def _get_blocks(n, B):
@@ -41,6 +42,9 @@ def _get_block_precond(model, block, precond_params):
                 if "rho" not in precond_params_sub
                 else precond_params_sub["rho"]
             )
+        elif precond_params["type"] == "newton":
+            precond = Newton(model.device)
+            precond.update(block_lin_op_reg, block.shape[0])
 
     return precond, block_lin_op_reg
 
@@ -49,9 +53,12 @@ def _get_block_precond_L(model, block, precond_params):
     precond, block_lin_op_reg = _get_block_precond(model, block, precond_params)
 
     if precond is not None:
-        L = _get_L(
-            block_lin_op_reg, precond.inv_sqrt_lin_op, block.shape[0], model.device
-        )
+        if isinstance(precond, Nystrom):
+            L = _get_L(
+                block_lin_op_reg, precond.inv_sqrt_lin_op, block.shape[0], model.device
+            )
+        elif isinstance(precond, Newton):
+            L = 1.0
     else:  # No preconditioner
         L = _get_L(block_lin_op_reg, lambda x: x, block.shape[0], model.device)
 
