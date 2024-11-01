@@ -1,11 +1,8 @@
 import torch
 
 from .opt_utils_bcd import (
-    _apply_precond,
-    # _get_block_precond,
     _get_block_update,
     _get_block_properties,
-    # _get_block_update,
 )
 
 
@@ -17,11 +14,13 @@ def _get_leverage_scores(K, lambd, device):
     LT_inv_L_inv_K = torch.linalg.solve_triangular(L.T, L_inv_K, upper=True)
 
     leverage_scores = torch.diagonal(LT_inv_L_inv_K)
-
     return leverage_scores
 
+
 class ASkotchV2:
-    def __init__(self, model, block_sz, mu, nu, eta, sampling_method="rls", precond_params=None):
+    def __init__(
+        self, model, block_sz, mu, nu, eta, sampling_method="rls", precond_params=None
+    ):
         self.model = model
         self.block_sz = block_sz
         self.mu = mu
@@ -32,12 +31,17 @@ class ASkotchV2:
         # TODO(pratik): check that nu > mu
 
         # TODO(pratik): try automatically setting eta
-        # Idea: take a bunch of randomly sampled blocks (according to leverage scores), and compute eta via powering
+        # Idea: take a bunch of randomly sampled blocks (according to leverage scores),
+        # and compute eta via powering
         # Then take the geometric mean of these etas to set the stepsize
 
         # Compute leverage scores and sampling probabilities
         if sampling_method == "rls":
-            leverage_scores = _get_leverage_scores(self.model.K @ torch.eye(self.model.n, device=self.model.device), self.model.lambd, self.model.device)
+            leverage_scores = _get_leverage_scores(
+                self.model.K @ torch.eye(self.model.n, device=self.model.device),
+                self.model.lambd,
+                self.model.device,
+            )
             self.probs = leverage_scores / torch.sum(leverage_scores)
         elif sampling_method == "uniform":
             self.probs = torch.ones(self.model.n) / self.model.n
@@ -47,11 +51,6 @@ class ASkotchV2:
         self.gamma = 1 / (self.mu * self.nu) ** 0.5
         self.alpha = 1 / (1 + self.gamma * self.nu)
 
-        # Turn off acceleration
-        # self.beta = 0
-        # self.gamma = 0
-        # self.alpha = 0
-
         self.v = self.model.w.clone()
         self.y = self.model.w.clone()
 
@@ -60,11 +59,6 @@ class ASkotchV2:
         # block = torch.randperm(self.model.n)[:self.block_sz]
         block = torch.multinomial(self.probs, self.block_sz, replacement=False)
 
-        # # Compute block preconditioner
-        # block_precond, _ = _get_block_precond(
-        #     self.model, block, self.precond_params
-        # )
-
         # Compute block preconditioner and learning rate
         block_precond, block_eta, _ = _get_block_properties(
             self.model, [block], self.precond_params, False
@@ -72,21 +66,15 @@ class ASkotchV2:
         block_precond = block_precond[0]
         block_eta = block_eta[0]
 
-        # # gb = self.model._get_block_grad(self.y, block) # TODO(pratik): avoid direct access to model functions
-        # # dir = _apply_precond(gb, block_precond)
-
         _, _, dir = _get_block_update(
-            self.model,
-            self.y,
-            block,
-            block_precond,
-            block_eta
+            self.model, self.y, block, block_precond, block_eta
         )
 
         # # Try an exact Newton step
         # gb = self.model._get_block_grad(self.y, block)
         # _, block_reg_lin_op, _ = self.model._get_block_lin_ops(block)
-        # K_bb_reg = block_reg_lin_op(torch.eye(self.block_sz, device=self.model.device))
+        # K_bb_reg = block_reg_lin_op(torch.eye(self.block_sz, \
+        #                               device=self.model.device))
         # L = torch.linalg.cholesky(K_bb_reg)
         # dir = torch.linalg.solve_triangular(L, gb.unsqueeze(-1), upper=False)
         # dir = torch.linalg.solve_triangular(L.T, dir, upper=True)
