@@ -17,18 +17,14 @@ def _get_leverage_scores(K, lambd, device):
     return leverage_scores
 
 
-class ASkotchV2:
+class SkotchV2:
     def __init__(
-        self, model, block_sz, mu, nu, eta, sampling_method="rls", precond_params=None
+        self, model, block_sz, eta, sampling_method="rls", precond_params=None
     ):
         self.model = model
         self.block_sz = block_sz
-        self.mu = mu
-        self.nu = nu
         # self.eta = eta
         self.precond_params = precond_params
-
-        # TODO(pratik): check that nu > mu
 
         # TODO(pratik): try automatically setting eta
         # Idea: take a bunch of randomly sampled blocks (according to leverage scores),
@@ -46,14 +42,6 @@ class ASkotchV2:
         elif sampling_method == "uniform":
             self.probs = torch.ones(self.model.n) / self.model.n
 
-        # Acceleration parameters
-        self.beta = 1 - (self.mu / self.nu) ** 0.5
-        self.gamma = 1 / (self.mu * self.nu) ** 0.5
-        self.alpha = 1 / (1 + self.gamma * self.nu)
-
-        self.v = self.model.w.clone()
-        self.y = self.model.w.clone()
-
     def step(self):
         # Randomly select block_sz distinct indices
         block = torch.multinomial(self.probs, self.block_sz, replacement=False)
@@ -66,11 +54,7 @@ class ASkotchV2:
         block_eta = block_eta[0]
 
         _, _, dir = _get_block_update(
-            self.model, self.y, block, block_precond, block_eta
+            self.model, self.model.w, block, block_precond, block_eta
         )
 
-        self.model.w = self.y.clone()
         self.model.w[block] -= block_eta * dir
-        self.v = self.beta * self.v + (1 - self.beta) * self.y
-        self.v[block] -= block_eta * self.gamma * dir
-        self.y = self.alpha * self.v + (1 - self.alpha) * self.model.w
