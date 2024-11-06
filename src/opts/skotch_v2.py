@@ -18,12 +18,9 @@ def _get_leverage_scores(K, lambd, device):
 
 
 class SkotchV2:
-    def __init__(
-        self, model, block_sz, eta, sampling_method="rls", precond_params=None
-    ):
+    def __init__(self, model, block_sz, sampling_method="rls", precond_params=None):
         self.model = model
         self.block_sz = block_sz
-        # self.eta = eta
         self.precond_params = precond_params
 
         # TODO(pratik): try automatically setting eta

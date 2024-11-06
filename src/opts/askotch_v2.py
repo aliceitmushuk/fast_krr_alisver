@@ -19,13 +19,12 @@ def _get_leverage_scores(K, lambd, device):
 
 class ASkotchV2:
     def __init__(
-        self, model, block_sz, mu, nu, eta, sampling_method="rls", precond_params=None
+        self, model, block_sz, mu, nu, sampling_method="rls", precond_params=None
     ):
         self.model = model
         self.block_sz = block_sz
         self.mu = mu
         self.nu = nu
-        # self.eta = eta
         self.precond_params = precond_params
 
         # TODO(pratik): check that nu > mu
