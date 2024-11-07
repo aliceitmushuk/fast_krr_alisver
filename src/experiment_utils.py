@@ -5,15 +5,16 @@ import warnings
 import numpy as np
 import torch
 
-from src.models.full_krr import FullKRR
-from src.models.inducing_krr import InducingKRR
-from src.opts.askotch import ASkotch
-from fast_krr.src.opts.askotchv2 import ASkotchV2
-from src.opts.sketchysgd import SketchySGD
-from src.opts.sketchysvrg import SketchySVRG
-from src.opts.sketchysaga import SketchySAGA
-from src.opts.sketchykatyusha import SketchyKatyusha
-from src.opts.pcg import PCG
+from src.models import FullKRR, InducingKRR
+from src.opts import (
+    ASkotch,
+    ASkotchV2,
+    SketchySGD,
+    SketchySVRG,
+    SketchySAGA,
+    SketchyKatyusha,
+    PCG,
+)
 
 OPT_CLASSES = {
     "askotch": ASkotch,
@@ -201,17 +202,18 @@ def get_inducing_krr(
     )
 
 
-def get_opt(model, config):
-    opt_params = {
-        "askotch": {
+def build_opt_params(model, config):
+    if config.opt == "askotch":
+        return {
             "model": model,
             "B": config.b,
             "no_store_precond": config.no_store_precond,
             "precond_params": config.precond_params,
             "beta": config.beta,
             "accelerated": config.accelerated,
-        },
-        "askotchv2": {
+        }
+    elif config.opt == "askotchv2":
+        return {
             "model": model,
             "block_sz": config.block_sz,
             "sampling_method": config.sampling_method,
@@ -219,30 +221,34 @@ def get_opt(model, config):
             "mu": config.mu,
             "nu": config.nu,
             "accelerated": config.accelerated,
-        },
-        "sketchysgd": {
+        }
+    elif config.opt == "sketchysgd":
+        return {
             "model": model,
             "bg": config.bg,
             "bH": config.bH,
             "bH2": config.bH2,
             "precond_params": config.precond_params,
-        },
-        "sketchysvrg": {
+        }
+    elif config.opt == "sketchysvrg":
+        return {
             "model": model,
             "bg": config.bg,
             "bH": config.bH,
             "bH2": config.bH2,
             "update_freq": config.update_freq,
             "precond_params": config.precond_params,
-        },
-        "sketchysaga": {
+        }
+    elif config.opt == "sketchysaga":
+        return {
             "model": model,
             "bg": config.bg,
             "bH": config.bH,
             "bH2": config.bH2,
             "precond_params": config.precond_params,
-        },
-        "sketchykatyusha": {
+        }
+    elif config.opt == "sketchykatyusha":
+        return {
             "model": model,
             "bg": config.bg,
             "bH": config.bH,
@@ -250,8 +256,16 @@ def get_opt(model, config):
             "p": config.p,
             "mu": config.mu,
             "precond_params": config.precond_params,
-        },
-        "pcg": {"model": model, "precond_params": config.precond_params},
-    }
+        }
+    elif config.opt == "pcg":
+        return {
+            "model": model,
+            "precond_params": config.precond_params,
+        }
 
-    return OPT_CLASSES[config.opt](**opt_params[config.opt])
+
+def get_opt(model, config):
+    # Build the parameter dictionary for the specified optimizer
+    opt_params = build_opt_params(model, config)
+    # Initialize the optimizer with the specified parameters
+    return OPT_CLASSES[config.opt](**opt_params)

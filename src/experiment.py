@@ -106,7 +106,7 @@ class Experiment:
                 # Run the optimizer
                 while True:
                     opt.step()
-                    eval_loc = self._get_eval_loc(config, opt, model)
+                    eval_loc = self._get_eval_loc(model)
 
                     logger.update_cum_time()
 
