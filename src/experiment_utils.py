@@ -15,7 +15,7 @@ from src.opts.sketchysaga import SketchySAGA
 from src.opts.sketchykatyusha import SketchyKatyusha
 from src.opts.pcg import PCG
 
-OPT_NAMES = {
+OPT_CLASSES = {
     "askotch": ASkotch,
     "askotchv2": ASkotchV2,
     "sketchysgd": SketchySGD,
@@ -122,7 +122,7 @@ def check_inputs(args):
     if "max_time" not in args and "max_iter" not in args:
         raise ValueError("At least one of max_time or max_iter must be provided")
 
-    opt_name = OPT_NAMES[args.opt]
+    opt_name = OPT_CLASSES[args.opt]
     opt_checkers = {
         "askotch": check_askotch,
         "askotchv2": check_askotchv2,
@@ -202,67 +202,56 @@ def get_inducing_krr(
 
 
 def get_opt(model, config):
-    if config.opt == "askotch":
-        opt = ASkotch(
-            model=model,
-            B=config.b,
-            no_store_precond=config.no_store_precond,
-            precond_params=config.precond_params,
-            beta=config.beta,
-            accelerated=config.accelerated,
-        )
-    elif config.opt == "askotchv2":
-        opt = ASkotchV2(
-            model=model,
-            block_sz=config.block_sz,
-            sampling_method=config.sampling_method,
-            precond_params=config.precond_params,
-            mu=config.mu,
-            nu=config.nu,
-            accelerated=config.accelerated,
-        )
-    elif config.opt in [
-        "sketchysgd",
-        "sketchysvrg",
-        "sketchysaga",
-        "sketchykatyusha",
-    ]:
-        if config.opt == "sketchysgd":
-            opt = SketchySGD(
-                model=model,
-                bg=config.bg,
-                bH=config.bH,
-                bH2=config.bH2,
-                precond_params=config.precond_params,
-            )
-        elif config.opt == "sketchysvrg":
-            opt = SketchySVRG(
-                model=model,
-                bg=config.bg,
-                bH=config.bH,
-                bH2=config.bH2,
-                update_freq=config.update_freq,
-                precond_params=config.precond_params,
-            )
-        elif config.opt == "sketchysaga":
-            opt = SketchySAGA(
-                model=model,
-                bg=config.bg,
-                bH=config.bH,
-                bH2=config.bH2,
-                precond_params=config.precond_params,
-            )
-        elif config.opt == "sketchykatyusha":
-            opt = SketchyKatyusha(
-                model=model,
-                bg=config.bg,
-                bH=config.bH,
-                bH2=config.bH2,
-                p=config.p,
-                mu=config.mu,
-                precond_params=config.precond_params,
-            )
-    elif config.opt == "pcg":
-        opt = PCG(model=model, precond_params=config.precond_params)
+    opt_params = {
+        "askotch": {
+            "model": model,
+            "B": config.b,
+            "no_store_precond": config.no_store_precond,
+            "precond_params": config.precond_params,
+            "beta": config.beta,
+            "accelerated": config.accelerated,
+        },
+        "askotchv2": {
+            "model": model,
+            "block_sz": config.block_sz,
+            "sampling_method": config.sampling_method,
+            "precond_params": config.precond_params,
+            "mu": config.mu,
+            "nu": config.nu,
+            "accelerated": config.accelerated,
+        },
+        "sketchysgd": {
+            "model": model,
+            "bg": config.bg,
+            "bH": config.bH,
+            "bH2": config.bH2,
+            "precond_params": config.precond_params,
+        },
+        "sketchysvrg": {
+            "model": model,
+            "bg": config.bg,
+            "bH": config.bH,
+            "bH2": config.bH2,
+            "update_freq": config.update_freq,
+            "precond_params": config.precond_params,
+        },
+        "sketchysaga": {
+            "model": model,
+            "bg": config.bg,
+            "bH": config.bH,
+            "bH2": config.bH2,
+            "precond_params": config.precond_params,
+        },
+        "sketchykatyusha": {
+            "model": model,
+            "bg": config.bg,
+            "bH": config.bH,
+            "bH2": config.bH2,
+            "p": config.p,
+            "mu": config.mu,
+            "precond_params": config.precond_params,
+        },
+        "pcg": {"model": model, "precond_params": config.precond_params},
+    }
 
-    return opt
+    return OPT_CLASSES[config.opt](**opt_params[config.opt])
