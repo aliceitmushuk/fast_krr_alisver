@@ -50,8 +50,7 @@ class SkotchV2:
         block_precond = block_precond[0]
         block_eta = block_eta[0]
 
-        _, _, dir = _get_block_update(
-            self.model, self.model.w, block, block_precond, block_eta
-        )
+        # Get the update direction
+        dir = _get_block_update(self.model, self.model.w, block, block_precond)
 
         self.model.w[block] -= block_eta * dir

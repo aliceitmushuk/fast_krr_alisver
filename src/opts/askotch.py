@@ -45,19 +45,15 @@ class ASkotch:
             )
         else:
             block_precond = self.block_preconds[block_idx]
+        block = self.blocks[block_idx]
+        block_eta = self.block_etas[block_idx]
 
-        # Get the block, step size, and update direction
-        block, eta, dir = _get_block_update(
-            self.model,
-            self.model.w,
-            self.blocks[block_idx],
-            block_precond,
-            self.block_etas[block_idx],
-        )
+        # Get the update direction
+        dir = _get_block_update(self.model, self.model.w, block, block_precond)
 
         # Update y
         self.y = self.model.w.clone()
-        self.y[block] -= eta * dir
+        self.y[block] -= block_eta * dir
 
         # Update z
         self.z = (1 / (1 + self.gamma * self.model.lambd)) * (

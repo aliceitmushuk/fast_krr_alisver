@@ -39,15 +39,11 @@ class Skotch:
             )
         else:
             block_precond = self.block_preconds[block_idx]
+        block = self.blocks[block_idx]
+        block_eta = self.block_etas[block_idx]
 
-        # Get the block, step size, and update direction
-        block, eta, dir = _get_block_update(
-            self.model,
-            self.model.w,
-            self.blocks[block_idx],
-            block_precond,
-            self.block_etas[block_idx],
-        )
+        # Get the update direction
+        dir = _get_block_update(self.model, self.model.w, block, block_precond)
 
         # Update block
-        self.model.w[block] -= eta * dir
+        self.model.w[block] -= block_eta * dir
