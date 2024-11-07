@@ -51,10 +51,10 @@ def main():
         "--b", type=int, default=None, help="Number of blocks in optimizer"
     )
     parser.add_argument(
-        "--alpha", type=float, default=None, help="Sampling parameter in Skotch"
+        "--beta", type=float, default=None, help="Acceleration parameter in ASkotch"
     )
     parser.add_argument(
-        "--beta", type=float, default=None, help="Acceleration parameter in ASkotch"
+        "--accelerated", action="store_true", help="Use accelerated ASkotch"
     )
     parser.add_argument(
         "--no_store_precond",

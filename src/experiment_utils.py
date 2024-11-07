@@ -7,7 +7,6 @@ import torch
 
 from src.models.full_krr import FullKRR
 from src.models.inducing_krr import InducingKRR
-from src.opts.skotch import Skotch
 from src.opts.askotch import ASkotch
 from src.opts.sketchysgd import SketchySGD
 from src.opts.sketchysvrg import SketchySVRG
@@ -16,7 +15,6 @@ from src.opts.sketchykatyusha import SketchyKatyusha
 from src.opts.pcg import PCG
 
 OPT_NAMES = {
-    "skotch": Skotch,
     "askotch": ASkotch,
     "sketchysgd": SketchySGD,
     "sketchysvrg": SketchySVRG,
@@ -64,7 +62,7 @@ def check_inputs(args):
 
     opt_name = OPT_NAMES[args.opt]
     # Input checking for optimizers
-    if args.opt == "skotch":
+    if args.opt == "askotch":
         if args.m is not None:
             warnings.warn(
                 f"Number of inducing points is not used in {opt_name}. \
@@ -72,39 +70,10 @@ def check_inputs(args):
             )
         if args.b is None:
             raise ValueError(f"Number of blocks must be provided for {opt_name}")
-        if args.alpha is None:
-            raise ValueError(f"Sampling parameter must be provided for {opt_name}")
-        if args.beta is not None:
-            warnings.warn(f"Beta is not used in {opt_name}. Ignoring this parameter")
-        if args.bg is not None:
-            warnings.warn(
-                f"Gradient batch size is not used in {opt_name}. \
-                    Ignoring this parameter"
-            )
-        if args.bH is not None:
-            warnings.warn(
-                f"Hessian batch size is not used in {opt_name}. \
-                    Ignoring this parameter"
-            )
-        if args.bH2 is not None:
-            warnings.warn(
-                f"Hessian batch size for eig calculations is not used in {opt_name}. \
-                    Ignoring this parameter"
-            )
-    elif args.opt == "askotch":
-        if args.m is not None:
-            warnings.warn(
-                f"Number of inducing points is not used in {opt_name}. \
-                    Ignoring this parameter"
-            )
-        if args.b is None:
-            raise ValueError(f"Number of blocks must be provided for {opt_name}")
-        if args.alpha is not None:
-            warnings.warn(
-                f"Sampling parameter is not used in {opt_name}. Ignoring this parameter"
-            )
         if args.beta is None:
             raise ValueError(f"Acceleration parameter must be provided for {opt_name}")
+        if args.accelerated is None:
+            raise ValueError(f"Acceleration flag must be provided for {opt_name}")
         if args.bg is not None:
             warnings.warn(
                 f"Gradient batch size is not used in {opt_name}. \
@@ -297,17 +266,14 @@ def get_inducing_krr(
 
 
 def get_opt(model, config):
-    if config.opt == "skotch":
-        opt = Skotch(
+    if config.opt == "askotch":
+        opt = ASkotch(
             model,
             config.b,
             config.no_store_precond,
-            config.alpha,
             config.precond_params,
-        )
-    elif config.opt == "askotch":
-        opt = ASkotch(
-            model, config.b, config.no_store_precond, config.beta, config.precond_params
+            config.beta,
+            config.accelerated,
         )
     elif config.opt in [
         "sketchysgd",
