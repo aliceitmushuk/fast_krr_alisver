@@ -37,8 +37,8 @@ def main():
     parser.add_argument(
         "--opt",
         choices=[
-            "skotch",
             "askotch",
+            "askotchv2",
             "sketchysgd",
             "sketchysvrg",
             "sketchysaga",
@@ -51,10 +51,20 @@ def main():
         "--b", type=int, default=None, help="Number of blocks in optimizer"
     )
     parser.add_argument(
+        "--block_sz", type=int, default=None, help="Block size in ASkotchV2"
+    )
+    parser.add_argument(
         "--beta", type=float, default=None, help="Acceleration parameter in ASkotch"
     )
     parser.add_argument(
-        "--accelerated", action="store_true", help="Use accelerated ASkotch"
+        "--sampling_method",
+        choices=["uniform", "rls"],
+        help="Block sampling method in ASkotchV2",
+    )
+    parser.add_argument(
+        "--accelerated",
+        action="store_true",
+        help="Use acceleration in ASkotch/ASkotchV2",
     )
     parser.add_argument(
         "--no_store_precond",
@@ -83,7 +93,11 @@ def main():
         "--mu",
         type=float,
         default=None,
-        help="Strong convexity parameter in SketchyKatyusha",
+        help="Strong convexity parameter in SketchyKatyusha or \
+            acceleration parameter in ASkotchV2",
+    )
+    parser.add_argument(
+        "--nu", type=float, default=None, help="Acceleration parameter in ASkotchV2"
     )
     parser.add_argument(
         "--precond_params",
@@ -156,14 +170,17 @@ def main():
     if args.max_time is not None:
         experiment_args["max_time"] = args.max_time
 
-    if args.opt == "skotch":
-        experiment_args["b"] = args.b
-        experiment_args["alpha"] = args.alpha
-        experiment_args["no_store_precond"] = args.no_store_precond
-    elif args.opt == "askotch":
+    if args.opt == "askotch":
         experiment_args["b"] = args.b
         experiment_args["beta"] = args.beta
         experiment_args["no_store_precond"] = args.no_store_precond
+        experiment_args["accelerated"] = args.accelerated
+    elif args.opt == "askotchv2":
+        experiment_args["block_sz"] = args.block_sz
+        experiment_args["sampling_method"] = args.sampling_method
+        experiment_args["mu"] = args.mu
+        experiment_args["nu"] = args.nu
+        experiment_args["accelerated"] = args.accelerated
     elif args.opt in ["sketchysgd", "sketchysvrg", "sketchysaga", "sketchykatyusha"]:
         experiment_args["bg"] = args.bg
         experiment_args["bH"] = args.bH
