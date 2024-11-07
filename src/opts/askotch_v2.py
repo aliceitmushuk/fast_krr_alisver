@@ -19,13 +19,21 @@ def _get_leverage_scores(K, lambd, device):
 
 class ASkotchV2:
     def __init__(
-        self, model, block_sz, mu, nu, sampling_method="rls", precond_params=None
+        self,
+        model,
+        block_sz,
+        sampling_method="rls",
+        precond_params=None,
+        mu=None,
+        nu=None,
+        accelerated=True,
     ):
         self.model = model
         self.block_sz = block_sz
-        self.mu = mu
-        self.nu = nu
         self.precond_params = precond_params
+        self.mu = mu if mu is not None else self.model.lambd
+        self.nu = nu if nu is not None else self.model.n / self.block_sz
+        self.accelerated = accelerated
 
         # TODO(pratik): check that nu > mu
 
@@ -45,13 +53,13 @@ class ASkotchV2:
         elif sampling_method == "uniform":
             self.probs = torch.ones(self.model.n) / self.model.n
 
-        # Acceleration parameters
-        self.beta = 1 - (self.mu / self.nu) ** 0.5
-        self.gamma = 1 / (self.mu * self.nu) ** 0.5
-        self.alpha = 1 / (1 + self.gamma * self.nu)
+        if self.accelerated:
+            self.beta = 1 - (self.mu / self.nu) ** 0.5
+            self.gamma = 1 / (self.mu * self.nu) ** 0.5
+            self.alpha = 1 / (1 + self.gamma * self.nu)
 
-        self.v = self.model.w.clone()
-        self.y = self.model.w.clone()
+            self.v = self.model.w.clone()
+            self.y = self.model.w.clone()
 
     def step(self):
         # Randomly select block_sz distinct indices
@@ -65,10 +73,15 @@ class ASkotchV2:
         block_eta = block_eta[0]
 
         # Get the update direction
-        dir = _get_block_update(self.model, self.y, block, block_precond)
+        # Update direction is computed at self.y if accelerated, else at self.model.w
+        eval_loc = self.y if self.accelerated else self.model.w
+        dir = _get_block_update(self.model, eval_loc, block, block_precond)
 
-        self.model.w = self.y.clone()
-        self.model.w[block] -= block_eta * dir
-        self.v = self.beta * self.v + (1 - self.beta) * self.y
-        self.v[block] -= block_eta * self.gamma * dir
-        self.y = self.alpha * self.v + (1 - self.alpha) * self.model.w
+        if self.accelerated:
+            self.model.w = self.y.clone()
+            self.model.w[block] -= block_eta * dir
+            self.v = self.beta * self.v + (1 - self.beta) * self.y
+            self.v[block] -= block_eta * self.gamma * dir
+            self.y = self.alpha * self.v + (1 - self.alpha) * self.model.w
+        else:
+            self.model.w[block] -= block_eta * dir
