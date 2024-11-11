@@ -1,7 +1,12 @@
 import torch
 from pykeops.torch import LazyTensor
 
-from ..kernels.kernel_inits import _get_kernel, _get_kernels_start
+from ..kernels.kernel_inits import (
+    _get_kernel,
+    _get_kernels_start,
+    _get_trace,
+    _get_diag,
+)
 
 
 class FullKRR:
@@ -74,7 +79,7 @@ class FullKRR:
         def K_lin_op(v):
             return self.K @ v
 
-        K_trace = self.K.get_trace()
+        K_trace = _get_trace(self.K.shape[0], self.kernel_params)
 
         return K_lin_op, K_trace
 
@@ -89,9 +94,9 @@ class FullKRR:
         def Kb_lin_op_reg(v):
             return Kb @ v + self.lambd * v
 
-        Kb_trace = Kb.get_trace()
+        Kb_trace = _get_trace(Kb.shape[0], self.kernel_params)
 
         return Kb_lin_op, Kb_lin_op_reg, Kb_trace
 
     def _get_diag(self):
-        return self.K.get_diag()
+        return _get_diag(self.n, self.kernel_params)

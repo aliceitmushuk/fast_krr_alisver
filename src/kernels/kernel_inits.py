@@ -38,3 +38,13 @@ def _get_kernels_start(x, x_tst, kernel_params, Ktr_needed=True):
     K_tst = _get_kernel(x_tst_i, x_j, kernel_params)
 
     return x_j, K, K_tst
+
+
+def _get_trace(n, kernel_params):
+    ker_type = _get_kernel_type(kernel_params)
+    return ker_type._get_trace(n)
+
+
+def _get_diag(n, kernel_params):
+    ker_type = _get_kernel_type(kernel_params)
+    return ker_type._get_diag(n)
