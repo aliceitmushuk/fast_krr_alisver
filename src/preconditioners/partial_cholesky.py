@@ -10,27 +10,27 @@ class PartialCholesky:
         self.L = None
         self.M = None
 
-    def update(self, x, kernel_params, K, diag_K, tol=10**-6):
+    def update(self, K_row_fn, K_diag, x, tol=10**-6):
         n = x.shape[0]
         self.L = torch.zeros(self.r, n, device=self.device)
-        diag_K = diag_K.to(self.device)
+        K_diag = K_diag.to(self.device)
 
         for i in range(self.r):
             # Find pivot index corresponding to maximum diagonal entry
-            idx = torch.argmax(diag_K)
+            idx = torch.argmax(K_diag)
 
             # Fetch corresponding datapoint and compute corresponding row of the kernel
             x_idx = x[idx]
-            k_idx = K.get_row(x_idx, x, kernel_params)
+            k_idx = K_row_fn(x_idx, x)
 
             # Cholesky factor update
             self.L[i, :] = (
                 k_idx - torch.matmul(self.L[:i, idx].t(), self.L[:i, :])
-            ) / torch.sqrt(diag_K[idx])
+            ) / torch.sqrt(K_diag[idx])
             # Update diagonal
-            diag_K -= self.L[i, :] ** 2
-            diag_K = diag_K.clip(min=0)
-            if torch.max(diag_K) <= tol:
+            K_diag -= self.L[i, :] ** 2
+            K_diag = K_diag.clip(min=0)
+            if torch.max(K_diag) <= tol:
                 break
 
         self.M = torch.linalg.cholesky(

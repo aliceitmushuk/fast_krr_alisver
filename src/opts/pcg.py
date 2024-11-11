@@ -1,7 +1,7 @@
 import torch
 
 from .opt_utils import _apply_precond
-from .opt_utils_pcg import _get_precond, _get_precond_inducing
+from .opt_utils_pcg import _get_precond_full, _get_precond_inducing
 
 
 class PCG:
@@ -15,7 +15,7 @@ class PCG:
             )
             self.rhs = self.model.K_nmTb
         else:
-            self.precond = _get_precond(
+            self.precond = _get_precond_full(
                 self.model, self.precond_params, self.model.device
             )
             self.rhs = self.model.b
