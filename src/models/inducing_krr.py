@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from pykeops.torch import LazyTensor
 
-from ..kernels.kernel_inits import _get_kernel
+from ..kernels.kernel_inits import _get_kernel, _get_trace
 
 
 class InducingKRR:
@@ -157,3 +157,6 @@ class InducingKRR:
         K_inducing_trace = adj_factor * K_inducing_fro_norm2
 
         return K_inducing_sub_lin_op, K_inducing_sub_Kmm_lin_op, K_inducing_trace
+
+    def _get_trace_Kmm(self):
+        return _get_trace(self.m, self.kernel_params)

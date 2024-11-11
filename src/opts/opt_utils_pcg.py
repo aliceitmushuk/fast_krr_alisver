@@ -21,6 +21,8 @@ def _get_precond_full(model, precond_params, device):
 
 def _get_precond_inducing(model, precond_params, device):
     if precond_params["type"] == "falkon":
+        K_mm_lin_op = model._get_K_mm_lin_op()
+        K_mm_trace = model._get_K_mm_trace()
         precond = Falkon(device)
-        precond.update(model.K_mm, model.n, model.m, model.lambd)
+        precond.update(K_mm_lin_op, K_mm_trace, model.n, model.m, model.lambd)
     return precond
