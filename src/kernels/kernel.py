@@ -10,7 +10,7 @@ class Kernel(ABC):
 
     @staticmethod
     @abstractmethod
-    def _compute_kernel(x1_lazy, x2_lazy, kernel_params):
+    def _get_kernel(x1_lazy, x2_lazy, kernel_params):
         """Compute the kernel between x1 and x2 with given parameters."""
         pass
 

@@ -10,7 +10,7 @@ class L1Laplace(Kernel):
             raise ValueError("Missing sigma for L1 Laplace kernel")
 
     @staticmethod
-    def _compute_kernel(x1_lazy, x2_lazy, kernel_params):
+    def _get_kernel(x1_lazy, x2_lazy, kernel_params):
         L1Laplace._check_kernel_params(kernel_params)
 
         # Compute the L1 distance (Manhattan distance) between each pair of points

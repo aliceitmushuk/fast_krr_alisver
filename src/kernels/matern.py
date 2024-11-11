@@ -14,7 +14,7 @@ class Matern(Kernel):
             raise ValueError("nu must be 0.5, 1.5, or 2.5")
 
     @staticmethod
-    def _compute_kernel(x1_lazy, x2_lazy, kernel_params):
+    def _get_kernel(x1_lazy, x2_lazy, kernel_params):
         nu = kernel_params["nu"]
         sigma = kernel_params["sigma"]
 

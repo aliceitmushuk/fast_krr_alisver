@@ -10,7 +10,7 @@ class Rbf(Kernel):
             raise ValueError("Missing sigma for RBF kernel")
 
     @staticmethod
-    def _compute_kernel(x1_lazy, x2_lazy, kernel_params):
+    def _get_kernel(x1_lazy, x2_lazy, kernel_params):
         Rbf._check_kernel_params(kernel_params)
 
         D = ((x1_lazy - x2_lazy) ** 2).sum(dim=2)

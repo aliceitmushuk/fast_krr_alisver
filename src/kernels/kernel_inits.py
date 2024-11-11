@@ -23,7 +23,7 @@ def _get_kernel(x1_lazy, x2_lazy, kernel_params):
 
     kernel_params_copy = kernel_params.copy()
     kernel_params_copy.pop("type")
-    return ker_type._compute_kernel(x1_lazy, x2_lazy, kernel_params_copy)
+    return ker_type._get_kernel(x1_lazy, x2_lazy, kernel_params_copy)
 
 
 def _get_kernels_start(x, x_tst, kernel_params, Ktr_needed=True):
