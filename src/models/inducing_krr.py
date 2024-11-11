@@ -152,7 +152,7 @@ class InducingKRR:
             )
 
         K_inducing_fro_norm2 = torch.sum(
-            (K_sm.K**2).sum() @ torch.ones(1, device=self.device)
+            (K_sm**2).sum() @ torch.ones(1, device=self.device)
         ).item()
         K_inducing_trace = adj_factor * K_inducing_fro_norm2
 
