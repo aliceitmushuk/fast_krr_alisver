@@ -5,19 +5,20 @@ import warnings
 import numpy as np
 import torch
 
-from src.models.full_krr import FullKRR
-from src.models.inducing_krr import InducingKRR
-from src.opts.skotch import Skotch
-from src.opts.askotch import ASkotch
-from src.opts.sketchysgd import SketchySGD
-from src.opts.sketchysvrg import SketchySVRG
-from src.opts.sketchysaga import SketchySAGA
-from src.opts.sketchykatyusha import SketchyKatyusha
-from src.opts.pcg import PCG
+from src.models import FullKRR, InducingKRR
+from src.opts import (
+    ASkotch,
+    ASkotchV2,
+    SketchySGD,
+    SketchySVRG,
+    SketchySAGA,
+    SketchyKatyusha,
+    PCG,
+)
 
-OPT_NAMES = {
-    "skotch": Skotch,
+OPT_CLASSES = {
     "askotch": ASkotch,
+    "askotchv2": ASkotchV2,
     "sketchysgd": SketchySGD,
     "sketchysvrg": SketchySVRG,
     "sketchysaga": SketchySAGA,
@@ -57,192 +58,88 @@ class ParseParams(argparse.Action):
         setattr(namespace, self.dest, params_dict)
 
 
+def check_required(arg, name, opt_name):
+    if arg is None:
+        raise ValueError(f"{name} must be provided for {opt_name}")
+
+
+def check_askotch(args, opt_name):
+    check_required(args.b, "Number of blocks", opt_name)
+    check_required(args.beta, "Acceleration parameter", opt_name)
+    check_required(args.accelerated, "Acceleration flag", opt_name)
+
+
+def check_askotchv2(args, opt_name):
+    check_required(args.block_sz, "Block size", opt_name)
+    check_required(args.sampling_method, "Sampling method", opt_name)
+    check_required(args.mu, "Mu", opt_name)
+    check_required(args.nu, "Nu", opt_name)
+    check_required(args.accelerated, "Acceleration flag", opt_name)
+
+
+def check_sketchy(args, opt_name):
+    check_required(args.m, "Number of inducing points", opt_name)
+    check_required(args.bg, "Gradient batch size", opt_name)
+    if args.bH is None:
+        warnings.warn(
+            f"Hessian batch size is not provided for {opt_name}. \
+                Using default value int(n**0.5)"
+        )
+    if args.bH2 is None:
+        warnings.warn(
+            f"Hessian batch size for eig calculations is not provided for {opt_name}. \
+                Using default value max(1, n // 50)"
+        )
+    if args.update_freq is not None and args.opt != "sketchysvrg":
+        warnings.warn(
+            f"Update frequency is not used in {opt_name}. Ignoring this parameter"
+        )
+    if args.p is None and args.opt == "sketchykatyusha":
+        warnings.warn(
+            f"Update probability is not provided for {opt_name}. \
+                Using default value bg/n"
+        )
+    if args.mu is None and args.opt == "sketchykatyusha":
+        warnings.warn(
+            f"Strong convexity parameter is not provided for {opt_name}. \
+                Using default value lambd"
+        )
+
+
+def check_pcg(args, opt_name):
+    check_required(args.precond_params, "Preconditioner parameters", opt_name)
+
+
+def check_precond_params(precond_params):
+    if "type" not in precond_params:
+        raise ValueError("Preconditioner type must be provided")
+    if precond_params["type"] not in ["nystrom", "partial_cholesky", "falkon"]:
+        raise ValueError(
+            "Only Nystrom, Partial Cholesky, and Falkon preconditioners are supported"
+        )
+
+
 def check_inputs(args):
-    # Check that at least one of max_time or max_iter is provided
     if "max_time" not in args and "max_iter" not in args:
         raise ValueError("At least one of max_time or max_iter must be provided")
 
-    opt_name = OPT_NAMES[args.opt]
-    # Input checking for optimizers
-    if args.opt == "skotch":
-        if args.m is not None:
-            warnings.warn(
-                f"Number of inducing points is not used in {opt_name}. \
-                    Ignoring this parameter"
-            )
-        if args.b is None:
-            raise ValueError(f"Number of blocks must be provided for {opt_name}")
-        if args.alpha is None:
-            raise ValueError(f"Sampling parameter must be provided for {opt_name}")
-        if args.beta is not None:
-            warnings.warn(f"Beta is not used in {opt_name}. Ignoring this parameter")
-        if args.bg is not None:
-            warnings.warn(
-                f"Gradient batch size is not used in {opt_name}. \
-                    Ignoring this parameter"
-            )
-        if args.bH is not None:
-            warnings.warn(
-                f"Hessian batch size is not used in {opt_name}. \
-                    Ignoring this parameter"
-            )
-        if args.bH2 is not None:
-            warnings.warn(
-                f"Hessian batch size for eig calculations is not used in {opt_name}. \
-                    Ignoring this parameter"
-            )
-    elif args.opt == "askotch":
-        if args.m is not None:
-            warnings.warn(
-                f"Number of inducing points is not used in {opt_name}. \
-                    Ignoring this parameter"
-            )
-        if args.b is None:
-            raise ValueError(f"Number of blocks must be provided for {opt_name}")
-        if args.alpha is not None:
-            warnings.warn(
-                f"Sampling parameter is not used in {opt_name}. Ignoring this parameter"
-            )
-        if args.beta is None:
-            raise ValueError(f"Acceleration parameter must be provided for {opt_name}")
-        if args.bg is not None:
-            warnings.warn(
-                f"Gradient batch size is not used in {opt_name}. \
-                    Ignoring this parameter"
-            )
-        if args.bH is not None:
-            warnings.warn(
-                f"Hessian batch size is not used in {opt_name}. Ignoring this parameter"
-            )
-        if args.bH2 is not None:
-            warnings.warn(
-                f"Hessian batch size for eig calculations is not used in {opt_name}. \
-                    Ignoring this parameter"
-            )
-    elif args.opt in ["sketchysgd", "sketchysvrg", "sketchysaga", "sketchykatyusha"]:
-        if args.m is None:
-            raise ValueError(
-                f"Number of inducing points must be provided for {opt_name}"
-            )
-        if args.b is not None:
-            warnings.warn(
-                f"Number of blocks is not used in {opt_name}. \
-                    Ignoring this parameter"
-            )
-        if args.alpha is not None:
-            warnings.warn(
-                f"Sampling parameter is not used in {opt_name}. \
-                    Ignoring this parameter"
-            )
-        if args.beta is not None:
-            warnings.warn(
-                f"Beta is not used in {opt_name}. \
-                Ignoring this parameter"
-            )
-        if args.bg is None:
-            raise ValueError(f"Gradient batch size must be provided for {opt_name}")
-        if args.bH is None:
-            warnings.warn(
-                f"Hessian batch size is not provided for {opt_name}. \
-                    Using default value int(n**0.5)"
-            )
-        if args.bH2 is None:
-            warnings.warn(
-                f"Hessian batch size for eig calculations is not provided \
-                    for {opt_name}. Using default value max(1, n // 50)"
-            )
+    opt_name = OPT_CLASSES[args.opt]
+    opt_checkers = {
+        "askotch": check_askotch,
+        "askotchv2": check_askotchv2,
+        "sketchysgd": check_sketchy,
+        "sketchysvrg": check_sketchy,
+        "sketchysaga": check_sketchy,
+        "sketchykatyusha": check_sketchy,
+        "pcg": check_pcg,
+    }
 
-        if args.opt in ["sketchysgd", "sketchysaga", "sketchykatyusha"]:
-            if args.update_freq is not None:
-                warnings.warn(
-                    f"Update frequency is not used in {opt_name}. \
-                        Ignoring this parameter"
-                )
-        elif args.opt == "sketchysvrg":
-            if args.update_freq is None:
-                warnings.warn(
-                    f"Update frequency is not provided for {opt_name}. \
-                        Using default value n // bg"
-                )
+    # Call the appropriate function based on optimizer type
+    if args.opt in opt_checkers:
+        opt_checkers[args.opt](args, opt_name)
 
-        if args.opt in ["sketchysgd", "sketchysvrg", "sketchysaga"]:
-            if args.p is not None:
-                warnings.warn(
-                    f"Update probability is not used in {opt_name}. \
-                        Ignoring this parameter"
-                )
-        elif args.opt == "sketchykatyusha":
-            if args.p is None:
-                warnings.warn(
-                    f"Update probability is not provided for {opt_name}. \
-                        Using default value bg/n"
-                )
-
-        if args.opt in ["sketchysgd", "sketchysvrg", "sketchysaga"]:
-            if args.mu is not None:
-                warnings.warn(
-                    f"Strong convexity parameter is not used in {opt_name}. \
-                        Ignoring this parameter"
-                )
-        elif args.opt == "sketchykatyusha":
-            if args.mu is None:
-                warnings.warn(
-                    f"Strong convexity parameter is not provided for {opt_name}. \
-                        Using default value lambd"
-                )
-    elif args.opt == "pcg":
-        if args.b is not None:
-            warnings.warn(
-                f"Number of blocks is not used in {opt_name}. Ignoring this parameter"
-            )
-        if args.alpha is not None:
-            warnings.warn(
-                f"Sampling parameter is not used in {opt_name}. Ignoring this parameter"
-            )
-        if args.beta is not None:
-            warnings.warn(f"Beta is not used in {opt_name}. Ignoring this parameter")
-        if args.bg is not None:
-            warnings.warn(
-                f"Gradient batch size is not used in {opt_name}. \
-                    Ignoring this parameter"
-            )
-        if args.bH is not None:
-            warnings.warn(
-                f"Hessian batch size is not used in {opt_name}. Ignoring this parameter"
-            )
-        if args.bH2 is not None:
-            warnings.warn(
-                f"Hessian batch size for eig calculations is not used in {opt_name}. \
-                    Ignoring this parameter"
-            )
-        if args.update_freq is not None:
-            warnings.warn(
-                f"Update frequency is not used in {opt_name}. Ignoring this parameter"
-            )
-        if args.p is not None:
-            warnings.warn(
-                f"Update probability is not used in {opt_name}. Ignoring this parameter"
-            )
-
-        if args.precond_params is None:
-            raise ValueError(
-                f"Preconditioner parameters must be provided for {opt_name}"
-            )
-
-    # TODO: Improve this
     if args.precond_params is not None:
-        # Check that 'type' is provided and 'nystrom' is the only option
-        if "type" not in args.precond_params:
-            raise ValueError("Preconditioner type must be provided")
-        if args.precond_params["type"] not in ["nystrom", "partial_cholesky", "falkon"]:
-            raise ValueError(
-                "Only Nystrom, Partial Cholesky, and Falkon preconditioners \
-                    are supported"
-            )
-
-        # TODO: Check that the required parameters are provided for Nystrom.
-        # Note that rho is not required for Skotch/A-Skotch
-        # but is required for PROMISE methods
+        check_precond_params(args.precond_params)
 
 
 def set_precision(precision):
@@ -272,7 +169,16 @@ def set_random_seed(seed):
 def get_full_krr(Xtr, ytr, Xtst, ytst, kernel_params, Ktr_needed, lambd, task, device):
     w0 = torch.zeros(Xtr.shape[0], device=device)
     return FullKRR(
-        Xtr, ytr, Xtst, ytst, kernel_params, Ktr_needed, lambd, task, w0, device
+        x=Xtr,
+        b=ytr,
+        x_tst=Xtst,
+        b_tst=ytst,
+        kernel_params=kernel_params,
+        Ktr_needed=Ktr_needed,
+        lambd=lambd,
+        task=task,
+        w0=w0,
+        device=device,
     )
 
 
@@ -282,67 +188,84 @@ def get_inducing_krr(
     w0 = torch.zeros(m, device=device)
     inducing_pts = torch.randperm(Xtr.shape[0])[:m]
     return InducingKRR(
-        Xtr,
-        ytr,
-        Xtst,
-        ytst,
-        kernel_params,
-        Knm_needed,
-        inducing_pts,
-        lambd,
-        task,
-        w0,
-        device,
+        x=Xtr,
+        b=ytr,
+        x_tst=Xtst,
+        b_tst=ytst,
+        kernel_params=kernel_params,
+        Knm_needed=Knm_needed,
+        inducing_pts=inducing_pts,
+        lambd=lambd,
+        task=task,
+        w0=w0,
+        device=device,
     )
 
 
-def get_opt(model, config):
-    if config.opt == "skotch":
-        opt = Skotch(
-            model,
-            config.b,
-            config.no_store_precond,
-            config.alpha,
-            config.precond_params,
-        )
-    elif config.opt == "askotch":
-        opt = ASkotch(
-            model, config.b, config.no_store_precond, config.beta, config.precond_params
-        )
-    elif config.opt in [
-        "sketchysgd",
-        "sketchysvrg",
-        "sketchysaga",
-        "sketchykatyusha",
-    ]:
-        if config.opt == "sketchysgd":
-            opt = SketchySGD(
-                model, config.bg, config.bH, config.bH2, config.precond_params
-            )
-        elif config.opt == "sketchysvrg":
-            opt = SketchySVRG(
-                model,
-                config.bg,
-                config.bH,
-                config.bH2,
-                config.update_freq,
-                config.precond_params,
-            )
-        elif config.opt == "sketchysaga":
-            opt = SketchySAGA(
-                model, config.bg, config.bH, config.bH2, config.precond_params
-            )
-        elif config.opt == "sketchykatyusha":
-            opt = SketchyKatyusha(
-                model,
-                config.bg,
-                config.bH,
-                config.bH2,
-                config.p,
-                config.mu,
-                config.precond_params,
-            )
+def build_opt_params(model, config):
+    if config.opt == "askotch":
+        return {
+            "model": model,
+            "B": config.b,
+            "no_store_precond": config.no_store_precond,
+            "precond_params": config.precond_params,
+            "beta": config.beta,
+            "accelerated": config.accelerated,
+        }
+    elif config.opt == "askotchv2":
+        return {
+            "model": model,
+            "block_sz": config.block_sz,
+            "sampling_method": config.sampling_method,
+            "precond_params": config.precond_params,
+            "mu": config.mu,
+            "nu": config.nu,
+            "accelerated": config.accelerated,
+        }
+    elif config.opt == "sketchysgd":
+        return {
+            "model": model,
+            "bg": config.bg,
+            "bH": config.bH,
+            "bH2": config.bH2,
+            "precond_params": config.precond_params,
+        }
+    elif config.opt == "sketchysvrg":
+        return {
+            "model": model,
+            "bg": config.bg,
+            "bH": config.bH,
+            "bH2": config.bH2,
+            "update_freq": config.update_freq,
+            "precond_params": config.precond_params,
+        }
+    elif config.opt == "sketchysaga":
+        return {
+            "model": model,
+            "bg": config.bg,
+            "bH": config.bH,
+            "bH2": config.bH2,
+            "precond_params": config.precond_params,
+        }
+    elif config.opt == "sketchykatyusha":
+        return {
+            "model": model,
+            "bg": config.bg,
+            "bH": config.bH,
+            "bH2": config.bH2,
+            "p": config.p,
+            "mu": config.mu,
+            "precond_params": config.precond_params,
+        }
     elif config.opt == "pcg":
-        opt = PCG(model, config.precond_params)
+        return {
+            "model": model,
+            "precond_params": config.precond_params,
+        }
 
-    return opt
+
+def get_opt(model, config):
+    # Build the parameter dictionary for the specified optimizer
+    opt_params = build_opt_params(model, config)
+    # Initialize the optimizer with the specified parameters
+    return OPT_CLASSES[config.opt](**opt_params)

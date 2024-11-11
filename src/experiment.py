@@ -35,11 +35,8 @@ class Experiment:
                 return True
         return False
 
-    def _get_eval_loc(self, config, opt, model):
-        if config.opt == "askotch":
-            return opt.y
-        else:
-            return model.w
+    def _get_eval_loc(self, model):
+        return model.w
 
     def run(self):
         # Load data
@@ -91,7 +88,7 @@ class Experiment:
                 # Select and initialize the optimizer
                 logger.reset_timer()
                 opt = get_opt(model, config)
-                eval_loc = self._get_eval_loc(config, opt, model)
+                eval_loc = self._get_eval_loc(model)
 
                 logger.update_cum_time()
 
@@ -109,7 +106,7 @@ class Experiment:
                 # Run the optimizer
                 while True:
                     opt.step()
-                    eval_loc = self._get_eval_loc(config, opt, model)
+                    eval_loc = self._get_eval_loc(model)
 
                     logger.update_cum_time()
 

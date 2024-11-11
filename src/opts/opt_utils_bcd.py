@@ -79,11 +79,11 @@ def _get_block_properties(model, blocks, precond_params, no_store_precond):
     return block_preconds, block_etas, block_Ls
 
 
-def _get_block_update(model, w, block, precond, eta):
+def _get_block_update(model, w, block, precond):
     # Compute the block gradient
     gb = model._get_block_grad(w, block)
 
     # Apply the preconditioner
     dir = _apply_precond(gb, precond)
 
-    return block, eta, dir
+    return dir

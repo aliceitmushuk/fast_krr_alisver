@@ -9,12 +9,21 @@ from .opt_utils_bcd import (
 
 
 class ASkotch:
-    def __init__(self, model, B, no_store_precond, beta=0, precond_params=None):
+    def __init__(
+        self,
+        model,
+        B,
+        no_store_precond=True,
+        precond_params=None,
+        beta=0,
+        accelerated=True,
+    ):
         self.model = model
         self.B = B
         self.no_store_precond = no_store_precond
-        self.beta = beta
         self.precond_params = precond_params
+        self.beta = beta
+        self.accelerated = accelerated
 
         self.blocks = _get_blocks(self.model.n, self.B)
         self.alpha = (1 - self.beta) / 2  # Controls acceleration
@@ -28,11 +37,13 @@ class ASkotch:
         self.sampling_dist = torch.distributions.categorical.Categorical(
             self.block_probs
         )
-        self.tau = 2 / (1 + (4 * (self.S_alpha**2) / self.model.lambd + 1) ** 0.5)
-        self.gamma = 1 / (self.tau * self.S_alpha**2)
 
-        self.y = self.model.w.clone()
-        self.z = self.model.w.clone()
+        if self.accelerated:
+            self.tau = 2 / (1 + (4 * (self.S_alpha**2) / self.model.lambd + 1) ** 0.5)
+            self.gamma = 1 / (self.tau * self.S_alpha**2)
+
+            self.y = self.model.w.clone()
+            self.z = self.model.w.clone()
 
     def step(self):
         # Randomly select a block
@@ -45,30 +56,32 @@ class ASkotch:
             )
         else:
             block_precond = self.block_preconds[block_idx]
+        block = self.blocks[block_idx]
+        block_eta = self.block_etas[block_idx]
 
-        # Get the block, step size, and update direction
-        block, eta, dir = _get_block_update(
-            self.model,
-            self.model.w,
-            self.blocks[block_idx],
-            block_precond,
-            self.block_etas[block_idx],
-        )
+        # Get the update direction
+        dir = _get_block_update(self.model, self.model.w, block, block_precond)
 
-        # Update y
-        self.y = self.model.w.clone()
-        self.y[block] -= eta * dir
+        if self.accelerated:
+            # Update y
+            self.y = self.model.w.clone()
+            self.y[block] -= block_eta * dir
 
-        # Update z
-        self.z = (1 / (1 + self.gamma * self.model.lambd)) * (
-            self.z + self.gamma * self.model.lambd * self.model.w
-        )
-        self.z[block] -= (
-            (1 / (1 + self.gamma * self.model.lambd))
-            * self.gamma
-            / (self.block_probs[block_idx] * (self.block_Ls[block_idx] ** self.beta))
-            * dir
-        )
+            # Update z
+            self.z = (1 / (1 + self.gamma * self.model.lambd)) * (
+                self.z + self.gamma * self.model.lambd * self.model.w
+            )
+            self.z[block] -= (
+                (1 / (1 + self.gamma * self.model.lambd))
+                * self.gamma
+                / (
+                    self.block_probs[block_idx]
+                    * (self.block_Ls[block_idx] ** self.beta)
+                )
+                * dir
+            )
 
-        # Update w
-        self.model.w = self.tau * self.z + (1 - self.tau) * self.y
+            # Update w
+            self.model.w = self.tau * self.z + (1 - self.tau) * self.y
+        else:
+            self.model.w[block] -= block_eta * dir
