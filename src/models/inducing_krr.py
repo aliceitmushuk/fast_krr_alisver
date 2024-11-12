@@ -158,5 +158,5 @@ class InducingKRR:
 
         return K_inducing_sub_lin_op, K_inducing_sub_Kmm_lin_op, K_inducing_trace
 
-    def _get_trace_Kmm(self):
+    def _get_Kmm_trace(self):
         return _get_trace(self.m, self.kernel_params)

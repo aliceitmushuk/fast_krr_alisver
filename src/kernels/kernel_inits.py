@@ -4,18 +4,15 @@ from .l1_laplace import L1Laplace
 from .matern import Matern
 from .rbf import Rbf
 
+KERNEL_CLASSES = {
+    "rbf": Rbf,
+    "l1_laplace": L1Laplace,
+    "matern": Matern,
+}
+
 
 def _get_kernel_type(kernel_params):
-    ker_type = None
-
-    if kernel_params["type"] == "rbf":
-        ker_type = Rbf
-    elif kernel_params["type"] == "l1_laplace":
-        ker_type = L1Laplace
-    else:
-        ker_type = Matern
-
-    return ker_type
+    return KERNEL_CLASSES[kernel_params["type"]]
 
 
 def _get_kernel(x1_lazy, x2_lazy, kernel_params):
@@ -38,6 +35,11 @@ def _get_kernels_start(x, x_tst, kernel_params, Ktr_needed=True):
     K_tst = _get_kernel(x_tst_i, x_j, kernel_params)
 
     return x_j, K, K_tst
+
+
+def _get_row(x_i, x, kernel_params):
+    ker_type = _get_kernel_type(kernel_params)
+    return ker_type._get_row(x_i, x, kernel_params)
 
 
 def _get_trace(n, kernel_params):

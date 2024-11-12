@@ -4,6 +4,7 @@ from pykeops.torch import LazyTensor
 from ..kernels.kernel_inits import (
     _get_kernel,
     _get_kernels_start,
+    _get_row,
     _get_trace,
     _get_diag,
 )
@@ -103,6 +104,6 @@ class FullKRR:
 
     def _get_row_fn(self):
         def K_row_fn(x_i, x):
-            return _get_kernel(x_i, x, self.kernel_params)
+            return _get_row(x_i, x, self.kernel_params)
 
         return K_row_fn
