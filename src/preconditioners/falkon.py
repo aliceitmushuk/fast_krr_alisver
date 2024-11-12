@@ -7,12 +7,12 @@ class Falkon:
         self.T = None
         self.R = None
 
-    def update(self, K_mm_lz, n, m, lambd):
-        # Instantiate K_mm_lz as dense tensor
-        K_mm = K_mm_lz @ torch.eye(m).to(self.device)
+    def update(self, K_mm_lin_op, K_mm_trace, n, m, lambd):
+        # Instantiate K_mm as dense tensor
+        K_mm = K_mm_lin_op(torch.eye(m, device=self.device))
 
         # Shift factor for numerical stability
-        shift = torch.finfo(K_mm.dtype).eps * K_mm_lz.get_trace()
+        shift = torch.finfo(K_mm.dtype).eps * K_mm_trace
 
         # Get preconditioning matrices via Cholesky factorization
         try:
