@@ -102,8 +102,13 @@ class FullKRR:
     def _get_diag(self):
         return _get_diag(self.n, self.kernel_params)
 
-    def _get_row_fn(self):
-        def K_row_fn(x_i, x):
-            return _get_row(x_i, x, self.kernel_params)
+    def _get_kernel_fn(self):
+        def K_fn(x_i, x_j, get_row):
+            if get_row:
+                return _get_row(x_i, x_j, self.kernel_params)  # Tensor
+            else:
+                x_i_lz = LazyTensor(x_i[:, None, :])
+                x_j_lz = LazyTensor(x_j[None, :, :])
+                return _get_kernel(x_i_lz, x_j_lz, self.kernel_params)  # LazyTensor
 
-        return K_row_fn
+        return K_fn
