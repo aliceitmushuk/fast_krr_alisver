@@ -14,13 +14,9 @@ Please clone [this GitHub repo](https://anonymous.4open.science/r/nyc-taxi-data)
 
 This will genrerate a `.h5py` file for each month from January 2009 to December 2015. Move these files to a folder `data/taxi-data` and run `taxi_processing.py` in this (the fast_krr) repo.
 
-## Obtaining the HOMO dataset
+## Obtaining all other datasets
 
-Please download the HOMO dataset from [this Google Drive link](https://drive.google.com/file/d/1OquScu445v9JU-RyrcYGkgqFswj6uRHe/view?usp=sharing). Place it in the `data` folder.
-
-## Obtaining the SUSY and HIGGS datasets
-
-Please run `download_data.py` to obtain the SUSY and HIGGS datasets.
+Please run `download_data.py`.
 
 ## Running the experiments
 
