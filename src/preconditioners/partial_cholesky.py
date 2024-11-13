@@ -1,8 +1,5 @@
 import torch
-from ..kernels.kernel_inits import _get_kernel
-from pykeops.torch import LazyTensor
-from time import time
-from typing import Tuple
+from typing import Callable, Tuple
 
 
 class PartialCholesky:
@@ -40,16 +37,20 @@ class PartialCholesky:
 
     def update(
         self,
+        K_fn: Callable,
+        K_diag: torch.Tensor,
         x: torch.Tensor,
-        kernel_params: dict,
-        K: LazyTensor,
-        diag_K: torch.Tensor,
+        blk_size: int = None,
         tol=10**-6,
     ):
+
         if self.mode == "greedy":
-            self._update_greedy(x, kernel_params, K, diag_K, tol)
+            self._update_greedy(K_fn, K_diag, x, tol)
         else:
-            self._update_accelerated_rpc(x, kernel_params, diag_K, stoptol=tol)
+            if blk_size is None:
+                blk_size = (torch.ceil(torch.tensor(self.r / 10)).int()).item()
+
+            self._update_accelerated_rpc(K_fn, K_diag, x, blk_size, stoptol=tol)
 
     def inv_lin_op(self, v: torch.Tensor) -> torch.Tensor:
         Lv = self.L @ v
@@ -65,32 +66,30 @@ class PartialCholesky:
 
     def _update_greedy(
         self,
+        K_fn: Callable,
+        K_diag: torch.Tensor,
         x: torch.Tensor,
-        kernel_params: dict,
-        K: LazyTensor,
-        diag_K: torch.Tensor,
         tol=10**-6,
     ):
         n = x.shape[0]
         self.L = torch.zeros(self.r, n, device=self.device)
-        diag_K = diag_K.to(self.device)
+        K_diag = K_diag.to(self.device)
 
         for i in range(self.r):
             # Find pivot index corresponding to maximum diagonal entry
-            idx = torch.argmax(diag_K)
+            idx = torch.argmax(K_diag)
 
             # Fetch corresponding datapoint and compute corresponding row of the kernel
-            x_idx = x[idx]
-            k_idx = K.get_row(x_idx, x, kernel_params)
+            k_idx = K_fn(x[idx], x, get_row=True)
 
             # Cholesky factor update
             self.L[i, :] = (
                 k_idx - torch.matmul(self.L[:i, idx].t(), self.L[:i, :])
-            ) / torch.sqrt(diag_K[idx])
+            ) / torch.sqrt(K_diag[idx])
             # Update diagonal
-            diag_K -= self.L[i, :] ** 2
-            diag_K = diag_K.clip(min=0)
-            if torch.max(diag_K) <= tol:
+            K_diag -= self.L[i, :] ** 2
+            K_diag = K_diag.clip(min=0)
+            if torch.max(K_diag) <= tol:
                 break
 
         self.M = torch.linalg.cholesky(
@@ -99,25 +98,18 @@ class PartialCholesky:
 
     def _update_accelerated_rpc(
         self,
+        K_fn: Callable,
+        K_diag: torch.Tensor,
         x: torch.Tensor,
-        kernel_params: dict,
-        diag_K: torch.Tensor,
-        b="auto",
+        blk_size: int,
         stoptol=1e-13,
-        verbose=False,
     ):
         r"""Constructs a low-rank preconditioner from Nystrom approximation
         constructed from the accelerated RPCholesky of Epperly et al. (2024)"""
 
-        diag_K = diag_K.to(self.device)
-        n = diag_K.shape[0]
-        orig_trace = sum(diag_K)
-
-        if b == "auto":
-            b = int(torch.ceil(torch.tensor(self.r / 10)))
-            auto_b = True
-        else:
-            auto_b = False
+        K_diag = K_diag.to(self.device)
+        n = K_diag.shape[0]
+        orig_trace = sum(K_diag)
 
         # row ordering
         self.L = torch.zeros((self.r, n), device=self.device)
@@ -127,12 +119,9 @@ class PartialCholesky:
 
         counter = 0
         while counter < self.r:
-            idx = torch.multinomial(diag_K / sum(diag_K), b, replacement=True)
+            idx = torch.multinomial(K_diag / sum(K_diag), blk_size, replacement=True)
 
-            if auto_b:
-                start = time()
-
-            Kbb = self._get_block_kernel(x, idx, kernel_params)
+            Kbb = self._get_block_kernel(x, idx, K_fn)
             H = Kbb - self.L[0:counter, idx].T @ self.L[0:counter, idx]
             C, accepted = self._rejection_cholesky(H)
             num_sel = len(accepted)
@@ -144,14 +133,8 @@ class PartialCholesky:
 
             idx = idx[accepted]
 
-            if auto_b:
-                rejection_time = time() - start
-                start = time()
-
             arr_idx[counter : counter + num_sel] = idx
-            rows[counter : counter + num_sel, :] = self._get_row_kernel(
-                x, idx, kernel_params
-            )
+            rows[counter : counter + num_sel, :] = self._get_row_kernel(x, idx, K_fn)
             self.L[counter : counter + num_sel, :] = (
                 rows[counter : counter + num_sel, :]
                 - self.L[0:counter, idx].T @ self.L[0:counter, :]
@@ -159,66 +142,39 @@ class PartialCholesky:
             self.L[counter : counter + num_sel, :] = torch.linalg.solve(
                 C, self.L[counter : counter + num_sel, :]
             )
-            diag_K -= torch.sum(self.L[counter : counter + num_sel, :] ** 2, axis=0)
-            diag_K = diag_K.clip(min=0)
-
-            if auto_b:
-                process_time = time() - start
-
-                # Assuming rejection_time ~ A b^2 and process_time ~ C b
-                # then obtaining rejection_time = process_time / 4 entails
-                # b = C / 4A = (process_time / b) / 4 (rejection_time / b^2)
-                #   = b * process_time / (4 * rejection_time)
-                target = int(
-                    torch.ceil(torch.tensor(b * process_time / (4 * rejection_time)))
-                )
-                b = max(
-                    [
-                        min(
-                            [
-                                target,
-                                int(torch.ceil(torch.tensor(1.5 * b))),
-                                int(torch.ceil(torch.tensor(self.r / 3))),
-                            ]
-                        ),
-                        int(torch.ceil(torch.tensor(b / 3))),
-                        10,
-                    ]
-                )
+            K_diag -= torch.sum(self.L[counter : counter + num_sel, :] ** 2, axis=0)
+            K_diag = K_diag.clip(min=0)
 
             counter += num_sel
 
-            if stoptol > 0 and sum(diag_K) <= stoptol * orig_trace:
+            if stoptol > 0 and sum(K_diag) <= stoptol * orig_trace:
                 self.L = self.L[:counter, :]
                 rows = rows[:counter, :]
                 break
-
-            if verbose:
-                print("Accepted {} / {}".format(num_sel, b))
 
         self.M = torch.linalg.cholesky(
             self.L @ self.L.t() + self.rho * torch.eye(self.r, device=self.device)
         )
 
-    def _get_block_kernel(
-        self, x: torch.Tensor, block: torch.Tensor, kernel_params: dict
-    ):
+    def _get_block_kernel(self, x: torch.Tensor, block: torch.Tensor, K_fn: Callable):
         r"""Helper function that returns explicit block kernel
         matrix as a torch tensor of size |block| x |block|"""
-        xb_i = LazyTensor(x[block][:, None, :])
-        xb_j = LazyTensor(x[block][None, :, :])
-        Kbb = _get_kernel(xb_i, xb_j, kernel_params)
         b = len(block)
-        return Kbb @ torch.eye(b, device=self.device)
+        if b == 1:
+            return K_fn(x[block], x[block], get_row=True)
+        else:
+            Kbb = K_fn(x[block], x[block], get_row=False)
+            return Kbb @ torch.eye(b, device=self.device)
 
-    def _get_row_kernel(self, x, row_indices, kernel_params):
+    def _get_row_kernel(self, x, row_indices, K_fn: Callable):
         r"""Helper function that returns explicit kernel matrix formed from a
         subset of rows of K as a torch tensor of size |block| x n"""
-        xb_i = LazyTensor(x[row_indices][:, None, :])
-        xb_j = LazyTensor(x[None, :, :])
-        Kbn = _get_kernel(xb_i, xb_j, kernel_params)
         b = len(row_indices)
-        return (Kbn.T @ torch.eye(b, device=self.device)).T
+        if b == 1:
+            return K_fn(x[row_indices], x, get_row=True)
+        else:
+            Kbn = K_fn(x[row_indices], x, get_row=False)
+            return (Kbn.T @ torch.eye(b, device=self.device)).T
 
     def _rejection_cholesky(self, H: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         r"""Implements rejection step in accelerated RPCholesky.

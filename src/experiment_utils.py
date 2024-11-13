@@ -193,7 +193,7 @@ def get_inducing_krr(
         x_tst=Xtst,
         b_tst=ytst,
         kernel_params=kernel_params,
-        Knm_neeeded=Knm_needed,
+        Knm_needed=Knm_needed,
         inducing_pts=inducing_pts,
         lambd=lambd,
         task=task,
