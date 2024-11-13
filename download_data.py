@@ -1,9 +1,17 @@
 import requests
 import os
+import subprocess
 import bz2
 import lzma
-from sklearn.datasets import fetch_openml
+import shutil
+
+import numpy as np
 import pandas as pd
+from sklearn.datasets import fetch_openml
+import qml
+from scipy.io import savemat
+
+SEED = 0
 
 
 def decompress_bz2(dataset, directory, file_path):
@@ -54,6 +62,78 @@ def download_libsvm(url_stem, datasets, directory):
             print("Error: ", response.status_code)
 
 
+def download_sgdml(url_stem, datasets, directory):
+    for dataset in datasets:
+        print(f"Downloading {dataset}...")
+        url = f"{url_stem}/{dataset}"
+        file_path = os.path.join(directory, dataset)
+
+        # Download the dataset
+        response = requests.get(url)
+        if response.status_code == 200:
+            with open(file_path, "wb") as f:
+                f.write(response.content)
+            print(f"Downloaded {dataset} successfully")
+        else:
+            print("Error: ", response.status_code)
+
+
+def download_qm9(url, directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    cwd = os.getcwd()
+    os.chdir(directory)
+
+    # Download the file using wget, suppressing only stdout
+    print("Downloading QM9 dataset...")
+    subprocess.run(["wget", url], stdout=subprocess.DEVNULL)
+
+    # Extract the contents of the file, suppressing only stdout
+    print("Extracting QM9 dataset...")
+    subprocess.run(["tar", "-xvf", "3195389"], stdout=subprocess.DEVNULL)
+
+    # Remove the original downloaded file
+    os.remove("3195389")
+
+    # Change back to the previous directory
+    os.chdir(cwd)
+
+
+def process_qm9(directory, max_atoms=29, output_index=7):
+    print("Processing QM9 dataset...")
+    compounds = []
+    energies = []
+    for f in sorted(os.listdir(directory)):
+        try:
+            fname = os.path.join(directory, f)
+            mol = qml.Compound(xyz=fname)
+            mol.generate_coulomb_matrix(size=max_atoms, sorting="row-norm")
+            with open(fname) as myfile:
+                line = list(myfile.readlines())[1]
+                energies.append(
+                    float(line.split()[output_index]) * 27.2114
+                )  # Hartrees to eV
+            compounds.append(mol)
+        except ValueError:
+            pass
+        finally:
+            # Delete the file regardless of success or failure
+            os.remove(fname)
+
+    # After processing all files, delete the directory and its contents
+    shutil.rmtree(directory)
+
+    c = list(zip(compounds, energies))
+    np.random.shuffle(c)
+    compounds, energies = zip(*c)
+
+    X = np.array([mol.representation for mol in compounds])
+    Y = np.array(energies).reshape((X.shape[0], 1))
+
+    return X, Y
+
+
 def main():
     # Create the data directory if it doesn't exist
     directory = os.path.abspath("./data")
@@ -62,13 +142,80 @@ def main():
 
     # From LIBSVM
     url_stem = "https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary"
-    datasets = ["SUSY.xz", "HIGGS.xz"]
-
+    datasets = [
+        "cod-rna",
+        "cod-rna.t",
+        "covtype.libsvm.binary.scale.bz2",
+        "HIGGS.xz",
+        "ijcnn1.tr.bz2",
+        "ijcnn1.t.bz2",
+        "w8a",
+        "w8a.t",
+        "a9a",
+        "a9a.t",
+        "phishing",
+        "skin_nonskin",
+        "SUSY.xz",
+    ]
     download_libsvm(url_stem, datasets, directory)
 
-    # datasets = [("airlines", 42728)]
+    url_stem = "https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/multiclass"
+    datasets = ["connect-4", "Sensorless.scale.tr", "Sensorless.scale.val"]
+    download_libsvm(url_stem, datasets, directory)
 
-    # download_openml(datasets, directory)
+    url_stem = (
+        "https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/multiclass/vehicle"
+    )
+    datasets = [
+        "combined_scale.bz2",
+        "combined_scale.t.bz2",  # SENSit Vehicle (combined)
+    ]
+    download_libsvm(url_stem, datasets, directory)
+
+    url_stem = "https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/regression"
+    datasets = ["YearPredictionMSD.bz2", "YearPredictionMSD.t.bz2", "cadata"]
+    download_libsvm(url_stem, datasets, directory)
+
+    # From OpenML
+    datasets = [
+        ("acsincome", 43141),
+        ("airlines", 42721),
+        ("comet_mc", 23397),
+        ("creditcard", 1597),
+        ("diamonds", 42225),
+        ("hls4ml", 42468),
+        ("jannis", 45021),
+        ("medical", 43617),
+        ("mnist", 554),
+        ("volkert", 41166),
+        ("yolanda", 42705),
+        ("click_prediction", 1218),
+        ("miniboone", 41150),
+        ("santander", 45566),
+    ]
+    download_openml(datasets, directory)
+
+    # From sGDML
+    url_stem = "http://www.quantum-machine.org/gdml/data/npz"
+    datasets = [
+        "md17_benzene2017.npz",
+        "md17_uracil.npz",
+        "md17_naphthalene.npz",
+        "md17_aspirin.npz",
+        "md17_salicylic.npz",
+        "md17_malonaldehyde.npz",
+        "md17_ethanol.npz",
+        "md17_toluene.npz",
+    ]
+    download_sgdml(url_stem, datasets, directory)
+
+    # From QM9
+    np.random.seed(SEED)
+    url = "https://figshare.com/ndownloader/files/3195389"
+    directory_qm9 = os.path.join(directory, "qm9")
+    download_qm9(url, directory_qm9)
+    X, Y = process_qm9(directory_qm9)
+    savemat(os.path.join(directory, "homo.mat"), {"X": X, "Y": Y})
 
 
 if __name__ == "__main__":
