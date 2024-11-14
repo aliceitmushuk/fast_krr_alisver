@@ -23,27 +23,28 @@ DATA_FILES = {
     "cod_rna": {"tr": "cod-rna", "tst": "cod-rna.t"},
     "comet_mc": {"tr": "comet_mc_data.pkl", "tgt": "comet_mc_target.pkl"},
     "connect_4": {"tr": "connect-4"},
-    "covtype_binary": "covtype.libsvm.binary.scale",
+    "covtype_binary": {"tr": "covtype.libsvm.binary.scale"},
     "creditcard": {"tr": "creditcard_data.pkl", "tgt": "creditcard_target.pkl"},
     "diamonds": {"tr": "diamonds_data.pkl", "tgt": "diamonds_target.pkl"},
     "ethanol": {"tr": "md17_ethanol.npz"},
     "higgs": {"tr": "HIGGS"},
-    "homo": {"tr": "homo.mat"},
     "hls4ml": {"tr": "hls4ml_data.pkl", "tgt": "hls4ml_target.pkl"},
     "ijcnn1": {"tr": "ijcnn1.tr", "tst": "ijcnn1.t"},
     "jannis": {"tr": "jannis_data.pkl", "tgt": "jannis_target.pkl"},
     "malonaldehyde": {"tr": "md17_malonaldehyde.npz"},
     "medical": {"tr": "medical_data.pkl", "tgt": "medical_target.pkl"},
     "miniboone": {"tr": "miniboone_data.pkl", "tgt": "miniboone_target.pkl"},
+    "mnist": {"tr": "mnist_data.pkl", "tgt": "mnist_target.pkl"},
     "naphthalene": {"tr": "md17_naphthalene.npz"},
     "phishing": {"tr": "phishing"},
+    "qm9": {"tr": "homo.mat"},
     "santander": {"tr": "santander_data.pkl", "tgt": "santander_target.pkl"},
     "salicylic": {"tr": "md17_salicylic.npz"},
     "sensit_vehicle": {"tr": "combined_scale", "tst": "combined_scale.t"},
     "sensorless": {"tr": "Sensorless.scale.tr", "tst": "Sensorless.scale.val"},
     "skin_nonskin": {"tr": "skin_nonskin"},
     "susy": {"tr": "SUSY"},
-    "taxi_sub": {"tr": "taxi-data/subsampled_data.h5py"},
+    "taxi": {"tr": "taxi-data/subsampled_data.h5py"},
     "toluene": {"tr": "md17_toluene.npz"},
     "uracil": {"tr": "md17_uracil.npz"},
     "volkert": {"tr": "volkert_data.pkl", "tgt": "volkert_target.pkl"},
@@ -122,7 +123,6 @@ def load_data(dataset, seed, device):
         )
 
         Xtr, Xtst = standardize(Xtr, Xtst)
-        # ytr, ytst = standardize(ytr, ytst)
     elif dataset == "susy":
         data = load_svmlight_file(os.path.join(DATA_DIR, DATA_FILES[dataset]))
 
@@ -161,7 +161,6 @@ def load_data(dataset, seed, device):
         )
 
         Xtr, Xtst = standardize(Xtr, Xtst)
-        # ytr, ytst = standardize(ytr, ytst)
     else:
         raise ValueError("We do not currently support this dataset")
 

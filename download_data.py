@@ -176,7 +176,7 @@ def main():
     # From OpenML
     datasets = [
         ("acsincome", 43141),
-        ("airlines", 42721),
+        ("airlines", 45047),
         ("comet_mc", 23397),
         ("creditcard", 1597),
         ("diamonds", 42225),
@@ -211,7 +211,7 @@ def main():
     directory_qm9 = os.path.join(directory, "qm9")
     download_qm9(url, directory_qm9)
     X, Y = process_qm9(directory_qm9)
-    savemat(os.path.join(directory, "homo.mat"), {"X": X, "Y": Y})
+    savemat(os.path.join(directory, "qm9.mat"), {"X": X, "Y": Y})
 
 
 if __name__ == "__main__":
