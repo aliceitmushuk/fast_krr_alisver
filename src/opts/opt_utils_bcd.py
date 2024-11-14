@@ -55,7 +55,7 @@ def _get_block_precond_L(model, block, precond_params):
     if precond is not None:
         if isinstance(precond, Nystrom):
             L = _get_L(
-                block_lin_op_reg, precond.inv_sqrt_lin_op, block.shape[0], model.device
+                block_lin_op_reg, precond.inv_lin_op, block.shape[0], model.device
             )
         elif isinstance(precond, Newton):
             L = 1.0
