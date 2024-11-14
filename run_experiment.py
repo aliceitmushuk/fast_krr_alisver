@@ -1,6 +1,6 @@
 import argparse
 
-from src.data_utils import DATA_KEYS
+from src.data_configs import DATA_KEYS
 from src.experiment import Experiment
 from src.experiment_utils import (
     ParseParams,

@@ -8,54 +8,13 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 import torch
 
-DATA_DIR = "./data/"
-DATA_FILES = {
-    "a9a": {"tr": "a9a", "tst": "a9a.t"},
-    "acsincome": {"tr": "acsincome_data.pkl", "tgt": "acsincome_target.pkl"},
-    "airlines": {"tr": "airlines_data.pkl", "tgt": "airlines_target.pkl"},
-    "aspirin": {"tr": "md17_aspirin.npz"},
-    "benzene": {"tr": "md17_benzene2017.npz"},
-    "cadata": {"tr": "cadata"},
-    "click_prediction": {
-        "tr": "click_prediction_data.pkl",
-        "tgt": "click_prediction_target.pkl",
-    },
-    "cod_rna": {"tr": "cod-rna", "tst": "cod-rna.t"},
-    "comet_mc": {"tr": "comet_mc_data.pkl", "tgt": "comet_mc_target.pkl"},
-    "connect_4": {"tr": "connect-4"},
-    "covtype_binary": {"tr": "covtype.libsvm.binary.scale"},
-    "creditcard": {"tr": "creditcard_data.pkl", "tgt": "creditcard_target.pkl"},
-    "diamonds": {"tr": "diamonds_data.pkl", "tgt": "diamonds_target.pkl"},
-    "ethanol": {"tr": "md17_ethanol.npz"},
-    "higgs": {"tr": "HIGGS"},
-    "hls4ml": {"tr": "hls4ml_data.pkl", "tgt": "hls4ml_target.pkl"},
-    "ijcnn1": {"tr": "ijcnn1.tr", "tst": "ijcnn1.t"},
-    "jannis": {"tr": "jannis_data.pkl", "tgt": "jannis_target.pkl"},
-    "malonaldehyde": {"tr": "md17_malonaldehyde.npz"},
-    "medical": {"tr": "medical_data.pkl", "tgt": "medical_target.pkl"},
-    "miniboone": {"tr": "miniboone_data.pkl", "tgt": "miniboone_target.pkl"},
-    "mnist": {"tr": "mnist_data.pkl", "tgt": "mnist_target.pkl"},
-    "naphthalene": {"tr": "md17_naphthalene.npz"},
-    "phishing": {"tr": "phishing"},
-    "qm9": {"tr": "homo.mat"},
-    "santander": {"tr": "santander_data.pkl", "tgt": "santander_target.pkl"},
-    "salicylic": {"tr": "md17_salicylic.npz"},
-    "sensit_vehicle": {"tr": "combined_scale", "tst": "combined_scale.t"},
-    "sensorless": {"tr": "Sensorless.scale.tr", "tst": "Sensorless.scale.val"},
-    "skin_nonskin": {"tr": "skin_nonskin"},
-    "susy": {"tr": "SUSY"},
-    "taxi": {"tr": "taxi-data/subsampled_data.h5py"},
-    "toluene": {"tr": "md17_toluene.npz"},
-    "uracil": {"tr": "md17_uracil.npz"},
-    "volkert": {"tr": "volkert_data.pkl", "tgt": "volkert_target.pkl"},
-    "w8a": {"tr": "w8a", "tst": "w8a.t"},
-    "yearpredictionmsd": {"tr": "YearPredictionMSD", "tst": "YearPredictionMSD.t"},
-    "yolanda": {"tr": "yolanda_data.pkl", "tgt": "yolanda_target.pkl"},
-}
-DATA_KEYS = list(DATA_FILES.keys()) + ["synthetic"]
-SYNTHETIC_NTR = 10000
-SYNTHETIC_NTST = 1000
-SYNTHETIC_D = 10
+from .data_configs import (
+    DATA_DIR,
+    DATA_CONFIGS,
+    SYNTHETIC_NTR,
+    SYNTHETIC_NTST,
+    SYNTHETIC_D,
+)
 
 
 def standardize(data_tr, data_tst):
@@ -113,7 +72,7 @@ def load_data(dataset, seed, device):
             SYNTHETIC_NTR, SYNTHETIC_NTST, SYNTHETIC_D
         )
     elif dataset == "homo":
-        data = loadmat(os.path.join(DATA_DIR, DATA_FILES[dataset]))
+        data = loadmat(os.path.join(DATA_DIR, DATA_CONFIGS[dataset]))
 
         X, y = data["X"], data["Y"]
         y = np.squeeze(y)  # Remove singleton dimension due to .mat format
@@ -124,7 +83,7 @@ def load_data(dataset, seed, device):
 
         Xtr, Xtst = standardize(Xtr, Xtst)
     elif dataset == "susy":
-        data = load_svmlight_file(os.path.join(DATA_DIR, DATA_FILES[dataset]))
+        data = load_svmlight_file(os.path.join(DATA_DIR, DATA_CONFIGS[dataset]))
 
         X, y = data[0], data[1]
         y[y == 0] = -1
@@ -137,7 +96,7 @@ def load_data(dataset, seed, device):
 
         Xtr, Xtst = standardize(Xtr, Xtst)
     elif dataset == "higgs":
-        data = load_svmlight_file(os.path.join(DATA_DIR, DATA_FILES[dataset]))
+        data = load_svmlight_file(os.path.join(DATA_DIR, DATA_CONFIGS[dataset]))
 
         X, y = data[0], data[1]
         y[y == 0] = -1
@@ -150,7 +109,7 @@ def load_data(dataset, seed, device):
 
         Xtr, Xtst = standardize(Xtr, Xtst)
     elif dataset == "taxi_sub":
-        with h5py.File(os.path.join(DATA_DIR, DATA_FILES[dataset]), "r") as f:
+        with h5py.File(os.path.join(DATA_DIR, DATA_CONFIGS[dataset]), "r") as f:
             X = f["X"][()]
             y = f["Y"][()]
 
