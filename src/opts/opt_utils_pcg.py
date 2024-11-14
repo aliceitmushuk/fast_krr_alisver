@@ -15,8 +15,8 @@ def _get_precond(model, precond_params, device):
             "lambd": model.lambd,
         }
     elif type == "newton":
-        K_lin_op_reg = model._get_full_lin_op_reg()
-        update_params = {"K_lin_op": K_lin_op_reg, "n": model.n}
+        K_lin_op, _ = model._get_full_lin_op()
+        update_params = {"K_lin_op": K_lin_op, "n": model.n}
     elif type == "nystrom":
         K_lin_op, K_trace = model._get_full_lin_op()
         update_params = {"K_lin_op": K_lin_op, "K_trace": K_trace, "n": model.n}

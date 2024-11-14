@@ -28,7 +28,7 @@ def _get_block_precond(model, block, precond_params):
     type = precond_params.get("type", None)
     update_params = None
     if type == "newton":
-        update_params = {"K_lin_op": block_lin_op_reg, "n": block.shape[0]}
+        update_params = {"K_lin_op": block_lin_op, "n": block.shape[0]}
     elif type == "nystrom":
         update_params = {
             "K_lin_op": block_lin_op,
@@ -47,12 +47,20 @@ def _get_block_precond(model, block, precond_params):
         }
     precond = pi._get_precond(precond_params, update_params, model.device)
 
+    # Set the rho parameter for the Nystrom preconditioner
+    if type == "nystrom":
+        precond.rho = (
+            model.lambd + precond.S[-1]
+            if "rho" not in precond_params
+            else precond_params["rho"]
+        )
+
     return precond, block_lin_op_reg
 
 
 def _get_block_precond_L(model, block, precond_params):
     precond, block_lin_op_reg = _get_block_precond(model, block, precond_params)
-    L = _get_L(block_lin_op_reg, precond, model.m, model.device)
+    L = _get_L(block_lin_op_reg, precond, block.shape[0], model.device)
 
     return precond, L
 
