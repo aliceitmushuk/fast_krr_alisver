@@ -84,6 +84,12 @@ class FullKRR:
 
         return K_lin_op, K_trace
 
+    def _get_full_lin_op_reg(self):
+        def K_lin_op_reg(v):
+            return self.K @ v + self.lambd * v
+
+        return K_lin_op_reg
+
     def _get_block_lin_ops(self, block):
         xb_i = LazyTensor(self.x[block][:, None, :])
         xb_j = LazyTensor(self.x[block][None, :, :])
@@ -99,8 +105,11 @@ class FullKRR:
 
         return Kb_lin_op, Kb_lin_op_reg, Kb_trace
 
-    def _get_diag(self):
-        return _get_diag(self.n, self.kernel_params)
+    def _get_diag(self, sz=None):
+        if sz is None:
+            return _get_diag(self.n, self.kernel_params)
+        else:
+            return _get_diag(sz, self.kernel_params)
 
     def _get_kernel_fn(self):
         def K_fn(x_i, x_j, get_row):

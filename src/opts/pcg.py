@@ -1,7 +1,7 @@
 import torch
 
 from .opt_utils import _apply_precond
-from .opt_utils_pcg import _get_precond_full, _get_precond_inducing
+from .opt_utils_pcg import _get_precond
 
 
 class PCG:
@@ -10,8 +10,7 @@ class PCG:
         self.precond_params = precond_params
 
         self.rhs = self.model.K_nmTb if self.model.inducing else self.model.b
-        precond_fn = _get_precond_inducing if self.model.inducing else _get_precond_full
-        self.precond = precond_fn(self.model, self.precond_params, self.model.device)
+        self.precond = _get_precond(self.model, self.precond_params, self.model.device)
 
         self.r, self.z, self.p = self._init_pcg()
 
