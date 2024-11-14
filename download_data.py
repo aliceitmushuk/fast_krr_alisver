@@ -11,8 +11,6 @@ from sklearn.datasets import fetch_openml
 import qml
 from scipy.io import savemat
 
-SEED = 0
-
 
 def decompress_bz2(dataset, directory, file_path):
     print(f"Decompressing {dataset}...")
@@ -125,7 +123,6 @@ def process_qm9(directory, max_atoms=29, output_index=7):
     shutil.rmtree(directory)
 
     c = list(zip(compounds, energies))
-    np.random.shuffle(c)
     compounds, energies = zip(*c)
 
     X = np.array([mol.representation for mol in compounds])
@@ -210,7 +207,6 @@ def main():
     download_sgdml(url_stem, datasets, directory)
 
     # From QM9
-    np.random.seed(SEED)
     url = "https://figshare.com/ndownloader/files/3195389"
     directory_qm9 = os.path.join(directory, "qm9")
     download_qm9(url, directory_qm9)
