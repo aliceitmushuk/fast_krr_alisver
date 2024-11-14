@@ -51,6 +51,10 @@ DATA_FILES = {
     "yearpredictionmsd": {"tr": "YearPredictionMSD", "tst": "YearPredictionMSD.t"},
     "yolanda": {"tr": "yolanda_data.pkl", "tgt": "yolanda_target.pkl"},
 }
+DATA_KEYS = list(DATA_FILES.keys()) + ["synthetic"]
+SYNTHETIC_NTR = 10000
+SYNTHETIC_NTST = 1000
+SYNTHETIC_D = 10
 
 
 def standardize(data_tr, data_tst):
@@ -91,15 +95,22 @@ def np_to_torch_tr_tst(Xtr, Xtst, ytr, ytst, device):
     return Xtr, Xtst, ytr, ytst
 
 
+def _generate_synthetic_data(ntr, ntst, d):
+    Xtr = np.random.randn(ntr, d)
+    Xtst = np.random.randn(ntst, d)
+
+    a = np.random.randn(d)
+    ytr = np.sign(Xtr @ a)
+    ytst = np.sign(Xtst @ a)
+    return Xtr, Xtst, ytr, ytst
+
+
 # Modify to accomodate other datasets
 def load_data(dataset, seed, device):
     if dataset == "synthetic":
-        Xtr = np.random.randn(10000, 10)
-        Xtst = np.random.randn(1000, 10)
-
-        a = np.random.randn(10)
-        ytr = np.sign(Xtr @ a)
-        ytst = np.sign(Xtst @ a)
+        Xtr, Xtst, ytr, ytst = _generate_synthetic_data(
+            SYNTHETIC_NTR, SYNTHETIC_NTST, SYNTHETIC_D
+        )
     elif dataset == "homo":
         data = loadmat(os.path.join(DATA_DIR, DATA_FILES[dataset]))
 
