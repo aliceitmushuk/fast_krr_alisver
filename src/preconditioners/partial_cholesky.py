@@ -23,7 +23,7 @@ class PartialCholesky:
     randomly pivoted Cholesky." arXiv preprint arXiv:2410.03969 (2024).
     """
 
-    def __init__(self, device: str, r: int, rho: float = None, mode="rpc"):
+    def __init__(self, device: str, r: int, rho: float = None, mode: str = "rpc"):
         if mode not in ["rpc", "greedy"]:
             raise ValueError(f"PartialCholesky does not support factorization: {mode}")
 
