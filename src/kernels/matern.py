@@ -4,9 +4,6 @@ from .kernel import Kernel
 
 
 class Matern(Kernel):
-    def __init__(self, x1_lazy, x2_lazy, kernel_params):
-        super().__init__(x1_lazy, x2_lazy, kernel_params)
-
     @staticmethod
     def _check_kernel_params(kernel_params):
         if "sigma" not in kernel_params:
@@ -16,7 +13,8 @@ class Matern(Kernel):
         if kernel_params["nu"] not in [0.5, 1.5, 2.5]:
             raise ValueError("nu must be 0.5, 1.5, or 2.5")
 
-    def _compute_kernel(self, x1_lazy, x2_lazy, kernel_params):
+    @staticmethod
+    def _get_kernel(x1_lazy, x2_lazy, kernel_params):
         nu = kernel_params["nu"]
         sigma = kernel_params["sigma"]
 
@@ -33,15 +31,8 @@ class Matern(Kernel):
 
         return K
 
-    def get_diag(self):
-        if self.K.shape[0] != self.K.shape[1]:
-            raise ValueError("The kernel matrix is not square")
-        return torch.ones(self.K.shape[0])
-
-    def get_trace(self):
-        return self.get_diag().sum().item()
-
-    def get_row(self, x_i, x, kernel_params):
+    @staticmethod
+    def _get_row(x_i, x, kernel_params):
         nu = kernel_params["nu"]
         sigma = kernel_params["sigma"]
 
@@ -57,3 +48,11 @@ class Matern(Kernel):
             k_i = (1 + D_adj + 5 * D**2 / (3 * sigma**2)) * (-D_adj).exp()
 
         return k_i
+
+    @staticmethod
+    def _get_diag(n):
+        return torch.ones(n)
+
+    @staticmethod
+    def _get_trace(n):
+        return Matern._get_diag(n).sum().item()
