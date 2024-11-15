@@ -105,6 +105,12 @@ class FullKRR:
         else:
             return _get_diag(sz, self.kernel_params)
 
+    def _get_diag_fn(self):
+        def K_diag_fn(n):
+            return _get_diag(n, self.kernel_params)
+
+        return K_diag_fn
+
     def _get_kernel_fn(self):
         def K_fn(x_i, x_j, get_row):
             if get_row:
