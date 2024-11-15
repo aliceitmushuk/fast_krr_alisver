@@ -1,6 +1,6 @@
 DATA_DIR = "./data/"
 DATA_CONFIGS = {
-    "a9a": {"tr": "a9a", "tst": "a9a.t", "loading": "libsvm"},
+    "a9a": {"tr": "a9a", "tst": "a9a.t", "loading": "libsvm_multiple"},
     "acsincome": {
         "tr": "acsincome_data.pkl",
         "tgt": "acsincome_target.pkl",
@@ -23,7 +23,7 @@ DATA_CONFIGS = {
         "split": 0.8,
         "label_map": {0: -1, 1: 1},
     },
-    "cod_rna": {"tr": "cod-rna", "tst": "cod-rna.t", "loading": "libsvm"},
+    "cod_rna": {"tr": "cod-rna", "tst": "cod-rna.t", "loading": "libsvm_multiple"},
     "comet_mc": {
         "tr": "comet_mc_data.pkl",
         "tgt": "comet_mc_target.pkl",
@@ -55,12 +55,14 @@ DATA_CONFIGS = {
         "tgt": "diamonds_target.pkl",
         "loading": "pkl",
         "split": 0.8,
+        "one_hot_features": ["cut", "color", "clarity"],
     },
     "ethanol": {"tr": "md17_ethanol.npz", "loading": "npz", "split": 0.8},
     "higgs": {
         "tr": "HIGGS",
         "loading": "libsvm",
         "split": 10500000,
+        "shuffle": False,
         "label_map": {0: -1, 1: 1},
     },
     "hls4ml": {
@@ -70,7 +72,7 @@ DATA_CONFIGS = {
         "split": 0.8,
         "label_map": {"g": -1, "w": 1, "t": 1, "z": 1, "q": 1},
     },
-    "ijcnn1": {"tr": "ijcnn1.tr", "tst": "ijcnn1.t", "loading": "libsvm"},
+    "ijcnn1": {"tr": "ijcnn1.tr", "tst": "ijcnn1.t", "loading": "libsvm_multiple"},
     "jannis": {
         "tr": "jannis_data.pkl",
         "tgt": "jannis_target.pkl",
@@ -98,6 +100,7 @@ DATA_CONFIGS = {
         "tgt": "mnist_target.pkl",
         "loading": "pkl",
         "split": 60000,
+        "shuffle": False,
         "label_map": {0: -1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1},
     },
     "naphthalene": {"tr": "md17_naphthalene.npz", "loading": "npz", "split": 0.8},
@@ -107,7 +110,7 @@ DATA_CONFIGS = {
         "split": 0.8,
         "label_map": {0: -1, 1: 1},
     },
-    "qm9": {"tr": "homo.mat", "loading": "mat", "split": 100000},
+    "qm9": {"tr": "homo.mat", "loading": "mat", "split": 100000, "shuffle": True},
     "santander": {
         "tr": "santander_data.pkl",
         "tgt": "santander_target.pkl",
@@ -119,13 +122,13 @@ DATA_CONFIGS = {
     "sensit_vehicle": {
         "tr": "combined_scale",
         "tst": "combined_scale.t",
-        "loading": "libsvm",
+        "loading": "libsvm_multiple",
         "label_map": {1: -1, 2: 1, 3: 1},
     },
     "sensorless": {
         "tr": "Sensorless.scale.tr",
         "tst": "Sensorless.scale.val",
-        "loading": "libsvm",
+        "loading": "libsvm_multiple",
         "label_map": {
             1: -1,
             2: 1,
@@ -150,13 +153,14 @@ DATA_CONFIGS = {
         "tr": "SUSY",
         "loading": "libsvm",
         "split": 4500000,
+        "shuffle": False,
         "label_map": {0: -1, 1: 1},
     },
-    "synthetic": {},
     "taxi": {
         "tr": "taxi-data/subsampled_data.h5py",
         "loading": "h5py",
         "split": 100000000,
+        "shuffle": True,
     },
     "toluene": {"tr": "md17_toluene.npz", "loading": "npz", "split": 0.8},
     "uracil": {"tr": "md17_uracil.npz", "loading": "npz", "split": 0.8},
@@ -167,11 +171,11 @@ DATA_CONFIGS = {
         "split": 0.8,
         "label_map": {0: -1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1},
     },
-    "w8a": {"tr": "w8a", "tst": "w8a.t", "loading": "libsvm"},
+    "w8a": {"tr": "w8a", "tst": "w8a.t", "loading": "libsvm_multiple"},
     "yearpredictionmsd": {
         "tr": "YearPredictionMSD",
         "tst": "YearPredictionMSD.t",
-        "loading": "libsvm",
+        "loading": "libsvm_multiple",
     },
     "yolanda": {
         "tr": "yolanda_data.pkl",
@@ -180,7 +184,17 @@ DATA_CONFIGS = {
         "split": 0.8,
     },
 }
-DATA_KEYS = list(DATA_CONFIGS.keys())
+MOLECULES = [
+    "aspirin",
+    "benzene",
+    "ethanol",
+    "malonaldehyde",
+    "naphthalene",
+    "salicylic",
+    "toluene",
+    "uracil",
+]
+DATA_KEYS = list(DATA_CONFIGS.keys()) + ["synthetic"]
 SYNTHETIC_NTR = 10000
 SYNTHETIC_NTST = 1000
 SYNTHETIC_D = 10
