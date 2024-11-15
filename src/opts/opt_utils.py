@@ -1,5 +1,7 @@
 import torch
 
+from .bless import _bless_size, _estimate_rls_bless
+
 
 def _apply_precond(v, precond):
     if precond is not None:
@@ -23,5 +25,14 @@ def _get_L(mat_lin_op, precond, n, device):
         max_eig = torch.dot(v_old, v)
 
         v = v / torch.linalg.norm(v)
-
     return max_eig
+
+
+def _get_leverage_scores(model, size_final, lam_final, rls_oversample_param):
+    K_fn = model._get_kernel_fn()
+    K_diag_fn = model._get_diag_fn()
+    dict_reduced, _, _ = _bless_size(
+        model.x, K_fn, K_diag_fn, size_final, rls_oversample_param
+    )
+    rls_approx = _estimate_rls_bless(dict_reduced, model.x, K_fn, K_diag_fn, lam_final)
+    return rls_approx

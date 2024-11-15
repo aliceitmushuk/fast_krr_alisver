@@ -69,7 +69,7 @@ def main():
     parser.add_argument(
         "--no_store_precond",
         action="store_true",
-        help="If true, do not store preconditioners in Skotch/ASkotch",
+        help="If true, do not store preconditioners in ASkotch",
     )
     parser.add_argument(
         "--bg", type=int, default=None, help="Gradient batch size in SGD-type methods"
