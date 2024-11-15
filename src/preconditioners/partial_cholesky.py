@@ -23,7 +23,7 @@ class PartialCholesky:
     randomly pivoted Cholesky." arXiv preprint arXiv:2410.03969 (2024).
     """
 
-    def __init__(self, device: str, r: int, rho: float = None, mode="rpc"):
+    def __init__(self, device: str, r: int, rho: float = None, mode: str = "rpc"):
         if mode not in ["rpc", "greedy"]:
             raise ValueError(f"PartialCholesky does not support factorization: {mode}")
 
@@ -189,7 +189,7 @@ class PartialCholesky:
         idx = []
         C = torch.zeros((b, b), device=self.device)
         for j in range(b):
-            if torch.rand(1) * u[j] < H[j, j]:
+            if torch.rand(1, device=self.device) * u[j] < H[j, j]:
                 idx.append(j)
                 C[j:, j] = H[j:, j] / torch.sqrt(H[j, j])
                 H[(j + 1) :, (j + 1) :] -= torch.outer(C[(j + 1) :, j], C[(j + 1) :, j])

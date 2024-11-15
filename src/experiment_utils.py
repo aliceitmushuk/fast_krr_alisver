@@ -113,9 +113,15 @@ def check_pcg(args, opt_name):
 def check_precond_params(precond_params):
     if "type" not in precond_params:
         raise ValueError("Preconditioner type must be provided")
-    if precond_params["type"] not in ["nystrom", "partial_cholesky", "falkon"]:
+    if precond_params["type"] not in [
+        "falkon",
+        "newton",
+        "nystrom",
+        "partial_cholesky",
+    ]:
         raise ValueError(
-            "Only Nystrom, Partial Cholesky, and Falkon preconditioners are supported"
+            "Only Falkon, Newton, Nystrom, and Partial Cholesky \
+                  preconditioners are supported"
         )
 
 

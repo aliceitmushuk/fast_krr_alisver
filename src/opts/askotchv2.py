@@ -1,20 +1,10 @@
 import torch
 
+from .opt_utils import _get_leverage_scores
 from .opt_utils_bcd import (
     _get_block_update,
     _get_block_properties,
 )
-
-
-def _get_leverage_scores(K, lambd, device):
-    L = torch.linalg.cholesky(K + lambd * torch.eye(K.shape[0], device=device))
-
-    # L^-T L^-1 K
-    L_inv_K = torch.linalg.solve_triangular(L, K, upper=False)
-    LT_inv_L_inv_K = torch.linalg.solve_triangular(L.T, L_inv_K, upper=True)
-
-    leverage_scores = torch.diagonal(LT_inv_L_inv_K)
-    return leverage_scores
 
 
 class ASkotchV2:
@@ -42,12 +32,13 @@ class ASkotchV2:
         # and compute eta via powering
         # Then take the geometric mean of these etas to set the stepsize
 
-        # Compute leverage scores and sampling probabilities
+        # Compute sampling probabilities
         if sampling_method == "rls":
             leverage_scores = _get_leverage_scores(
-                self.model.K @ torch.eye(self.model.n, device=self.model.device),
-                self.model.lambd,
-                self.model.device,
+                model=self.model,
+                size_final=int(self.model.n**0.5),
+                lam_final=self.model.lambd,
+                rls_oversample_param=5,
             )
             self.probs = leverage_scores / torch.sum(leverage_scores)
         elif sampling_method == "uniform":

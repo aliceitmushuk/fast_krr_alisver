@@ -99,8 +99,17 @@ class FullKRR:
 
         return Kb_lin_op, Kb_lin_op_reg, Kb_trace
 
-    def _get_diag(self):
-        return _get_diag(self.n, self.kernel_params)
+    def _get_diag(self, sz=None):
+        if sz is None:
+            return _get_diag(self.n, self.kernel_params)
+        else:
+            return _get_diag(sz, self.kernel_params)
+
+    def _get_diag_fn(self):
+        def K_diag_fn(n):
+            return _get_diag(n, self.kernel_params)
+
+        return K_diag_fn
 
     def _get_kernel_fn(self):
         def K_fn(x_i, x_j, get_row):

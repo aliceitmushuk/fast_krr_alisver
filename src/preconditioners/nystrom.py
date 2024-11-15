@@ -122,11 +122,3 @@ class Nystrom:
             v = (v - self.U @ torch.squeeze(LT_inv_L_inv_UTv, 1)) / self.rho
 
         return v
-
-    def inv_sqrt_lin_op(self, v):
-        UTv = self.U.t() @ v
-        v = self.U @ (UTv / ((self.S + self.rho) ** (0.5))) + 1 / (self.rho**0.5) * (
-            v - self.U @ UTv
-        )
-
-        return v
