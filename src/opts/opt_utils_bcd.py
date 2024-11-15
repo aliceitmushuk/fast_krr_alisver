@@ -1,8 +1,7 @@
 import torch
 
 from .opt_utils import _get_L, _apply_precond
-from ..preconditioners.nystrom import Nystrom
-from ..preconditioners.newton import Newton
+from ..preconditioners import preconditioner_inits as pi
 
 
 def _get_blocks(n, B):
@@ -26,41 +25,42 @@ def _get_blocks(n, B):
 def _get_block_precond(model, block, precond_params):
     block_lin_op, block_lin_op_reg, block_trace = model._get_block_lin_ops(block)
 
-    precond = None
+    type = precond_params.get("type", None)
+    update_params = None
+    if type == "newton":
+        update_params = {"K_lin_op": block_lin_op, "n": block.shape[0]}
+    elif type == "nystrom":
+        update_params = {
+            "K_lin_op": block_lin_op,
+            "K_trace": block_trace,
+            "n": block.shape[0],
+        }
+    elif type == "partial_cholesky":
+        K_fn = model._get_kernel_fn()
+        K_diag = model._get_diag(sz=block.shape[0])
+        blk_size = precond_params.get("blk_size", None)
+        update_params = {
+            "K_fn": K_fn,
+            "K_diag": K_diag,
+            "x": model.x[block],
+            "blk_size": blk_size,
+        }
+    precond = pi._get_precond(precond_params, update_params, model.device)
 
-    if precond_params is not None:
-        if precond_params["type"] == "nystrom":
-            precond_params_sub = {
-                k: v for k, v in precond_params.items() if k != "type"
-            }
-            precond = Nystrom(model.device, **precond_params_sub)
-            precond.update(block_lin_op, block_trace, block.shape[0])
-
-            # Automatically set rho to lambda + S[-1] if not provided
-            precond.rho = (
-                model.lambd + precond.S[-1]
-                if "rho" not in precond_params_sub
-                else precond_params_sub["rho"]
-            )
-        elif precond_params["type"] == "newton":
-            precond = Newton(model.device)
-            precond.update(block_lin_op_reg, block.shape[0])
+    # Set the rho parameter for the Nystrom preconditioner
+    if type == "nystrom":
+        precond.rho = (
+            model.lambd + precond.S[-1]
+            if "rho" not in precond_params
+            else precond_params["rho"]
+        )
 
     return precond, block_lin_op_reg
 
 
 def _get_block_precond_L(model, block, precond_params):
     precond, block_lin_op_reg = _get_block_precond(model, block, precond_params)
-
-    if precond is not None:
-        if isinstance(precond, Nystrom):
-            L = _get_L(
-                block_lin_op_reg, precond.inv_sqrt_lin_op, block.shape[0], model.device
-            )
-        elif isinstance(precond, Newton):
-            L = 1.0
-    else:  # No preconditioner
-        L = _get_L(block_lin_op_reg, lambda x: x, block.shape[0], model.device)
+    L = _get_L(block_lin_op_reg, precond, block.shape[0], model.device)
 
     return precond, L
 

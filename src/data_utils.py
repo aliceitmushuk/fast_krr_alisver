@@ -10,7 +10,7 @@ import torch
 
 DATA_DIR = "./data/"
 DATA_FILES = {
-    "homo": "homo.mat",
+    "homo": "qm9.mat",
     "susy": "SUSY",
     "higgs": "HIGGS",
     "taxi_sub": "taxi-data/subsampled_data.h5py",
