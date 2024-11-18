@@ -8,8 +8,11 @@ import shutil
 import numpy as np
 import pandas as pd
 from sklearn.datasets import fetch_openml
+import torch
 import qml
 from scipy.io import savemat
+
+from src.data_vision import process_all_datasets
 
 
 def decompress_bz2(dataset, directory, file_path):
@@ -212,6 +215,10 @@ def main():
     download_qm9(url, directory_qm9)
     X, Y = process_qm9(directory_qm9)
     savemat(os.path.join(directory, "qm9.mat"), {"X": X, "Y": Y})
+
+    # From torchvision
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    process_all_datasets(directory, device)
 
 
 if __name__ == "__main__":

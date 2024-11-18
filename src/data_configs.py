@@ -16,6 +16,14 @@ DATA_CONFIGS = {
     "aspirin": {"tr": "md17_aspirin.npz", "loading": "npz", "split": 0.8},
     "benzene": {"tr": "md17_benzene2017.npz", "loading": "npz", "split": 0.8},
     "cadata": {"tr": "cadata", "loading": "libsvm", "split": 0.8},
+    "cifar10": {
+        "tr": "cifar10_data.pkl",
+        "tgt": "cifar10_target.pkl",
+        "loading": "pkl",
+        "split": 50000,
+        "shuffle": False,
+        "label_map": {i: 1 if i != 0 else -1 for i in range(10)},
+    },
     "click_prediction": {
         "tr": "click_prediction_data.pkl",
         "tgt": "click_prediction_target.pkl",
@@ -58,6 +66,14 @@ DATA_CONFIGS = {
         "one_hot_features": ["cut", "color", "clarity"],
     },
     "ethanol": {"tr": "md17_ethanol.npz", "loading": "npz", "split": 0.8},
+    "fashion_mnist": {
+        "tr": "fashionmnist_data.pkl",
+        "tgt": "fashionmnist_target.pkl",
+        "loading": "pkl",
+        "split": 60000,
+        "shuffle": False,
+        "label_map": {i: 1 if i != 0 else -1 for i in range(10)},
+    },
     "higgs": {
         "tr": "HIGGS",
         "loading": "libsvm",
@@ -101,7 +117,7 @@ DATA_CONFIGS = {
         "loading": "pkl",
         "split": 60000,
         "shuffle": False,
-        "label_map": {0: -1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1},
+        "label_map": {i: 1 if i != 0 else -1 for i in range(10)},
     },
     "naphthalene": {"tr": "md17_naphthalene.npz", "loading": "npz", "split": 0.8},
     "phishing": {
@@ -129,19 +145,7 @@ DATA_CONFIGS = {
         "tr": "Sensorless.scale.tr",
         "tst": "Sensorless.scale.val",
         "loading": "libsvm_multiple",
-        "label_map": {
-            1: -1,
-            2: 1,
-            3: 1,
-            4: 1,
-            5: 1,
-            6: 1,
-            7: 1,
-            8: 1,
-            9: 1,
-            10: 1,
-            11: 1,
-        },
+        "label_map": {i: 1 if i != 1 else -1 for i in range(1, 12)},
     },
     "skin_nonskin": {
         "tr": "skin_nonskin",
@@ -156,6 +160,14 @@ DATA_CONFIGS = {
         "shuffle": False,
         "label_map": {0: -1, 1: 1},
     },
+    "svhn": {
+        "tr": "svhn_data.pkl",
+        "tgt": "svhn_target.pkl",
+        "loading": "pkl",
+        "split": 73257,
+        "shuffle": False,
+        "label_map": {i: 1 if i != 0 else -1 for i in range(10)},
+    },
     "taxi": {
         "tr": "taxi-data/subsampled_data.h5py",
         "loading": "h5py",
@@ -169,7 +181,7 @@ DATA_CONFIGS = {
         "tgt": "volkert_target.pkl",
         "loading": "pkl",
         "split": 0.8,
-        "label_map": {0: -1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1},
+        "label_map": {i: 1 if i != 0 else -1 for i in range(10)},
     },
     "w8a": {"tr": "w8a", "tst": "w8a.t", "loading": "libsvm_multiple"},
     "yearpredictionmsd": {
