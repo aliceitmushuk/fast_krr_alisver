@@ -8,10 +8,11 @@ import shutil
 import numpy as np
 import pandas as pd
 from sklearn.datasets import fetch_openml
+import torch
 import qml
 from scipy.io import savemat
 
-SEED = 0
+from src.data_vision import process_all_datasets
 
 
 def decompress_bz2(dataset, directory, file_path):
@@ -125,7 +126,6 @@ def process_qm9(directory, max_atoms=29, output_index=7):
     shutil.rmtree(directory)
 
     c = list(zip(compounds, energies))
-    np.random.shuffle(c)
     compounds, energies = zip(*c)
 
     X = np.array([mol.representation for mol in compounds])
@@ -179,7 +179,7 @@ def main():
     # From OpenML
     datasets = [
         ("acsincome", 43141),
-        ("airlines", 42721),
+        ("airlines", 45047),
         ("comet_mc", 23397),
         ("creditcard", 1597),
         ("diamonds", 42225),
@@ -210,12 +210,15 @@ def main():
     download_sgdml(url_stem, datasets, directory)
 
     # From QM9
-    np.random.seed(SEED)
     url = "https://figshare.com/ndownloader/files/3195389"
     directory_qm9 = os.path.join(directory, "qm9")
     download_qm9(url, directory_qm9)
     X, Y = process_qm9(directory_qm9)
-    savemat(os.path.join(directory, "homo.mat"), {"X": X, "Y": Y})
+    savemat(os.path.join(directory, "qm9.mat"), {"X": X, "Y": Y})
+
+    # From torchvision
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    process_all_datasets(directory, device)
 
 
 if __name__ == "__main__":

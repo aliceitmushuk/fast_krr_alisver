@@ -1,5 +1,6 @@
 import argparse
 
+from src.data_configs import DATA_KEYS
 from src.experiment import Experiment
 from src.experiment_utils import (
     ParseParams,
@@ -15,7 +16,7 @@ def main():
     parser.add_argument(
         "--dataset",
         type=str,
-        choices=["synthetic", "homo", "susy", "higgs", "taxi_sub"],
+        choices=DATA_KEYS,
         help="Which dataset to use",
     )
     parser.add_argument(
