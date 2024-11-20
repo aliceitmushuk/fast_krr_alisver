@@ -184,7 +184,7 @@ DATA_CONFIGS = {
         "task": "classification",
     },
     "qm9": {
-        "tr": "homo.mat",
+        "tr": "qm9.mat",
         "loading": "mat",
         "split": 100000,
         "shuffle": True,

@@ -9,7 +9,8 @@ from src.experiment_utils import (
 )
 
 
-@hydra.main(version_base=None, config_path=None, config_name=None)
+# @hydra.main(version_base=None, config_path=None, config_name=None)
+@hydra.main(version_base=None, config_path=".", config_name="config")
 def main(cfg: DictConfig):
     """
     Main function to run the experiment using Hydra.
@@ -17,27 +18,30 @@ def main(cfg: DictConfig):
     # Print the configuration for debugging
     print(OmegaConf.to_yaml(cfg))
 
-    # Validate inputs (if needed)
-    check_inputs(cfg)
-
     # Set precision and random seed
     set_precision(cfg.training.precision)
     set_random_seed(cfg.training.seed)
+
+    # Convert kernel and preconditioner params to mutable dicts
+    kernel_params = OmegaConf.to_container(cfg.kernel, resolve=True)
+    precond_params = OmegaConf.to_container(cfg.precond, resolve=True)
 
     # Organize arguments for the experiment
     experiment_args = {
         "dataset": cfg.dataset,
         "model": cfg.model,
         "task": cfg.task,
-        "kernel_params": cfg.kernel,
+        "kernel_params": kernel_params,
         "lambd_unscaled": cfg.lambd_unscaled,
         "opt": cfg.opt.type,
-        "precond_params": cfg.precond if cfg.precond["type"] is not None else None,
+        "precond_params": precond_params
+        if precond_params["type"] is not None
+        else None,
         "log_freq": cfg.training.log_freq,
         "log_test_only": cfg.training.log_test_only,
         "precision": cfg.training.precision,
         "seed": cfg.training.seed,
-        "device": f"cuda:{cfg.device}",  # Dynamically injected device
+        "device": f"cuda:{cfg.device}",
         "wandb_project": cfg.wandb.project,
     }
 
@@ -54,6 +58,10 @@ def main(cfg: DictConfig):
         experiment_args["mu"] = cfg.opt.mu
         experiment_args["nu"] = cfg.opt.nu
         experiment_args["accelerated"] = cfg.opt.accelerated
+
+    # Validate the experiment arguments
+    check_inputs(experiment_args)
+    print(experiment_args)
 
     # Run the experiment
     exp = Experiment(experiment_args)
