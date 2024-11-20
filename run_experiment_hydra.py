@@ -1,0 +1,64 @@
+import hydra
+from omegaconf import DictConfig, OmegaConf
+
+from src.experiment import Experiment
+from src.experiment_utils import (
+    check_inputs,
+    set_precision,
+    set_random_seed,
+)
+
+
+@hydra.main(version_base=None, config_path=None, config_name=None)
+def main(cfg: DictConfig):
+    """
+    Main function to run the experiment using Hydra.
+    """
+    # Print the configuration for debugging
+    print(OmegaConf.to_yaml(cfg))
+
+    # Validate inputs (if needed)
+    check_inputs(cfg)
+
+    # Set precision and random seed
+    set_precision(cfg.training.precision)
+    set_random_seed(cfg.training.seed)
+
+    # Organize arguments for the experiment
+    experiment_args = {
+        "dataset": cfg.dataset,
+        "model": cfg.model,
+        "task": cfg.task,
+        "kernel_params": cfg.kernel,
+        "lambd_unscaled": cfg.lambd_unscaled,
+        "opt": cfg.opt.type,
+        "precond_params": cfg.precond if cfg.precond["type"] is not None else None,
+        "log_freq": cfg.training.log_freq,
+        "log_test_only": cfg.training.log_test_only,
+        "precision": cfg.training.precision,
+        "seed": cfg.training.seed,
+        "device": f"cuda:{cfg.device}",  # Dynamically injected device
+        "wandb_project": cfg.wandb.project,
+    }
+
+    # Optional arguments
+    if cfg.training.max_iter is not None:
+        experiment_args["max_iter"] = cfg.training.max_iter
+    if cfg.training.max_time is not None:
+        experiment_args["max_time"] = cfg.training.max_time
+
+    # Add optimizer-specific arguments
+    if cfg.opt.type == "askotchv2":
+        experiment_args["block_sz_frac"] = cfg.opt.block_sz_frac
+        experiment_args["sampling_method"] = cfg.opt.sampling_method
+        experiment_args["mu"] = cfg.opt.mu
+        experiment_args["nu"] = cfg.opt.nu
+        experiment_args["accelerated"] = cfg.opt.accelerated
+
+    # Run the experiment
+    exp = Experiment(experiment_args)
+    exp.run()
+
+
+if __name__ == "__main__":
+    main()

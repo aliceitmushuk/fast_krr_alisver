@@ -11,32 +11,20 @@ class Experiment:
         self.exp_args = exp_args.copy()
 
     def _modify_opt_args(self, model):
-        # if self.exp_args["opt"].startswith("sketchy"):
-        #     if self.exp_args["bH"] is None:
-        #         self.exp_args["bH"] = int(model.n**0.5)
-        #     if self.exp_args["bH2"] is None:
-        #         self.exp_args["bH2"] = max(1, model.n // 50)
+        if self.exp_args["opt"].startswith("sketchy"):
+            if self.exp_args["bH"] is None:
+                self.exp_args["bH"] = int(model.n**0.5)
+            if self.exp_args["bH2"] is None:
+                self.exp_args["bH2"] = max(1, model.n // 50)
 
-        #     if self.exp_args["opt"] == "sketchysvrg":
-        #         if self.exp_args["update_freq"] is None:
-        #             self.exp_args["update_freq"] = model.n // self.exp_args["bg"]
-        #     elif self.exp_args["opt"] == "sketchykatyusha":
-        #         if self.exp_args["p"] is None:
-        #             self.exp_args["p"] = self.exp_args["bg"] / model.n
-        #         if self.exp_args["mu"] is None:
-        #             self.exp_args["mu"] = model.lambd
-        self.exp_args["lambd"] = self.exp_args["lambd_unscaled"] * model.n
-        if self.exp_args["precond_params"] is not None:
-            if self.exp_args["precond_params"]["rho"] is None:
-                self.exp_args["precond_params"]["rho"] = self.exp_args["lambd"]
-
-        # ASkotchV2 parameters
-        if "block_sz_frac" in self.exp_args:
-            self.exp_args["block_sz"] = int(self.exp_args["block_sz_frac"] * model.n)
-        if "mu" in self.exp_args and self.exp_args["mu"] is None:
-            self.exp_args["mu"] *= self.exp_args["lambd"]
-        if "nu" in self.exp_args and self.exp_args["nu"] is None:
-            self.exp_args["nu"] = self.exp_args["lambd"]
+            if self.exp_args["opt"] == "sketchysvrg":
+                if self.exp_args["update_freq"] is None:
+                    self.exp_args["update_freq"] = model.n // self.exp_args["bg"]
+            elif self.exp_args["opt"] == "sketchykatyusha":
+                if self.exp_args["p"] is None:
+                    self.exp_args["p"] = self.exp_args["bg"] / model.n
+                if self.exp_args["mu"] is None:
+                    self.exp_args["mu"] = model.lambd
 
     def _time_exceeded(self, n_iters, time_elapsed):
         if "max_time" in self.exp_args:
@@ -135,4 +123,3 @@ class Experiment:
                     )
 
                     i += 1
-        wandb.finish()
