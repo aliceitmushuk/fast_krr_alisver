@@ -1,9 +1,10 @@
 import os
 import yaml
 import itertools
+from pprint import pprint
+import glob
 
 from src.experiment_configs import (
-    # DATA_KEYS,
     DATA_CONFIGS,
     KERNEL_CONFIGS,
     LAMBDA_CONFIGS,
@@ -12,7 +13,7 @@ from src.experiment_configs import (
 
 SEED = 0
 
-PRECONDITIONERS = [None, "nystrom", "partial_cholesky"]
+PRECONDITIONERS = ["nystrom", "partial_cholesky"]
 CHOLESKY_MODES = ["greedy", "rpc"]
 BLOCK_SAMPLING = ["uniform", "rls"]
 ACCELERATED = [True, False]
@@ -30,81 +31,85 @@ def add_kernel_params(config):
         config["kernel"]["nu"] = kernel_params["nu"]
 
 
-def add_preconditioner_config(base_config, precond, additional_params=None):
-    additional_params = additional_params or {}
-    new_config = base_config.copy()
-    new_config["precond"] = {"type": precond}
+def generate_nystrom_configs(base_config):
+    configs = []
+    for rho in PRECOND_RHO:
+        config = base_config.copy()
+        config["precond"] = {
+            "type": "nystrom",
+            "rho": rho,
+            "r": base_config["precond"]["r"],
+        }
+        configs.append(config)
+    return configs
 
-    if precond == "nystrom":
-        for rho in PRECOND_RHO:
-            rho_config = new_config.copy()
-            rho_config["precond"]["rho"] = rho
-            rho_config["precond"]["r"] = base_config.get("precond.r", None)
-            yield {**rho_config, **additional_params}
-    elif precond == "partial_cholesky":
-        for cholesky_mode in CHOLESKY_MODES:
-            cholesky_config = new_config.copy()
-            cholesky_config["precond"]["mode"] = cholesky_mode
-            cholesky_config["precond"]["rho"] = "regularization"
-            cholesky_config["precond"]["r"] = base_config.get("precond.r", None)
-            yield {**cholesky_config, **additional_params}
-    else:  # precond is None
-        new_config["precond"]["rho"] = None
-        new_config["precond"]["r"] = None
-        yield {**new_config, **additional_params}
+
+def generate_partial_cholesky_configs(base_config):
+    configs = []
+    for cholesky_mode in CHOLESKY_MODES:
+        config = base_config.copy()
+        config["precond"] = {
+            "type": "partial_cholesky",
+            "mode": cholesky_mode,
+            "rho": "regularization",
+            "r": base_config["precond"]["r"],
+        }
+        configs.append(config)
+    return configs
+
+
+def generate_no_preconditioner_configs(base_config):
+    config = base_config.copy()
+    config["precond"] = {
+        "type": None,
+        "rho": None,
+        "r": None,
+    }
+    return [config]
 
 
 def generate_askotchv2_configs(base_config):
-    for precond, block_sampling, accelerated in itertools.product(
-        [None, "nystrom"], BLOCK_SAMPLING, ACCELERATED
-    ):
-        new_config = base_config.copy()
-
-        # Update opt while retaining existing keys (e.g., opt.type)
-        opt_updates = {
+    configs = []
+    for block_sampling, accelerated in itertools.product(BLOCK_SAMPLING, ACCELERATED):
+        config = base_config.copy()
+        config["opt"] = {
+            "type": "askotchv2",
             "sampling_method": block_sampling,
             "accelerated": accelerated,
             "block_sz_frac": BLK_SZ_FRAC,
             "mu": None,
             "nu": None,
         }
-        new_config["opt"].update(opt_updates)
-
-        yield from add_preconditioner_config(new_config, precond)
+        # Add all preconditioner configurations
+        configs.extend(generate_nystrom_configs(config))
+        configs.extend(generate_no_preconditioner_configs(config))
+    return configs
 
 
 def generate_pcg_configs(base_config):
+    configs = []
     for precond in PRECONDITIONERS:
-        new_config = base_config.copy()
-
-        # Retain existing keys in opt (e.g., opt.type) without overwriting
-        opt_updates = {}  # No additional keys for PCG at this stage
-        new_config["opt"].update(opt_updates)
-
-        yield from add_preconditioner_config(new_config, precond)
+        config = base_config.copy()
+        config["opt"] = {"type": "pcg"}
+        if precond == "nystrom":
+            configs.extend(generate_nystrom_configs(config))
+        elif precond == "partial_cholesky":
+            configs.extend(generate_partial_cholesky_configs(config))
+    return configs
 
 
 def generate_combinations(sweep_params):
-    """
-    Generate all combinations of sweep parameters, subject to certain constraints.
-    :param sweep_params: Dictionary where keys are parameter names and values are lists
-    of possible values.
-    :return: List of nested dictionaries, each representing a
-    unique combination of parameters.
-    """
     keys, values = zip(*sweep_params.items())
     base_combinations = [dict(zip(keys, combo)) for combo in itertools.product(*values)]
     all_combinations = []
 
     for base_config in base_combinations:
-        # Filter out invalid combinations
         if (
             base_config["opt.type"] == "askotchv2"
             and base_config["training.precision"] == "float64"
         ):
             continue
 
-        # Update nested fields for wandb, task, and training time
         nested_config = {
             "wandb": {
                 "project": f"{base_config['wandb.project']}_{base_config['dataset']}"
@@ -118,17 +123,14 @@ def generate_combinations(sweep_params):
                 "seed": base_config["training.seed"],
                 "log_test_only": base_config["training.log_test_only"],
             },
-            "device": base_config["device"],
             "model": base_config["model"],
             "dataset": base_config["dataset"],
-            "opt": {"type": base_config["opt.type"]},
+            "precond": {"r": base_config["precond.r"]},
         }
 
-        # Add kernel and regularization parameters
         add_kernel_params(nested_config)
         nested_config["lambd_unscaled"] = LAMBDA_CONFIGS[base_config["dataset"]]
 
-        # Generate configurations based on opt.type
         if base_config["opt.type"] == "askotchv2":
             all_combinations.extend(generate_askotchv2_configs(nested_config))
         elif base_config["opt.type"] == "pcg":
@@ -138,19 +140,12 @@ def generate_combinations(sweep_params):
 
 
 def save_configs(combinations, output_dir):
-    """
-    Save each configuration as a YAML file in a structured folder hierarchy.
-    :param combinations: List of dictionaries representing parameter combinations.
-    :param output_dir: Root directory to save configurations.
-    """
     for idx, combo in enumerate(combinations):
-        # Generate folder path based on dataset and model
         folder_path = os.path.join(
             output_dir, combo["dataset"], combo["model"], f"config_{idx}"
         )
         os.makedirs(folder_path, exist_ok=True)
 
-        # Save config.yaml
         config_path = os.path.join(folder_path, "config.yaml")
         with open(config_path, "w") as file:
             yaml.dump(combo, file, default_flow_style=False)
@@ -158,11 +153,33 @@ def save_configs(combinations, output_dir):
         print(f"Generated: {config_path}")
 
 
+def validate_yaml_variations(output_dir):
+    unique_values = {
+        "CHOLESKY_MODES": set(),
+        "BLOCK_SAMPLING": set(),
+        "ACCELERATED": set(),
+        "PRECOND_RHO": set(),
+    }
+
+    for file_path in glob.glob(f"{output_dir}/**/*.yaml", recursive=True):
+        with open(file_path, "r") as file:
+            config = yaml.safe_load(file)
+            unique_values["CHOLESKY_MODES"].add(config.get("precond", {}).get("mode"))
+            unique_values["BLOCK_SAMPLING"].add(
+                config.get("opt", {}).get("sampling_method")
+            )
+            unique_values["ACCELERATED"].add(config.get("opt", {}).get("accelerated"))
+            unique_values["PRECOND_RHO"].add(config.get("precond", {}).get("rho"))
+
+    for key, values in unique_values.items():
+        print(f"{key}: {values}")
+        # if None in values:
+        #     print(f"Error: {key} contains unexpected None values!")
+
+
 if __name__ == "__main__":
-    # Example datasets (adjust as needed)
     datasets_performance = ["ijcnn1"]
 
-    # Common to all runs for full KRR performance
     sweep_params_performance_full_krr = {
         "dataset": datasets_performance,
         "model": ["full_krr"],
@@ -173,15 +190,12 @@ if __name__ == "__main__":
         "training.seed": [SEED],
         "training.log_test_only": [False],
         "training.max_iter": [None],
-        "device": [0],
         "wandb.project": ["performance_full_krr"],
     }
 
-    # Output directory for experiment configurations
     output_dir = "performance_full_krr"
 
-    # Generate all parameter combinations
     combinations = generate_combinations(sweep_params_performance_full_krr)
-
-    # Save configurations to folder structure
+    pprint(combinations[:5])  # Debug: Print a sample of generated combinations
     save_configs(combinations, output_dir)
+    validate_yaml_variations(output_dir)
