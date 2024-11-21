@@ -5,9 +5,13 @@ from glob import glob
 
 # Configuration
 BASE_DIR = "performance_full_krr"  # Root directory containing experiment configurations
-DEVICES = [0, 1, 2, 3]  # List of GPU IDs available for experiments
-GRACE_PERIOD_FACTOR = 0.25  # 25% additional time as a grace period
-PROGRESS_FILE = "progress.json"  # File to track completed experiments
+DEVICES = [1, 2, 3, 4]  # List of GPU IDs available for experiments
+GRACE_PERIOD_FACTOR = (
+    0.25  # 25% additional time as a grace period (KRR inference takes time)
+)
+PROGRESS_FILE = os.path.join(
+    BASE_DIR, "progress.json"
+)  # File to track completed experiments
 
 
 def find_configs(base_dir):
@@ -76,7 +80,7 @@ def run_experiment(config_path, gpu_id, timeout_seconds, progress):
         "run_experiment_hydra.py",
         f"hydra.run.dir={os.path.dirname(config_path)}",
         f"+config={config_path}",
-        f"device={gpu_id}",  # Dynamically set device as a command-line override
+        f"+device={gpu_id}",  # Dynamically set device as a command-line override
     ]
 
     print(f"Running: {' '.join(cmd)} on GPU {gpu_id} with timeout {timeout_seconds}s")
@@ -116,7 +120,7 @@ def run_all_experiments(base_dir, devices, grace_period_factor, progress_file):
     progress = load_progress(progress_file)
     processes = []
 
-    for i, config_path in enumerate(configs):
+    for _, config_path in enumerate(configs):
         # Skip completed experiments
         if progress.get(config_path, "") in ["completed", "timeout", "error"]:
             print(f"Skipping {progress[config_path]} experiment: {config_path}")
@@ -133,12 +137,12 @@ def run_all_experiments(base_dir, devices, grace_period_factor, progress_file):
 
         # Manage GPU limits
         if len(processes) >= len(devices):
-            for process, path in processes:
+            for process, _ in processes:
                 process.wait()
             processes = []
 
     # Ensure all remaining processes complete
-    for process, path in processes:
+    for process, _ in processes:
         process.wait()
 
 

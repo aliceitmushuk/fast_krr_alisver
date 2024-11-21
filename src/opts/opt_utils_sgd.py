@@ -9,16 +9,17 @@ def _get_precond_L(model, bH, bH2, precond_params):
         subsampled_trace,
     ) = model._get_subsampled_lin_ops(bH, bH2)
 
-    type = precond_params.get("type", None)
     update_params = None
-    if type == "newton":
-        update_params = {"K_lin_op": subsampled_reg_lin_op, "n": model.m}
-    elif type == "nystrom":
-        update_params = {
-            "K_lin_op": subsampled_lin_op,
-            "K_trace": subsampled_trace,
-            "n": model.m,
-        }
+    if precond_params is not None:
+        type = precond_params["type"]
+        if type == "newton":
+            update_params = {"K_lin_op": subsampled_reg_lin_op, "n": model.m}
+        elif type == "nystrom":
+            update_params = {
+                "K_lin_op": subsampled_lin_op,
+                "K_trace": subsampled_trace,
+                "n": model.m,
+            }
     precond = pi._get_precond(precond_params, update_params, model.device)
 
     # Set the rho parameter for the Nystrom preconditioner

@@ -85,6 +85,8 @@ def validate_precond_params(precond_params):
     Validate the preconditioner parameters.
     :param precond_params: Dictionary of preconditioner parameters.
     """
+    if precond_params is None:
+        return
     precond_type = precond_params.get("type")
     precond_rho = precond_params.get("rho")
     if precond_type is None:

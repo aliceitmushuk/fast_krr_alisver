@@ -9,8 +9,8 @@ from src.experiment_utils import (
 )
 
 
-@hydra.main(version_base=None, config_path=None, config_name=None)
-# @hydra.main(version_base=None, config_path=".", config_name="config")
+# @hydra.main(version_base=None, config_path=None, config_name=None)
+@hydra.main(version_base=None, config_path=".", config_name="config")
 def main(cfg: DictConfig):
     """
     Main function to run the experiment using Hydra.
