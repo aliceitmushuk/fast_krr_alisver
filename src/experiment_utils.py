@@ -86,10 +86,17 @@ def validate_precond_params(precond_params):
     :param precond_params: Dictionary of preconditioner parameters.
     """
     precond_type = precond_params.get("type")
+    precond_rho = precond_params.get("rho")
     if precond_type is None:
         raise ValueError("Preconditioner type must be provided")
     if precond_type not in PRECOND_TYPES:
         raise ValueError(f"Unsupported preconditioner type: {precond_type}")
+    if precond_type != "falkon":
+        if not (
+            isinstance(precond_rho, float)
+            or precond_rho in ["regularization", "damped"]
+        ):
+            raise ValueError("Invalid rho value for preconditioner")
 
 
 def check_inputs(experiment_args):

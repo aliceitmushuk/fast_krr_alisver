@@ -48,12 +48,7 @@ def _get_block_precond(model, block, precond_params):
     precond = pi._get_precond(precond_params, update_params, model.device)
 
     # Set the rho parameter for the Nystrom preconditioner
-    if type == "nystrom":
-        precond.rho = (
-            model.lambd + precond.S[-1]
-            if "rho" not in precond_params
-            else precond_params["rho"]
-        )
+    pi._set_nystrom_damping(precond, precond_params, model.lambd)
 
     return precond, block_lin_op_reg
 

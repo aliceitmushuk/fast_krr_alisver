@@ -27,9 +27,6 @@ class Experiment:
         #             self.exp_args["mu"] = model.lambd
         self.exp_args["n"] = n
         self.exp_args["lambd"] = self.exp_args["lambd_unscaled"] * n
-        if self.exp_args["precond_params"] is not None:
-            if self.exp_args["precond_params"]["rho"] is None:
-                self.exp_args["precond_params"]["rho"] = self.exp_args["lambd"]
 
         # ASkotchV2 parameters
         if "block_sz_frac" in self.exp_args:
@@ -37,7 +34,7 @@ class Experiment:
         if "mu" in self.exp_args and self.exp_args["mu"] is None:
             self.exp_args["mu"] = self.exp_args["lambd"]
         if "nu" in self.exp_args and self.exp_args["nu"] is None:
-            self.exp_args["nu"] = n // self.exp_args["block_sz"]
+            self.exp_args["nu"] = n / self.exp_args["block_sz"]
 
     def _time_exceeded(self, n_iters, time_elapsed):
         if "max_time" in self.exp_args:
