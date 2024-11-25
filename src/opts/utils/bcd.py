@@ -1,7 +1,7 @@
 import torch
 
-from .opt_utils import _get_L, _apply_precond
-from ..preconditioners import preconditioner_inits as pi
+from .general import _get_L, _apply_precond
+from ...preconditioners import preconditioner_inits as pi
 
 
 def _get_blocks(n, B):

@@ -1,4 +1,4 @@
-from ..preconditioners import preconditioner_inits as pi
+from ...preconditioners import preconditioner_inits as pi
 
 
 def _get_precond(model, precond_params):

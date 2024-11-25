@@ -1,6 +1,7 @@
 import torch
 
-from .opt_utils_bcd import (
+from .optimizer import Optimizer
+from .utils.bcd import (
     _get_blocks,
     _get_block_precond,
     _get_block_properties,
@@ -8,7 +9,7 @@ from .opt_utils_bcd import (
 )
 
 
-class ASkotch:
+class ASkotch(Optimizer):
     def __init__(
         self,
         model,
@@ -18,10 +19,9 @@ class ASkotch:
         beta=0,
         accelerated=True,
     ):
-        self.model = model
+        super().__init__(model, precond_params)
         self.B = B
         self.no_store_precond = no_store_precond
-        self.precond_params = precond_params
         self.beta = beta
         self.accelerated = accelerated
 
