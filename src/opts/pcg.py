@@ -1,13 +1,13 @@
 import torch
 
+from .optimizer import Optimizer
 from .opt_utils import _apply_precond
 from .opt_utils_pcg import _get_precond
 
 
-class PCG:
+class PCG(Optimizer):
     def __init__(self, model, precond_params=None):
-        self.model = model
-        self.precond_params = precond_params
+        super().__init__(model, precond_params)
 
         self.rhs = self.model.K_nmTb if self.model.inducing else self.model.b
         self.precond = _get_precond(self.model, self.precond_params)
