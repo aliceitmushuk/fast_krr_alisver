@@ -65,7 +65,7 @@ class Experiment:
         )
 
         # Set optimizer args if needed
-        self._modify_exp_args(Xtr.shape[0])
+        self._modify_exp_args(Xtr)
 
         # Load model
         if self.exp_args["model"] == "full_krr":
