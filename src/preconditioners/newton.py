@@ -1,9 +1,11 @@
 import torch
 
+from .preconditioner import Preconditioner
 
-class Newton:
+
+class Newton(Preconditioner):
     def __init__(self, device, rho, lambd):
-        self.device = device
+        super().__init__(device)
         self.rho = self._get_damping(rho, lambd)
         self.L = None
 
