@@ -1,8 +1,8 @@
 import torch
 
 from .optimizer import Optimizer
-from .opt_utils import _get_leverage_scores
-from .opt_utils_bcd import (
+from .utils.general import _get_leverage_scores
+from .utils.bcd import (
     _get_block_update,
     _get_block_properties,
 )

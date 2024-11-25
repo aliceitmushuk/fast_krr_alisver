@@ -1,9 +1,9 @@
 import torch
 
 from .optimizer import Optimizer
-from .minibatch_generator import MinibatchGenerator
-from .opt_utils import _apply_precond
-from .opt_utils_sgd import _get_precond_L, _get_minibatch
+from .utils.minibatch_generator import MinibatchGenerator
+from .utils.general import _apply_precond
+from .utils.sgd import _get_precond_L, _get_minibatch
 
 
 class SketchySAGA(Optimizer):

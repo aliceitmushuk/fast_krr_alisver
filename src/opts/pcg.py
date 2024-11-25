@@ -1,8 +1,8 @@
 import torch
 
 from .optimizer import Optimizer
-from .opt_utils import _apply_precond
-from .opt_utils_pcg import _get_precond
+from .utils.general import _apply_precond
+from .utils.pcg import _get_precond
 
 
 class PCG(Optimizer):

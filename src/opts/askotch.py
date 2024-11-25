@@ -1,7 +1,7 @@
 import torch
 
 from .optimizer import Optimizer
-from .opt_utils_bcd import (
+from .utils.bcd import (
     _get_blocks,
     _get_block_precond,
     _get_block_properties,

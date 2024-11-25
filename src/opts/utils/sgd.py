@@ -1,5 +1,5 @@
-from .opt_utils import _get_L
-from ..preconditioners import preconditioner_inits as pi
+from .general import _get_L
+from ...preconditioners import preconditioner_inits as pi
 
 
 def _get_precond_L(model, precond_params, bH, bH2):
