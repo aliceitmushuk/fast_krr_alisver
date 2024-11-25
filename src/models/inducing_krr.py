@@ -102,28 +102,6 @@ class InducingKRR:
     def _get_grad_regularizer(self, w):
         return self.lambd * (self.K_mm @ w)
 
-    def _get_stochastic_grad(self, idx, w):
-        x_idx_i = LazyTensor(self.x[idx][:, None, :])
-        K_nm_idx = _get_kernel(x_idx_i, self.x_inducing_j, self.kernel_params)
-        g = self.n / idx.shape[0] * (
-            K_nm_idx.T @ (K_nm_idx @ w - self.b[idx])
-        ) + self._get_grad_regularizer(w)
-
-        return g
-
-    def _get_stochastic_grad_diff(self, idx, w1, w2):
-        x_idx_i = LazyTensor(self.x[idx][:, None, :])
-        K_nm_idx = _get_kernel(x_idx_i, self.x_inducing_j, self.kernel_params)
-        w_diff = w1 - w2
-        g_diff = self.n / idx.shape[0] * (
-            K_nm_idx.T @ (K_nm_idx @ w_diff)
-        ) + self._get_grad_regularizer(w_diff)
-
-        return g_diff
-
-    def _get_full_grad(self, w):
-        return self.K_nm.T @ (self.K_nm @ w - self.b) + self._get_grad_regularizer(w)
-
     def _get_table_aux(self, idx, w, table):
         x_idx_i = LazyTensor(self.x[idx][:, None, :])
         K_nm_idx = _get_kernel(x_idx_i, self.x_inducing_j, self.kernel_params)

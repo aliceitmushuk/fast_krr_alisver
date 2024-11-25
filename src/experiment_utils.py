@@ -5,23 +5,12 @@ import numpy as np
 import torch
 
 from src.models import FullKRR, InducingKRR
-from src.opts import (
-    ASkotch,
-    ASkotchV2,
-    SketchySGD,
-    SketchySVRG,
-    SketchySAGA,
-    SketchyKatyusha,
-    PCG,
-)
+from src.opts import ASkotch, ASkotchV2, PCG, SketchySAGA
 
 OPT_CLASSES = {
     "askotch": ASkotch,
     "askotchv2": ASkotchV2,
-    "sketchysgd": SketchySGD,
-    "sketchysvrg": SketchySVRG,
     "sketchysaga": SketchySAGA,
-    "sketchykatyusha": SketchyKatyusha,
     "pcg": PCG,
 }
 
@@ -118,15 +107,18 @@ def set_precision(precision):
         raise ValueError("Precision must be either 'float32' or 'float64'")
 
 
-"""
-Helper function for setting seed for the random number generator in various packages.
+def set_random_seed(seed: int):
+    """
+    Set the random seed for reproducibility across NumPy, Python's random module,
+    and PyTorch.
 
-INPUT:
-- seed: integer
-"""
+    This function ensures that the random number generation is
+    consistent and reproducible by setting the same seed across different libraries.
+    It also sets the seed for CUDA if a GPU is being used.
 
-
-def set_random_seed(seed):
+    Args:
+        seed (int): The seed value to use for random number generation.
+    """
     np.random.seed(seed)
     random.seed(seed)
     torch.manual_seed(seed)
@@ -189,39 +181,12 @@ def build_opt_params(model, config):
             "nu": config.nu,
             "accelerated": config.accelerated,
         }
-    elif config.opt == "sketchysgd":
-        return {
-            "model": model,
-            "bg": config.bg,
-            "bH": config.bH,
-            "bH2": config.bH2,
-            "precond_params": config.precond_params,
-        }
-    elif config.opt == "sketchysvrg":
-        return {
-            "model": model,
-            "bg": config.bg,
-            "bH": config.bH,
-            "bH2": config.bH2,
-            "update_freq": config.update_freq,
-            "precond_params": config.precond_params,
-        }
     elif config.opt == "sketchysaga":
         return {
             "model": model,
             "bg": config.bg,
             "bH": config.bH,
             "bH2": config.bH2,
-            "precond_params": config.precond_params,
-        }
-    elif config.opt == "sketchykatyusha":
-        return {
-            "model": model,
-            "bg": config.bg,
-            "bH": config.bH,
-            "bH2": config.bH2,
-            "p": config.p,
-            "mu": config.mu,
             "precond_params": config.precond_params,
         }
     elif config.opt == "pcg":

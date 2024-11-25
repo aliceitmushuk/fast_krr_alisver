@@ -1,17 +1,17 @@
 import torch
 
-from .minibatch_generator import MinibatchGenerator
-from .opt_utils import _apply_precond
-from .opt_utils_sgd import _get_precond_L, _get_minibatch
+from .optimizer import Optimizer
+from .utils.minibatch_generator import MinibatchGenerator
+from .utils.general import _apply_precond
+from .utils.sgd import _get_precond_L, _get_minibatch
 
 
-class SketchySAGA:
+class SketchySAGA(Optimizer):
     def __init__(self, model, bg, bH, bH2, precond_params=None):
-        self.model = model
+        super().__init__(model, precond_params)
         self.bg = bg
         self.bH = bH
         self.bH2 = bH2
-        self.precond_params = precond_params
 
         self.precond, L = _get_precond_L(
             self.model, self.precond_params, self.bH, self.bH2

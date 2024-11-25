@@ -1,13 +1,14 @@
 import torch
 
-from .opt_utils import _get_leverage_scores
-from .opt_utils_bcd import (
+from .optimizer import Optimizer
+from .utils.general import _get_leverage_scores
+from .utils.bcd import (
     _get_block_update,
     _get_block_properties,
 )
 
 
-class ASkotchV2:
+class ASkotchV2(Optimizer):
     def __init__(
         self,
         model,
@@ -18,9 +19,8 @@ class ASkotchV2:
         nu=None,
         accelerated=True,
     ):
-        self.model = model
+        super().__init__(model, precond_params)
         self.block_sz = block_sz
-        self.precond_params = precond_params
         self.mu = mu if mu is not None else self.model.lambd
         self.nu = nu if nu is not None else self.model.n / self.block_sz
         self.accelerated = accelerated
