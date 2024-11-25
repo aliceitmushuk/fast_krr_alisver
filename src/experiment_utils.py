@@ -1,4 +1,3 @@
-import argparse
 import random
 import warnings
 
@@ -27,125 +26,87 @@ OPT_CLASSES = {
 }
 
 
-# Custom action to parse parameters
-class ParseParams(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        # Split the input string into individual elements
-        elements = values.split()
-        # print(elements) # Useful for debugging
-        params_dict = {}
-        # Iterate over the elements two at a time (key-value pairs)
-        i = 0
-        while i < len(elements):
-            key = elements[i]
-            if key == "use_cpu":
-                # Special case for the boolean key
-                params_dict[key] = True
-                i += 1
-            else:
-                value = elements[i + 1]
-                # Attempt to convert numeric values to float, otherwise keep as string
-                try:
-                    if key == "r":  # Rank parameter in preconditioner is int, not float
-                        value = int(value)
-                    else:
-                        value = float(value)
-                except ValueError:
-                    # If conversion fails, value remains a string
-                    pass
-                params_dict[key] = value
-                i += 2
-        setattr(namespace, self.dest, params_dict)
+# Validation rules for optimizers and preconditioners
+VALIDATION_RULES = {
+    "askotch": {
+        "required": ["b", "beta", "accelerated"],
+        "optional": [],
+    },
+    "askotchv2": {
+        "required": ["block_sz_frac", "sampling_method", "accelerated"],
+        "optional": [],
+    },
+    "sketchy": {
+        "required": ["m", "bg"],
+        "optional": ["bH", "bH2", "update_freq", "p", "mu"],
+    },
+    "pcg": {
+        "required": ["precond_params"],
+        "optional": [],
+    },
+}
+
+PRECOND_TYPES = {"falkon", "newton", "nystrom", "partial_cholesky"}
 
 
-def check_required(arg, name, opt_name):
-    if arg is None:
-        raise ValueError(f"{name} must be provided for {opt_name}")
-
-
-def check_askotch(args, opt_name):
-    check_required(args.b, "Number of blocks", opt_name)
-    check_required(args.beta, "Acceleration parameter", opt_name)
-    check_required(args.accelerated, "Acceleration flag", opt_name)
-
-
-def check_askotchv2(args, opt_name):
-    check_required(args.block_sz, "Block size", opt_name)
-    check_required(args.sampling_method, "Sampling method", opt_name)
-    check_required(args.mu, "Mu", opt_name)
-    check_required(args.nu, "Nu", opt_name)
-    check_required(args.accelerated, "Acceleration flag", opt_name)
-
-
-def check_sketchy(args, opt_name):
-    check_required(args.m, "Number of inducing points", opt_name)
-    check_required(args.bg, "Gradient batch size", opt_name)
-    if args.bH is None:
-        warnings.warn(
-            f"Hessian batch size is not provided for {opt_name}. \
-                Using default value int(n**0.5)"
-        )
-    if args.bH2 is None:
-        warnings.warn(
-            f"Hessian batch size for eig calculations is not provided for {opt_name}. \
-                Using default value max(1, n // 50)"
-        )
-    if args.update_freq is not None and args.opt != "sketchysvrg":
-        warnings.warn(
-            f"Update frequency is not used in {opt_name}. Ignoring this parameter"
-        )
-    if args.p is None and args.opt == "sketchykatyusha":
-        warnings.warn(
-            f"Update probability is not provided for {opt_name}. \
-                Using default value bg/n"
-        )
-    if args.mu is None and args.opt == "sketchykatyusha":
-        warnings.warn(
-            f"Strong convexity parameter is not provided for {opt_name}. \
-                Using default value lambd"
-        )
-
-
-def check_pcg(args, opt_name):
-    check_required(args.precond_params, "Preconditioner parameters", opt_name)
-
-
-def check_precond_params(precond_params):
-    if "type" not in precond_params:
-        raise ValueError("Preconditioner type must be provided")
-    if precond_params["type"] not in [
-        "falkon",
-        "newton",
-        "nystrom",
-        "partial_cholesky",
-    ]:
-        raise ValueError(
-            "Only Falkon, Newton, Nystrom, and Partial Cholesky \
-                  preconditioners are supported"
-        )
-
-
-def check_inputs(args):
-    if "max_time" not in args and "max_iter" not in args:
+def validate_experiment_args(experiment_args):
+    """
+    Validate the experiment arguments based on optimizer type and preconditioner.
+    :param experiment_args: Dictionary of experiment arguments.
+    """
+    # Validate max_time or max_iter
+    if "max_time" not in experiment_args and "max_iter" not in experiment_args:
         raise ValueError("At least one of max_time or max_iter must be provided")
 
-    opt_name = OPT_CLASSES[args.opt]
-    opt_checkers = {
-        "askotch": check_askotch,
-        "askotchv2": check_askotchv2,
-        "sketchysgd": check_sketchy,
-        "sketchysvrg": check_sketchy,
-        "sketchysaga": check_sketchy,
-        "sketchykatyusha": check_sketchy,
-        "pcg": check_pcg,
-    }
+    # Validate optimizer-specific arguments
+    opt_type = experiment_args.get("opt")
+    if opt_type not in VALIDATION_RULES:
+        raise ValueError(f"Unknown optimizer type: {opt_type}")
 
-    # Call the appropriate function based on optimizer type
-    if args.opt in opt_checkers:
-        opt_checkers[args.opt](args, opt_name)
+    opt_rules = VALIDATION_RULES[opt_type]
+    for required_arg in opt_rules["required"]:
+        if required_arg not in experiment_args or experiment_args[required_arg] is None:
+            raise ValueError(f"{required_arg} must be provided for {opt_type}")
 
-    if args.precond_params is not None:
-        check_precond_params(args.precond_params)
+    for optional_arg in opt_rules["optional"]:
+        if optional_arg not in experiment_args or experiment_args[optional_arg] is None:
+            warnings.warn(
+                f"{optional_arg} is not provided for {opt_type}. Using default."
+            )
+
+    # Validate preconditioner parameters if present
+    precond_params = experiment_args.get("precond_params")
+    if precond_params is not None:
+        validate_precond_params(precond_params)
+
+
+def validate_precond_params(precond_params):
+    """
+    Validate the preconditioner parameters.
+    :param precond_params: Dictionary of preconditioner parameters.
+    """
+    if precond_params is None:
+        return
+    precond_type = precond_params.get("type")
+    precond_rho = precond_params.get("rho")
+    if precond_type is None:
+        raise ValueError("Preconditioner type must be provided")
+    if precond_type not in PRECOND_TYPES:
+        raise ValueError(f"Unsupported preconditioner type: {precond_type}")
+    if precond_type != "falkon":
+        if not (
+            isinstance(precond_rho, float)
+            or precond_rho in ["regularization", "damped"]
+        ):
+            raise ValueError("Invalid rho value for preconditioner")
+
+
+def check_inputs(experiment_args):
+    """
+    Validate the inputs for the experiment.
+    :param experiment_args: Dictionary of experiment arguments.
+    """
+    validate_experiment_args(experiment_args)
 
 
 def set_precision(precision):

@@ -58,7 +58,7 @@ class ASkotchV2:
 
         # Compute block preconditioner and learning rate
         block_precond, block_eta, _ = _get_block_properties(
-            self.model, [block], self.precond_params, False
+            self.model, self.precond_params, [block], False
         )
         block_precond = block_precond[0]
         block_eta = block_eta[0]

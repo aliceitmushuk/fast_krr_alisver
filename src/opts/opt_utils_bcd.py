@@ -22,54 +22,47 @@ def _get_blocks(n, B):
     return blocks
 
 
-def _get_block_precond(model, block, precond_params):
+def _get_block_precond(model, precond_params, block):
     block_lin_op, block_lin_op_reg, block_trace = model._get_block_lin_ops(block)
 
-    type = precond_params.get("type", None)
     update_params = None
-    if type == "newton":
-        update_params = {"K_lin_op": block_lin_op, "n": block.shape[0]}
-    elif type == "nystrom":
-        update_params = {
-            "K_lin_op": block_lin_op,
-            "K_trace": block_trace,
-            "n": block.shape[0],
-        }
-    elif type == "partial_cholesky":
-        K_fn = model._get_kernel_fn()
-        K_diag = model._get_diag(sz=block.shape[0])
-        blk_size = precond_params.get("blk_size", None)
-        update_params = {
-            "K_fn": K_fn,
-            "K_diag": K_diag,
-            "x": model.x[block],
-            "blk_size": blk_size,
-        }
-    precond = pi._get_precond(precond_params, update_params, model.device)
-
-    # Set the rho parameter for the Nystrom preconditioner
-    if type == "nystrom":
-        precond.rho = (
-            model.lambd + precond.S[-1]
-            if "rho" not in precond_params
-            else precond_params["rho"]
-        )
+    if precond_params is not None:
+        type = precond_params["type"]
+        if type == "newton":
+            update_params = {"K_lin_op": block_lin_op, "n": block.shape[0]}
+        elif type == "nystrom":
+            update_params = {
+                "K_lin_op": block_lin_op,
+                "K_trace": block_trace,
+                "n": block.shape[0],
+            }
+        elif type == "partial_cholesky":
+            K_fn = model._get_kernel_fn()
+            K_diag = model._get_diag(sz=block.shape[0])
+            blk_size = precond_params.get("blk_size", None)
+            update_params = {
+                "K_fn": K_fn,
+                "K_diag": K_diag,
+                "x": model.x[block],
+                "blk_size": blk_size,
+            }
+    precond = pi._get_precond(precond_params, update_params, model.lambd, model.device)
 
     return precond, block_lin_op_reg
 
 
-def _get_block_precond_L(model, block, precond_params):
-    precond, block_lin_op_reg = _get_block_precond(model, block, precond_params)
+def _get_block_precond_L(model, precond_params, block):
+    precond, block_lin_op_reg = _get_block_precond(model, precond_params, block)
     L = _get_L(block_lin_op_reg, precond, block.shape[0], model.device)
 
     return precond, L
 
 
-def _get_block_properties(model, blocks, precond_params, no_store_precond):
+def _get_block_properties(model, precond_params, blocks, no_store_precond):
     block_preconds, block_etas, block_Ls = [], [], []
 
     for block in blocks:
-        precond, L = _get_block_precond_L(model, block, precond_params)
+        precond, L = _get_block_precond_L(model, precond_params, block)
 
         if not no_store_precond:
             block_preconds.append(precond)

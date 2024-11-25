@@ -28,7 +28,7 @@ class ASkotch:
         self.blocks = _get_blocks(self.model.n, self.B)
         self.alpha = (1 - self.beta) / 2  # Controls acceleration
         self.block_preconds, self.block_etas, self.block_Ls = _get_block_properties(
-            self.model, self.blocks, self.precond_params, self.no_store_precond
+            self.model, self.precond_params, self.blocks, self.no_store_precond
         )
         self.S_alpha = sum([L**self.alpha for L in self.block_Ls])
         self.block_probs = torch.tensor(
@@ -52,7 +52,7 @@ class ASkotch:
         # Retrieve the block preconditioner -- recompute if necessary
         if self.no_store_precond:
             block_precond, _ = _get_block_precond(
-                self.model, self.blocks[block_idx], self.precond_params
+                self.model, self.precond_params, self.blocks[block_idx]
             )
         else:
             block_precond = self.block_preconds[block_idx]

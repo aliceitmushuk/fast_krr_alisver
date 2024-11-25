@@ -10,21 +10,31 @@ class Experiment:
     def __init__(self, exp_args):
         self.exp_args = exp_args.copy()
 
-    def _modify_opt_args(self, model):
-        if self.exp_args["opt"].startswith("sketchy"):
-            if self.exp_args["bH"] is None:
-                self.exp_args["bH"] = int(model.n**0.5)
-            if self.exp_args["bH2"] is None:
-                self.exp_args["bH2"] = max(1, model.n // 50)
+    def _modify_exp_args(self, n):
+        # if self.exp_args["opt"].startswith("sketchy"):
+        #     if self.exp_args["bH"] is None:
+        #         self.exp_args["bH"] = int(model.n**0.5)
+        #     if self.exp_args["bH2"] is None:
+        #         self.exp_args["bH2"] = max(1, model.n // 50)
 
-            if self.exp_args["opt"] == "sketchysvrg":
-                if self.exp_args["update_freq"] is None:
-                    self.exp_args["update_freq"] = model.n // self.exp_args["bg"]
-            elif self.exp_args["opt"] == "sketchykatyusha":
-                if self.exp_args["p"] is None:
-                    self.exp_args["p"] = self.exp_args["bg"] / model.n
-                if self.exp_args["mu"] is None:
-                    self.exp_args["mu"] = model.lambd
+        #     if self.exp_args["opt"] == "sketchysvrg":
+        #         if self.exp_args["update_freq"] is None:
+        #             self.exp_args["update_freq"] = model.n // self.exp_args["bg"]
+        #     elif self.exp_args["opt"] == "sketchykatyusha":
+        #         if self.exp_args["p"] is None:
+        #             self.exp_args["p"] = self.exp_args["bg"] / model.n
+        #         if self.exp_args["mu"] is None:
+        #             self.exp_args["mu"] = model.lambd
+        self.exp_args["n"] = n
+        self.exp_args["lambd"] = self.exp_args["lambd_unscaled"] * n
+
+        # ASkotchV2 parameters
+        if "block_sz_frac" in self.exp_args:
+            self.exp_args["block_sz"] = int(self.exp_args["block_sz_frac"] * n)
+        if "mu" in self.exp_args and self.exp_args["mu"] is None:
+            self.exp_args["mu"] = self.exp_args["lambd"]
+        if "nu" in self.exp_args and self.exp_args["nu"] is None:
+            self.exp_args["nu"] = n / self.exp_args["block_sz"]
 
     def _time_exceeded(self, n_iters, time_elapsed):
         if "max_time" in self.exp_args:
@@ -43,6 +53,9 @@ class Experiment:
         Xtr, Xtst, ytr, ytst = load_data(
             self.exp_args["dataset"], self.exp_args["seed"], self.exp_args["device"]
         )
+
+        # Set optimizer args if needed
+        self._modify_exp_args(Xtr.shape[0])
 
         # Load model
         if self.exp_args["model"] == "full_krr":
@@ -73,9 +86,6 @@ class Experiment:
                 self.exp_args["task"],
                 self.exp_args["device"],
             )
-
-        # Set optimizer args if needed
-        self._modify_opt_args(model)
 
         with wandb.init(project=self.exp_args["wandb_project"], config=self.exp_args):
             # Access the wandb config
@@ -123,3 +133,4 @@ class Experiment:
                     )
 
                     i += 1
+        wandb.finish()
