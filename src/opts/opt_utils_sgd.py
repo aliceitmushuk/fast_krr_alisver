@@ -2,7 +2,7 @@ from .opt_utils import _get_L
 from ..preconditioners import preconditioner_inits as pi
 
 
-def _get_precond_L(model, bH, bH2, precond_params):
+def _get_precond_L(model, precond_params, bH, bH2):
     (
         subsampled_lin_op,
         subsampled_reg_lin_op,

@@ -18,7 +18,7 @@ class SketchyKatyusha:
         self.theta2 = 0.5
 
         self.precond, self.L = _get_precond_L(
-            self.model, self.bH, self.bH2, self.precond_params
+            self.model, self.precond_params, self.bH, self.bH2
         )
         # self.eta = 0.5 / self.L
         self.generator = MinibatchGenerator(self.model.n, self.bg)

@@ -22,7 +22,7 @@ def _get_blocks(n, B):
     return blocks
 
 
-def _get_block_precond(model, block, precond_params):
+def _get_block_precond(model, precond_params, block):
     block_lin_op, block_lin_op_reg, block_trace = model._get_block_lin_ops(block)
 
     update_params = None
@@ -51,18 +51,18 @@ def _get_block_precond(model, block, precond_params):
     return precond, block_lin_op_reg
 
 
-def _get_block_precond_L(model, block, precond_params):
-    precond, block_lin_op_reg = _get_block_precond(model, block, precond_params)
+def _get_block_precond_L(model, precond_params, block):
+    precond, block_lin_op_reg = _get_block_precond(model, precond_params, block)
     L = _get_L(block_lin_op_reg, precond, block.shape[0], model.device)
 
     return precond, L
 
 
-def _get_block_properties(model, blocks, precond_params, no_store_precond):
+def _get_block_properties(model, precond_params, blocks, no_store_precond):
     block_preconds, block_etas, block_Ls = [], [], []
 
     for block in blocks:
-        precond, L = _get_block_precond_L(model, block, precond_params)
+        precond, L = _get_block_precond_L(model, precond_params, block)
 
         if not no_store_precond:
             block_preconds.append(precond)

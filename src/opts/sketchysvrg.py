@@ -13,7 +13,10 @@ class SketchySVRG:
         self.precond_params = precond_params
 
         self.precond, L = _get_precond_L(
-            self.model, self.bH, self.bH2, self.precond_params
+            self.model,
+            self.precond_params,
+            self.bH,
+            self.bH2,
         )
         self.eta = 0.5 / L
         self.generator = MinibatchGenerator(self.model.n, self.bg)
