@@ -23,17 +23,24 @@ class PartialCholesky:
     randomly pivoted Cholesky." arXiv preprint arXiv:2410.03969 (2024).
     """
 
-    def __init__(self, device: str, r: int, rho: float = None, mode: str = "rpc"):
+    def __init__(
+        self, device: str, r: int, rho: float, lambd: float, mode: str = "rpc"
+    ):
         if mode not in ["rpc", "greedy"]:
             raise ValueError(f"PartialCholesky does not support factorization: {mode}")
-
+        print(f"rho: {rho}")
+        print(f"lambd: {lambd}")
+        print(f"r: {r}")
         self.device = device
         self.r = r
-        self.rho = rho
+        self.rho = self._get_damping(rho, lambd)
         self.mode = mode
 
         self.L = None
         self.M = None
+
+        print(f"self.rho: {self.rho}")
+        print(f"self.r: {self.r}")
 
     def update(
         self,
@@ -52,11 +59,11 @@ class PartialCholesky:
 
             self._update_accelerated_rpc(K_fn, K_diag, x, blk_size, stoptol=tol)
 
-    def set_damping(self, rho, lambd):
+    def _get_damping(self, rho, lambd):
         if isinstance(rho, float):
-            self.rho = rho
+            return rho
         elif rho == "regularization":
-            self.rho = lambd
+            return lambd
 
     def inv_lin_op(self, v: torch.Tensor) -> torch.Tensor:
         Lv = self.L @ v

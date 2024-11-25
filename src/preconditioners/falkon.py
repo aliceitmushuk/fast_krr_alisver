@@ -2,12 +2,13 @@ import torch
 
 
 class Falkon:
-    def __init__(self, device):
+    def __init__(self, device, lambd):
         self.device = device
+        self.lambd = lambd
         self.T = None
         self.R = None
 
-    def update(self, K_mm_lin_op, K_mm_trace, n, m, lambd):
+    def update(self, K_mm_lin_op, K_mm_trace, n, m):
         # Instantiate K_mm as dense tensor
         K_mm = K_mm_lin_op(torch.eye(m, device=self.device))
 
@@ -20,7 +21,8 @@ class Falkon:
                 K_mm + shift * torch.eye(m).to(self.device), upper=True
             )
             R = torch.linalg.cholesky(
-                n / m * (T @ T.T) + lambd * torch.eye(m).to(self.device), upper=True
+                n / m * (T @ T.T) + self.lambd * torch.eye(m).to(self.device),
+                upper=True,
             )
         except (
             RuntimeError
@@ -31,7 +33,7 @@ class Falkon:
                     K_mm.cpu() + shift * torch.eye(m).cpu(), upper=True
                 )
                 R = torch.linalg.cholesky(
-                    n / m * (T @ T.T) + lambd * torch.eye(m).cpu(), upper=True
+                    n / m * (T @ T.T) + self.lambd * torch.eye(m).cpu(), upper=True
                 )
                 T = T.to(self.device)
                 R = R.to(self.device)
@@ -40,9 +42,6 @@ class Falkon:
 
         self.T = T
         self.R = R
-
-    def set_damping(self, rho, lambd):
-        pass
 
     def inv_lin_op(self, v):
         # Computes T\(R\(R.T\(T.T\v)))

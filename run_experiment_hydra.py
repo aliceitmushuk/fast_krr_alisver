@@ -15,8 +15,6 @@ def main(cfg: DictConfig):
     """
     Main function to run the experiment using Hydra.
     """
-    print("asdfasdfasdfasdf")
-
     # Print the configuration for debugging
     print(OmegaConf.to_yaml(cfg))
 

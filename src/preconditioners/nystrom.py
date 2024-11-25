@@ -2,10 +2,12 @@ import torch
 
 
 class Nystrom:
-    def __init__(self, device, r, rho=None, use_cpu=False):
+    def __init__(self, device, r, rho, lambd, use_cpu=False):
         self.device = device
         self.r = r
-        self.rho = rho
+        self.rho_damped = False
+        self.rho = self._get_damping(rho, lambd)
+        self.lambd = lambd
         self.use_cpu = (
             use_cpu  # Perform some preconditioner calculations on CPU if True
         )
@@ -64,6 +66,10 @@ class Nystrom:
         # Set indices of self.S that are equal to 0 to a small value
         self.S[self.S < torch.finfo(self.S.dtype).eps] = 1e-4
 
+        # Set rho if rho_damped is True
+        if self.rho_damped:
+            self.rho = self.lambd + self.S[-1]
+
     def _batch_calculate_cholesky_target(
         self, K_lin_op, Phi, shift, initial_batch_size
     ):
@@ -102,13 +108,14 @@ class Nystrom:
 
         return cholesky_target, Y_shifted
 
-    def set_damping(self, rho, lambd):
+    def _get_damping(self, rho, lambd):
         if isinstance(rho, float):
-            self.rho = rho
+            return rho
         elif rho == "regularization":
-            self.rho = lambd
+            return lambd
         elif rho == "damped":
-            self.rho = lambd + self.S[-1]
+            self.rho_damped = True
+            return None
 
     def inv_lin_op(self, v):
         if torch.get_default_dtype() == torch.float64:  # Use the classic implementation
