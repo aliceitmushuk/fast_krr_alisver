@@ -24,31 +24,16 @@ class FullKRR(Model):
     def lin_op(self, v):
         return self.K @ v + self.lambd * v
 
-    def compute_metrics(self, v, log_test_only):
-        metrics_dict = {}
-        if not log_test_only:
-            v_lin_op = self.lin_op(v)
-            residual = v_lin_op - self.b
-            rel_residual = torch.norm(residual) / self.b_norm
-            loss = 1 / 2 * torch.dot(v, v_lin_op) - torch.dot(self.b, v)
+    def _compute_train_metrics(self, v):
+        v_lin_op = self.lin_op(v)
+        residual = v_lin_op - self.b
+        rel_residual = torch.norm(residual) / self.b_norm
+        loss = 1 / 2 * torch.dot(v, v_lin_op) - torch.dot(self.b, v)
 
-            metrics_dict["rel_residual"] = rel_residual
-            metrics_dict["train_loss"] = loss
-
-        pred = self.K_tst @ v
-        if self.task == "classification":
-            test_metric = torch.sum(torch.sign(pred) == self.b_tst) / self.n_tst
-            metrics_dict[self.test_metric_name] = test_metric
-        else:
-            test_metric = 1 / 2 * torch.norm(pred - self.b_tst) ** 2 / self.n_tst
-            abs_errs = (pred - self.b_tst).abs()
-            smape = (
-                torch.sum(abs_errs / ((pred.abs() + self.b_tst.abs()) / 2)) / self.n_tst
-            )
-            metrics_dict[self.test_metric_name] = test_metric
-            metrics_dict["test_rmse"] = test_metric**0.5
-            metrics_dict["test_smape"] = smape
-            metrics_dict["test_mae"] = abs_errs.mean()
+        metrics_dict = {
+            "rel_residual": rel_residual,
+            "train_loss": loss,
+        }
 
         return metrics_dict
 
