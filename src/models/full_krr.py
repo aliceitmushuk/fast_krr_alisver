@@ -8,34 +8,17 @@ from ..kernels.kernel_inits import (
     _get_trace,
     _get_diag,
 )
+from .model import Model
 
 
-class FullKRR:
+class FullKRR(Model):
     def __init__(
         self, x, b, x_tst, b_tst, kernel_params, Ktr_needed, lambd, task, w0, device
     ):
-        self.x = x
-        self.b = b
-        self.x_tst = x_tst
-        self.b_tst = b_tst
-        self.kernel_params = kernel_params
-        self.lambd = lambd
-        self.task = task
-        self.w = w0
-        self.device = device
-
+        super().__init__(x, b, x_tst, b_tst, kernel_params, lambd, task, w0, device)
+        self.inducing = False
         self.x_j, self.K, self.K_tst = _get_kernels_start(
             self.x, self.x_tst, self.kernel_params, Ktr_needed
-        )
-        self.b_norm = torch.norm(self.b)
-
-        self.n = self.x.shape[0]
-        self.n_tst = self.x_tst.shape[0]
-
-        self.inducing = False
-
-        self.test_metric_name = (
-            "test_acc" if self.task == "classification" else "test_mse"
         )
 
     def lin_op(self, v):
@@ -58,15 +41,14 @@ class FullKRR:
             metrics_dict[self.test_metric_name] = test_metric
         else:
             test_metric = 1 / 2 * torch.norm(pred - self.b_tst) ** 2 / self.n_tst
+            abs_errs = (pred - self.b_tst).abs()
             smape = (
-                torch.sum(
-                    (pred - self.b_tst).abs() / ((pred.abs() + self.b_tst.abs()) / 2)
-                )
-                / self.n_tst
+                torch.sum(abs_errs / ((pred.abs() + self.b_tst.abs()) / 2)) / self.n_tst
             )
             metrics_dict[self.test_metric_name] = test_metric
             metrics_dict["test_rmse"] = test_metric**0.5
-            metrics_dict["smape"] = smape
+            metrics_dict["test_smape"] = smape
+            metrics_dict["test_mae"] = abs_errs.mean()
 
         return metrics_dict
 

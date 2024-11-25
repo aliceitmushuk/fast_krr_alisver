@@ -3,9 +3,10 @@ import torch
 from pykeops.torch import LazyTensor
 
 from ..kernels.kernel_inits import _get_kernel, _get_trace
+from .model import Model
 
 
-class InducingKRR:
+class InducingKRR(Model):
     def __init__(
         self,
         x,
@@ -20,16 +21,10 @@ class InducingKRR:
         w0,
         device,
     ):
-        self.x = x
-        self.b = b
-        self.x_tst = x_tst
-        self.b_tst = b_tst
-        self.kernel_params = kernel_params
+        super().__init__(x, b, x_tst, b_tst, kernel_params, lambd, task, w0, device)
         self.inducing_pts = inducing_pts
-        self.lambd = lambd
-        self.task = task
-        self.w = w0
-        self.device = device
+        self.m = self.inducing_pts.shape[0]
+        self.inducing = True
 
         # Get inducing points kernel
         x_inducing_i = LazyTensor(self.x[self.inducing_pts][:, None, :])
@@ -46,17 +41,6 @@ class InducingKRR:
         # Get kernel for test set
         x_tst_i = LazyTensor(self.x_tst[:, None, :])
         self.K_tst = _get_kernel(x_tst_i, self.x_inducing_j, self.kernel_params)
-
-        self.m = self.inducing_pts.shape[0]
-        self.n = self.x.shape[0]
-        self.n_tst = self.x_tst.shape[0]
-        self.b_norm = torch.norm(self.b)
-
-        self.inducing = True
-
-        self.test_metric_name = (
-            "test_acc" if self.task == "classification" else "test_mse"
-        )
 
     def _Knm_lin_op(self, v):
         return self.K_nm @ v
@@ -87,6 +71,7 @@ class InducingKRR:
             metrics_dict[self.test_metric_name] = test_metric
         else:
             test_metric = 1 / 2 * torch.norm(pred - self.b_tst) ** 2 / self.n_tst
+            abs_errs = (pred - self.b_tst).abs()
             smape = (
                 torch.sum(
                     (pred - self.b_tst).abs() / ((pred.abs() + self.b_tst.abs()) / 2)
@@ -95,7 +80,8 @@ class InducingKRR:
             )
             metrics_dict[self.test_metric_name] = test_metric
             metrics_dict["test_rmse"] = test_metric**0.5
-            metrics_dict["smape"] = smape
+            metrics_dict["test_smape"] = smape
+            metrics_dict["test_mae"] = abs_errs.mean()
 
         return metrics_dict
 
