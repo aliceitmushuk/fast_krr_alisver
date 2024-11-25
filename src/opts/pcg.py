@@ -10,7 +10,7 @@ class PCG:
         self.precond_params = precond_params
 
         self.rhs = self.model.K_nmTb if self.model.inducing else self.model.b
-        self.precond = _get_precond(self.model, self.precond_params, self.model.device)
+        self.precond = _get_precond(self.model, self.precond_params)
 
         self.r, self.z, self.p = self._init_pcg()
 

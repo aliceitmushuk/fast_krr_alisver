@@ -1,7 +1,7 @@
 from ..preconditioners import preconditioner_inits as pi
 
 
-def _get_precond(model, precond_params, device):
+def _get_precond(model, precond_params):
     update_params = None
     if precond_params is not None:
         type = precond_params["type"]
@@ -31,9 +31,6 @@ def _get_precond(model, precond_params, device):
                 "x": model.x,
                 "blk_size": blk_size,
             }
-    precond = pi._get_precond(precond_params, update_params, device)
-
-    # Set the rho parameter for the Nystrom preconditioner
-    pi._set_nystrom_damping(precond, precond_params, model.lambd)
+    precond = pi._get_precond(precond_params, update_params, model.lambd, model.device)
 
     return precond

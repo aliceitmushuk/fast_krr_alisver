@@ -20,11 +20,7 @@ def _get_precond_L(model, bH, bH2, precond_params):
                 "K_trace": subsampled_trace,
                 "n": model.m,
             }
-    precond = pi._get_precond(precond_params, update_params, model.device)
-
-    # Set the rho parameter for the Nystrom preconditioner
-    pi._set_nystrom_damping(precond, precond_params, model.lambd)
-
+    precond = pi._get_precond(precond_params, update_params, model.lambd, model.device)
     L = _get_L(subsampled_reg_lin_op, precond, model.m, model.device)
 
     return precond, L

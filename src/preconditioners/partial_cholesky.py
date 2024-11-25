@@ -52,6 +52,12 @@ class PartialCholesky:
 
             self._update_accelerated_rpc(K_fn, K_diag, x, blk_size, stoptol=tol)
 
+    def set_damping(self, rho, lambd):
+        if isinstance(rho, float):
+            self.rho = rho
+        elif rho == "regularization":
+            self.rho = lambd
+
     def inv_lin_op(self, v: torch.Tensor) -> torch.Tensor:
         Lv = self.L @ v
         M_inv_Lv = torch.linalg.solve_triangular(

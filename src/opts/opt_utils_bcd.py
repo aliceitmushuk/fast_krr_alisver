@@ -46,10 +46,7 @@ def _get_block_precond(model, block, precond_params):
                 "x": model.x[block],
                 "blk_size": blk_size,
             }
-    precond = pi._get_precond(precond_params, update_params, model.device)
-
-    # Set the rho parameter for the Nystrom preconditioner
-    pi._set_nystrom_damping(precond, precond_params, model.lambd)
+    precond = pi._get_precond(precond_params, update_params, model.lambd, model.device)
 
     return precond, block_lin_op_reg
 

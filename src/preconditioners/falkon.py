@@ -41,6 +41,9 @@ class Falkon:
         self.T = T
         self.R = R
 
+    def set_damping(self, rho, lambd):
+        pass
+
     def inv_lin_op(self, v):
         # Computes T\(R\(R.T\(T.T\v)))
         v = v.reshape(v.shape[0], 1)
