@@ -1,9 +1,11 @@
 import torch
 
+from .preconditioner import Preconditioner
 
-class Falkon:
+
+class Falkon(Preconditioner):
     def __init__(self, device, lambd):
-        self.device = device
+        super().__init__(device)
         self.lambd = lambd
         self.T = None
         self.R = None

@@ -1,8 +1,10 @@
 import torch
 from typing import Callable, Tuple
 
+from .preconditioner import Preconditioner
 
-class PartialCholesky:
+
+class PartialCholesky(Preconditioner):
     r"""Class for implementing a low-rank partial Cholesky factorization.
     Two types of factorizations are supported 'greedy' and 'rpc'.
 
@@ -28,19 +30,13 @@ class PartialCholesky:
     ):
         if mode not in ["rpc", "greedy"]:
             raise ValueError(f"PartialCholesky does not support factorization: {mode}")
-        print(f"rho: {rho}")
-        print(f"lambd: {lambd}")
-        print(f"r: {r}")
-        self.device = device
+        super().__init__(device)
         self.r = r
         self.rho = self._get_damping(rho, lambd)
         self.mode = mode
 
         self.L = None
         self.M = None
-
-        print(f"self.rho: {self.rho}")
-        print(f"self.r: {self.r}")
 
     def update(
         self,

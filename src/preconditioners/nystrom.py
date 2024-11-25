@@ -1,9 +1,11 @@
 import torch
 
+from .preconditioner import Preconditioner
 
-class Nystrom:
+
+class Nystrom(Preconditioner):
     def __init__(self, device, r, rho, lambd, use_cpu=False):
-        self.device = device
+        super().__init__(device)
         self.r = r
         self.rho_damped = False
         self.rho = self._get_damping(rho, lambd)
