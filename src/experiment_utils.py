@@ -1,4 +1,5 @@
 import random
+from typing import Union
 import warnings
 
 import numpy as np
@@ -203,11 +204,11 @@ def get_opt(model, config):
     return OPT_CLASSES[config.opt](**opt_params)
 
 
-def get_sqrt_dim(X: torch.Tensor) -> float:
+def _get_sqrt_dim(X: torch.Tensor) -> float:
     return X.shape[1] ** 0.5
 
 
-def get_median_pairwise_dist(X: torch.Tensor) -> float:
+def _get_median_pairwise_dist(X: torch.Tensor) -> float:
     # Compute pairwise distances
     pairwise_distances = torch.cdist(X, X, p=2)  # Pairwise Euclidean distances
     # Extract upper triangle (excluding diagonal) for unique pairwise distances
@@ -216,3 +217,15 @@ def get_median_pairwise_dist(X: torch.Tensor) -> float:
     ]
     # Compute median
     return torch.median(distances).item()
+
+
+def get_bandwidth(X: torch.Tensor, sigma: Union[str, float], n_pairs: int) -> float:
+    if sigma == "sqrt_dim":
+        return _get_sqrt_dim(X)
+    elif sigma == "median":
+        # Subsample to compute median pairwise distance
+        n_subsample = min(n_pairs, X.shape[0])
+        X_sub = X[torch.randperm(X.shape[0])[:n_subsample]]
+        return _get_median_pairwise_dist(X_sub, n_pairs)
+    else:
+        return float(sigma)
