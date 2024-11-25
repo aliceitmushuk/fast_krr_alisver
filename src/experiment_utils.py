@@ -236,3 +236,18 @@ def get_opt(model, config):
     opt_params = build_opt_params(model, config)
     # Initialize the optimizer with the specified parameters
     return OPT_CLASSES[config.opt](**opt_params)
+
+
+def get_sqrt_dim(X: torch.Tensor) -> float:
+    return X.shape[1] ** 0.5
+
+
+def get_median_pairwise_dist(X: torch.Tensor) -> float:
+    # Compute pairwise distances
+    pairwise_distances = torch.cdist(X, X, p=2)  # Pairwise Euclidean distances
+    # Extract upper triangle (excluding diagonal) for unique pairwise distances
+    distances = pairwise_distances[
+        torch.triu_indices(X.shape[0], X.shape[0], offset=1).unbind()
+    ]
+    # Compute median
+    return torch.median(distances).item()

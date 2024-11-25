@@ -4,8 +4,8 @@ import itertools
 from pprint import pprint
 import glob
 
+from src.data_configs import DATA_CONFIGS
 from src.experiment_configs import (
-    DATA_CONFIGS,
     KERNEL_CONFIGS,
     LAMBDA_CONFIGS,
     FULL_KRR_PERFORMANCE_TIME_CONFIGS,
