@@ -1,16 +1,18 @@
 import torch
 import wandb
 
-from .experiment_utils import get_full_krr, get_inducing_krr, get_opt
+from .experiment_utils import get_full_krr, get_inducing_krr, get_opt, get_bandwidth
 from .data_utils import load_data
 from .logger import Logger
+
+N_PAIRS = 1000  # Number of samples for median heuristic in kernel bandwith computation
 
 
 class Experiment:
     def __init__(self, exp_args):
         self.exp_args = exp_args.copy()
 
-    def _modify_exp_args(self, n):
+    def _modify_exp_args(self, Xtr):
         # if self.exp_args["opt"].startswith("sketchy"):
         #     if self.exp_args["bH"] is None:
         #         self.exp_args["bH"] = int(model.n**0.5)
@@ -25,16 +27,24 @@ class Experiment:
         #             self.exp_args["p"] = self.exp_args["bg"] / model.n
         #         if self.exp_args["mu"] is None:
         #             self.exp_args["mu"] = model.lambd
-        self.exp_args["n"] = n
-        self.exp_args["lambd"] = self.exp_args["lambd_unscaled"] * n
+        # Model parameters
+        self.exp_args["n"] = Xtr.shape[0]
+        self.exp_args["lambd"] = self.exp_args["lambd_unscaled"] * self.exp_args["n"]
+
+        # Kernel parameters
+        self.exp_args["kernel_params"]["sigma"] = get_bandwidth(
+            Xtr, self.exp_args["kernel_params"]["sigma"], N_PAIRS
+        )
 
         # ASkotchV2 parameters
         if "block_sz_frac" in self.exp_args:
-            self.exp_args["block_sz"] = int(self.exp_args["block_sz_frac"] * n)
+            self.exp_args["block_sz"] = int(
+                self.exp_args["block_sz_frac"] * self.exp_args["n"]
+            )
         if "mu" in self.exp_args and self.exp_args["mu"] is None:
             self.exp_args["mu"] = self.exp_args["lambd"]
         if "nu" in self.exp_args and self.exp_args["nu"] is None:
-            self.exp_args["nu"] = n / self.exp_args["block_sz"]
+            self.exp_args["nu"] = self.exp_args["n"] / self.exp_args["block_sz"]
 
     def _time_exceeded(self, n_iters, time_elapsed):
         if "max_time" in self.exp_args:
@@ -55,7 +65,7 @@ class Experiment:
         )
 
         # Set optimizer args if needed
-        self._modify_exp_args(Xtr.shape[0])
+        self._modify_exp_args(Xtr)
 
         # Load model
         if self.exp_args["model"] == "full_krr":
