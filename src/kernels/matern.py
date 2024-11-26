@@ -23,10 +23,10 @@ class Matern(Kernel):
         if nu == 0.5:
             K = (-D / sigma).exp()
         elif nu == 1.5:
-            D_adj = torch.sqrt(torch.tensor(3.0)) * D / sigma
+            D_adj = (3**0.5) * D / sigma
             K = (1 + D_adj) * (-D_adj).exp()
         else:  # nu == 2.5
-            D_adj = torch.sqrt(torch.tensor(5.0)) * D / sigma
+            D_adj = (5**0.5) * D / sigma
             K = (1 + D_adj + 5 * D**2 / (3 * sigma**2)) * (-D_adj).exp()
 
         return K
@@ -41,10 +41,10 @@ class Matern(Kernel):
         if nu == 0.5:
             k_i = (-D / sigma).exp()
         elif nu == 1.5:
-            D_adj = torch.sqrt(torch.tensor(3.0)) * D / sigma
+            D_adj = (3**0.5) * D / sigma
             k_i = (1 + D_adj) * (-D_adj).exp()
         else:  # nu == 2.5
-            D_adj = torch.sqrt(torch.tensor(5.0)) * D / sigma
+            D_adj = (5**0.5) * D / sigma
             k_i = (1 + D_adj + 5 * D**2 / (3 * sigma**2)) * (-D_adj).exp()
 
         return k_i

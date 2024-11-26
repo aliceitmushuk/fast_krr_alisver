@@ -224,8 +224,8 @@ def get_bandwidth(X: torch.Tensor, sigma: Union[str, float], n_pairs: int) -> fl
         return _get_sqrt_dim(X)
     elif sigma == "median":
         # Subsample to compute median pairwise distance
-        n_subsample = min(n_pairs, X.shape[0])
-        X_sub = X[torch.randperm(X.shape[0])[:n_subsample]]
-        return _get_median_pairwise_dist(X_sub, n_pairs)
+        n_sub = min(n_pairs, X.shape[0])
+        X_sub = X[torch.randperm(X.shape[0])[:n_sub]]
+        return _get_median_pairwise_dist(X_sub)
     else:
         return float(sigma)

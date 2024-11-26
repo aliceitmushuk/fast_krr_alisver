@@ -138,7 +138,8 @@ def load_data(dataset: str, seed: int, device: torch.device) -> tuple[torch.Tens
     # sgdml datasets
     elif dataset in MOLECULES:
         data = loading_method(os.path.join(DATA_DIR, ftr))
-        X, y = _process_molecule(data["R"]), data["E"]
+        X = _process_molecule(data["R"])
+        y = np.squeeze(data["E"])
     else:
         # openml datasets
         if ftr is not None and ftgt is not None:
