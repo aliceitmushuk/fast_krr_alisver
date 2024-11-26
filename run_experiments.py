@@ -4,14 +4,31 @@ import json
 from glob import glob
 from concurrent.futures import ThreadPoolExecutor
 from queue import Queue
+import argparse
 
-# Configuration
-BASE_DIR = "performance_full_krr"  # Root directory containing experiment configurations
-DEVICES = [1, 2, 3, 4]  # List of GPU IDs available for experiments
-GRACE_PERIOD_FACTOR = 0.25  # 25% additional time as a grace period
-PROGRESS_FILE = os.path.join(
-    BASE_DIR, "progress.json"
-)  # File to track experiment status
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Run experiments with GPU scheduling.")
+    parser.add_argument(
+        "--base-dir",
+        type=str,
+        required=True,
+        help="Root directory containing experiment configurations.",
+    )
+    parser.add_argument(
+        "--devices",
+        type=int,
+        nargs="+",
+        required=True,
+        help="List of GPU IDs available for experiments.",
+    )
+    parser.add_argument(
+        "--grace-period-factor",
+        type=float,
+        default=0.25,
+        help="Grace period factor as a percentage of the maximum allowed time.",
+    )
+    return parser.parse_args()
 
 
 def find_configs(base_dir):
@@ -41,23 +58,20 @@ def calculate_timeout(config_path, grace_period_factor):
     return int(timeout)
 
 
-def run_experiment(config_path, gpu_id, timeout_seconds, progress):
+def run_experiment(config_path, gpu_id, timeout_seconds, progress, progress_file):
     env = os.environ.copy()
-    # env["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
 
     # Extract the directory and file name for Hydra
-    config_dir = os.path.dirname(config_path)  # Directory containing the config
-    config_file = os.path.basename(config_path).replace(
-        ".yaml", ""
-    )  # File name without .yaml
+    config_dir = os.path.dirname(config_path)
+    config_file = os.path.basename(config_path).replace(".yaml", "")
 
     cmd = [
         "python",
         "run_experiment_hydra.py",
-        f"--config-path={config_dir}",  # Pass the config path
-        f"--config-name={config_file}",  # Pass the config name without extension
-        f"hydra.run.dir={config_dir}",  # Set the runtime directory for Hydra
-        f"+device={gpu_id}",  # Append device key dynamically
+        f"--config-path={config_dir}",
+        f"--config-name={config_file}",
+        f"hydra.run.dir={config_dir}",
+        f"+device={gpu_id}",
     ]
 
     print(f"Running: {' '.join(cmd)} on GPU {gpu_id} with timeout {timeout_seconds}s")
@@ -93,7 +107,7 @@ def run_experiment(config_path, gpu_id, timeout_seconds, progress):
         progress["error"].append(config_path)
 
     finally:
-        save_progress(progress, PROGRESS_FILE)
+        save_progress(progress, progress_file)
 
 
 def run_all_experiments(base_dir, devices, grace_period_factor, progress_file):
@@ -116,7 +130,9 @@ def run_all_experiments(base_dir, devices, grace_period_factor, progress_file):
         gpu_id = gpu_queue.get()
         try:
             timeout_seconds = calculate_timeout(config_path, grace_period_factor)
-            run_experiment(config_path, gpu_id, timeout_seconds, progress)
+            run_experiment(
+                config_path, gpu_id, timeout_seconds, progress, progress_file
+            )
         finally:
             gpu_queue.put(gpu_id)
 
@@ -125,4 +141,8 @@ def run_all_experiments(base_dir, devices, grace_period_factor, progress_file):
 
 
 if __name__ == "__main__":
-    run_all_experiments(BASE_DIR, DEVICES, GRACE_PERIOD_FACTOR, PROGRESS_FILE)
+    args = parse_args()
+    progress_file = os.path.join(args.base_dir, "progress.json")
+    run_all_experiments(
+        args.base_dir, args.devices, args.grace_period_factor, progress_file
+    )
