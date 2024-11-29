@@ -88,8 +88,8 @@ def _map_labels(y: np.ndarray, label_map: dict) -> np.ndarray:
     return np.vectorize(label_map.get)(y)
 
 
-def _one_hot_encode(X: pd.DataFrame, one_hot_cols: list[str]) -> pd.DataFrame:
-    X_encoded = pd.get_dummies(X, columns=one_hot_cols)
+def _one_hot_encode(X: pd.DataFrame, one_hot_features: list[str]) -> pd.DataFrame:
+    X_encoded = pd.get_dummies(X, columns=one_hot_features)
     encoded_cols = X_encoded.columns.difference(X.columns)
     X_encoded[encoded_cols] = X_encoded[encoded_cols].astype(int)
     return X_encoded
@@ -138,7 +138,8 @@ def load_data(dataset: str, seed: int, device: torch.device) -> tuple[torch.Tens
     # sgdml datasets
     elif dataset in MOLECULES:
         data = loading_method(os.path.join(DATA_DIR, ftr))
-        X, y = _process_molecule(data["R"]), data["E"]
+        X = _process_molecule(data["R"])
+        y = np.squeeze(data["E"])
     else:
         # openml datasets
         if ftr is not None and ftgt is not None:
@@ -162,11 +163,11 @@ def load_data(dataset: str, seed: int, device: torch.device) -> tuple[torch.Tens
 
     # One-hot encoding
     # only works for pandas DataFrames (basically just openml datasets)
-    one_hot_cols = data_config.get("one_hot_cols", None)
-    if one_hot_cols is not None:
-        X = _one_hot_encode(X, one_hot_cols)
+    one_hot_features = data_config.get("one_hot_features", None)
+    if one_hot_features is not None:
+        X = _one_hot_encode(X, one_hot_features)
         if Xtst is not None:
-            Xtst = _one_hot_encode(Xtst, one_hot_cols)
+            Xtst = _one_hot_encode(Xtst, one_hot_features)
 
     # Turn sparse matrices and pandas DataFrames into numpy arrays
     X = _convert_to_numpy(X)

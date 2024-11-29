@@ -53,7 +53,8 @@ def calculate_timeout(config_path, grace_period_factor):
 
     with open(config_path, "r") as file:
         config = yaml.safe_load(file)
-    max_time = config.get("training.max_time", 3600)  # Default to 1 hour
+    # max_time = config.get("training.max_time", 3600)  # Default to 1 hour
+    max_time = config["training"]["max_time"]
     timeout = max_time * (1 + grace_period_factor)
     return int(timeout)
 

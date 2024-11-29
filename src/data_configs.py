@@ -47,7 +47,7 @@ DATA_CONFIGS = {
         "tgt": "click_prediction_target.pkl",
         "loading": "pkl",
         "split": 0.8,
-        "label_map": {0: -1, 1: 1},
+        "label_map": {"0": -1, "1": 1},
         "task": "classification",
     },
     "cod_rna": {
@@ -83,7 +83,7 @@ DATA_CONFIGS = {
         "tgt": "creditcard_target.pkl",
         "loading": "pkl",
         "split": 0.8,
-        "label_map": {0: -1, 1: 1},
+        "label_map": {"0": -1, "1": 1},
         "task": "classification",
     },
     "diamonds": {
@@ -136,7 +136,7 @@ DATA_CONFIGS = {
         "tgt": "jannis_target.pkl",
         "loading": "pkl",
         "split": 0.8,
-        "label_map": {0: -1, 1: 1},
+        "label_map": {"0": -1, "1": 1},
         "task": "classification",
     },
     "malonaldehyde": {
@@ -190,6 +190,12 @@ DATA_CONFIGS = {
         "shuffle": True,
         "task": "regression",
     },
+    "salicylic": {
+        "tr": "md17_salicylic.npz",
+        "loading": "npz",
+        "split": 0.8,
+        "task": "regression",
+    },
     "santander": {
         "tr": "santander_data.pkl",
         "tgt": "santander_target.pkl",
@@ -197,12 +203,6 @@ DATA_CONFIGS = {
         "split": 0.8,
         "label_map": {"False": -1, "True": 1},
         "task": "classification",
-    },
-    "salicylic": {
-        "tr": "md17_salicylic.npz",
-        "loading": "npz",
-        "split": 0.8,
-        "task": "regression",
     },
     "sensit_vehicle": {
         "tr": "combined_scale",
@@ -266,7 +266,7 @@ DATA_CONFIGS = {
         "tgt": "volkert_target.pkl",
         "loading": "pkl",
         "split": 0.8,
-        "label_map": {i: 1 if i != 0 else -1 for i in range(10)},
+        "label_map": {f"{i}": 1 if i != 0 else -1 for i in range(10)},
         "task": "classification",
     },
     "w8a": {
