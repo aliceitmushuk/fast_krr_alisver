@@ -6,7 +6,7 @@ from .utils.general import _apply_precond
 from .utils.sgd import _get_precond_L, _get_minibatch
 
 
-class SketchySAGA(Optimizer):
+class Mimosa(Optimizer):
     def __init__(self, model, bg, bH, bH2, precond_params=None):
         super().__init__(model, precond_params)
         self.bg = bg

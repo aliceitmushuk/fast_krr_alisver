@@ -6,12 +6,12 @@ import numpy as np
 import torch
 
 from src.models import FullKRR, InducingKRR
-from src.opts import ASkotch, ASkotchV2, PCG, SketchySAGA
+from src.opts import ASkotch, ASkotchV2, Mimosa, PCG
 
 OPT_CLASSES = {
     "askotch": ASkotch,
     "askotchv2": ASkotchV2,
-    "sketchysaga": SketchySAGA,
+    "mimosa": Mimosa,
     "pcg": PCG,
 }
 
@@ -182,7 +182,7 @@ def build_opt_params(model, config):
             "nu": config.nu,
             "accelerated": config.accelerated,
         }
-    elif config.opt == "sketchysaga":
+    elif config.opt == "mimosa":
         return {
             "model": model,
             "bg": config.bg,
