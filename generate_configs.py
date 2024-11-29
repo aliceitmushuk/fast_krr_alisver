@@ -178,7 +178,7 @@ def validate_yaml_variations(output_dir):
 
 
 if __name__ == "__main__":
-    datasets_performance = ["ijcnn1"]
+    datasets_performance = ["uracil", "miniboone", "qm9", "creditcard"]
 
     sweep_params_performance_full_krr = {
         "dataset": datasets_performance,
