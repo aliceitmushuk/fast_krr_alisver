@@ -120,7 +120,7 @@ def load_data(dataset: str, seed: int, device: torch.device) -> tuple[torch.Tens
     ftr = data_config.get("tr", None)
     ftst = data_config.get("tst", None)
     ftgt = data_config.get("tgt", None)
-    loading_method = LOADING_METHODS[data_config["loading"]]
+    loading_method = LOADING_METHODS.get(data_config.get("loading", None), None)
 
     X, Xtst, y, ytst = None, None, None, None
 

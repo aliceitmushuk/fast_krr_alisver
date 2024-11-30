@@ -88,8 +88,7 @@ class Experiment:
                 ytst,
                 self.exp_args["kernel_params"],
                 not (
-                    self.exp_args["log_test_only"]
-                    and self.exp_args["opt"] in ["sketchysaga"]
+                    self.exp_args["log_test_only"] and self.exp_args["opt"] == "mimosa"
                 ),
                 self.exp_args["m"],
                 self.exp_args["lambd"],

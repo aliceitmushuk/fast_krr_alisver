@@ -24,6 +24,7 @@ class InducingKRR(Model):
         super().__init__(x, b, x_tst, b_tst, kernel_params, lambd, task, w0, device)
         self.inducing_pts = inducing_pts
         self.m = self.inducing_pts.shape[0]
+        self.bm_scaled = self.lambd * self.b[self.inducing_pts]
         self.inducing = True
 
         # Get inducing points kernel
@@ -67,14 +68,46 @@ class InducingKRR(Model):
 
         return metrics_dict
 
-    def _get_grad_regularizer(self, w):
-        return self.lambd * (self.K_mm @ w)
+    def _get_grad_regularizer(self):
+        return self.bm_scaled
+
+    def _get_selection_idx(self, v1, v2):
+        # Find elements of `v2` present in `v1` and their positions in `v1`
+        common_elements_mask = torch.isin(v2, v1)
+        common_elements_in_v2 = v2[common_elements_mask]
+
+        # Get indices of `v1` corresponding to elements in `v2`
+        indices_in_v1 = torch.where(torch.isin(v1, common_elements_in_v2))[0]
+
+        # For each element of `v1` in `v2`, find its first occurrence in `v2`
+        indices_in_v2 = torch.tensor(
+            [torch.where(v2 == v1_elem)[0][0] for v1_elem in v1[indices_in_v1]]
+        )
+
+        return indices_in_v1, indices_in_v2
 
     def _get_table_aux(self, idx, w, table):
         x_idx_i = LazyTensor(self.x[idx][:, None, :])
         K_nm_idx = _get_kernel(x_idx_i, self.x_inducing_j, self.kernel_params)
         new_weights = self.n * (K_nm_idx @ w - self.b[idx])
-        aux = K_nm_idx.T @ (new_weights - table[idx])
+        # aux = K_nm_idx.T @ (new_weights - table[idx])
+
+        weight_diff = new_weights - table[idx]
+        weight_diff_selected = torch.zeros(self.m, device=self.device)
+        # Find where the indices are in the inducing points
+        indices_in_table, indices_in_weight_diff = self._get_selection_idx(
+            self.inducing_pts, idx
+        )
+        # Update the weight difference for the indices in the inducing points
+        # Be careful with the case where there are no common indices
+        if (
+            torch.numel(indices_in_table) > 0
+            and torch.numel(indices_in_weight_diff) > 0
+        ):
+            weight_diff_selected[indices_in_table] = weight_diff[indices_in_weight_diff]
+
+        aux = K_nm_idx.T @ weight_diff + self.lambd * weight_diff_selected
+
         return new_weights, aux
 
     def _get_subsampled_lin_ops(self, bH, bH2):
