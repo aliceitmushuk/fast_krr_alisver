@@ -13,7 +13,6 @@ def _get_precond(model, precond_params):
                 "K_mm_trace": K_mm_trace,
                 "n": model.n,
                 "m": model.m,
-                "lambd": model.lambd,
             }
         elif type == "newton":
             K_lin_op, _ = model._get_full_lin_op()
