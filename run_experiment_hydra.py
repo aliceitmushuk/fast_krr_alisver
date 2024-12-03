@@ -51,6 +51,10 @@ def main(cfg: DictConfig):
     if cfg.training.max_time is not None:
         experiment_args["max_time"] = cfg.training.max_time
 
+    # Add model-specific arguments
+    if cfg.model == "inducing_krr":
+        experiment_args["m"] = cfg.m
+
     # Add optimizer-specific arguments
     if cfg.opt.type == "askotchv2":
         experiment_args["block_sz_frac"] = cfg.opt.block_sz_frac
