@@ -13,20 +13,6 @@ class Experiment:
         self.exp_args = exp_args.copy()
 
     def _modify_exp_args(self, Xtr):
-        # if self.exp_args["opt"].startswith("sketchy"):
-        #     if self.exp_args["bH"] is None:
-        #         self.exp_args["bH"] = int(model.n**0.5)
-        #     if self.exp_args["bH2"] is None:
-        #         self.exp_args["bH2"] = max(1, model.n // 50)
-
-        #     if self.exp_args["opt"] == "sketchysvrg":
-        #         if self.exp_args["update_freq"] is None:
-        #             self.exp_args["update_freq"] = model.n // self.exp_args["bg"]
-        #     elif self.exp_args["opt"] == "sketchykatyusha":
-        #         if self.exp_args["p"] is None:
-        #             self.exp_args["p"] = self.exp_args["bg"] / model.n
-        #         if self.exp_args["mu"] is None:
-        #             self.exp_args["mu"] = model.lambd
         # Model parameters
         self.exp_args["n"] = Xtr.shape[0]
         self.exp_args["lambd"] = self.exp_args["lambd_unscaled"] * self.exp_args["n"]
@@ -45,6 +31,12 @@ class Experiment:
             self.exp_args["mu"] = self.exp_args["lambd"]
         if "nu" in self.exp_args and self.exp_args["nu"] is None:
             self.exp_args["nu"] = self.exp_args["n"] / self.exp_args["block_sz"]
+
+        # Mimosa parameters
+        if "bH" in self.exp_args and self.exp_args["bH"] is None:
+            self.exp_args["bH"] = int(self.exp_args["n"] ** 0.5)
+        if "bH2" in self.exp_args and self.exp_args["bH2"] is None:
+            self.exp_args["bH2"] = max(1, self.exp_args["n"] // 50)
 
     def _time_exceeded(self, n_iters, time_elapsed):
         if "max_time" in self.exp_args:

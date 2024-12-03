@@ -26,9 +26,9 @@ VALIDATION_RULES = {
         "required": ["block_sz_frac", "sampling_method", "accelerated"],
         "optional": [],
     },
-    "sketchy": {
+    "mimosa": {
         "required": ["m", "bg"],
-        "optional": ["bH", "bH2", "update_freq", "p", "mu"],
+        "optional": ["bH", "bH2"],
     },
     "pcg": {
         "required": ["precond_params"],
@@ -88,15 +88,7 @@ def validate_precond_params(precond_params):
             isinstance(precond_rho, float)
             or precond_rho in ["regularization", "damped"]
         ):
-            raise ValueError("Invalid rho value for preconditioner")
-
-
-def check_inputs(experiment_args):
-    """
-    Validate the inputs for the experiment.
-    :param experiment_args: Dictionary of experiment arguments.
-    """
-    validate_experiment_args(experiment_args)
+            raise ValueError(f"Invalid rho value for {precond_type} preconditioner")
 
 
 def set_precision(precision):
