@@ -130,6 +130,7 @@ PERFORMANCE_TIME_CONFIGS = {
     "click_prediction": 10800,
     "susy": 10800,
     "higgs": 10800,
+    "taxi": 43200,
 }
 
 LOG_TEST_ONLY = {
@@ -173,6 +174,7 @@ LOG_TEST_ONLY = {
     "click_prediction": False,
     "susy": True,
     "higgs": True,
+    "taxi": True,
 }
 
 FALKON_INDUCING_POINTS_GRID = [10000, 20000, 50000, 100000, 200000]

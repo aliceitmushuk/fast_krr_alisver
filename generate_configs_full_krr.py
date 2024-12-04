@@ -1,8 +1,7 @@
-import os
-import yaml
 import itertools
 from pprint import pprint
 import glob
+import yaml
 
 from src.data_configs import DATA_CONFIGS
 from src.experiment_configs import (
@@ -11,6 +10,8 @@ from src.experiment_configs import (
     PERFORMANCE_TIME_CONFIGS,
     LOG_TEST_ONLY,
 )
+from src.generate_configs_utils import add_kernel_params, save_configs
+
 
 SEED = 0
 
@@ -20,16 +21,6 @@ BLOCK_SAMPLING = ["uniform", "rls"]
 ACCELERATED = [True, False]
 PRECOND_RHO = ["damped", "regularization"]
 BLK_SZ_FRAC = 0.1
-
-
-def add_kernel_params(config):
-    kernel_params = KERNEL_CONFIGS[config["dataset"]]
-    config["kernel"] = {
-        "type": kernel_params["type"],
-        "sigma": kernel_params["sigma"],
-    }
-    if "nu" in kernel_params:
-        config["kernel"]["nu"] = kernel_params["nu"]
 
 
 def generate_nystrom_configs(base_config):
@@ -99,7 +90,7 @@ def generate_pcg_configs(base_config):
     return configs
 
 
-def generate_combinations(sweep_params):
+def generate_combinations(sweep_params, kernel_configs):
     keys, values = zip(*sweep_params.items())
     base_combinations = [dict(zip(keys, combo)) for combo in itertools.product(*values)]
     all_combinations = []
@@ -129,7 +120,7 @@ def generate_combinations(sweep_params):
             "precond": {"r": base_config["precond.r"]},
         }
 
-        add_kernel_params(nested_config)
+        add_kernel_params(nested_config, kernel_configs)
         nested_config["lambd_unscaled"] = LAMBDA_CONFIGS[base_config["dataset"]]
 
         if base_config["opt.type"] == "askotchv2":
@@ -138,20 +129,6 @@ def generate_combinations(sweep_params):
             all_combinations.extend(generate_pcg_configs(nested_config))
 
     return all_combinations
-
-
-def save_configs(combinations, output_dir):
-    for idx, combo in enumerate(combinations):
-        folder_path = os.path.join(
-            output_dir, combo["dataset"], combo["model"], f"config_{idx}"
-        )
-        os.makedirs(folder_path, exist_ok=True)
-
-        config_path = os.path.join(folder_path, "config.yaml")
-        with open(config_path, "w") as file:
-            yaml.dump(combo, file, default_flow_style=False)
-
-        print(f"Generated: {config_path}")
 
 
 def validate_yaml_variations(output_dir):
@@ -197,7 +174,9 @@ if __name__ == "__main__":
 
     output_dir = "performance_full_krr"
 
-    combinations = generate_combinations(sweep_params_performance_full_krr)
+    combinations = generate_combinations(
+        sweep_params_performance_full_krr, KERNEL_CONFIGS
+    )
     pprint(combinations[:5])  # Debug: Print a sample of generated combinations
     save_configs(combinations, output_dir)
     validate_yaml_variations(output_dir)
