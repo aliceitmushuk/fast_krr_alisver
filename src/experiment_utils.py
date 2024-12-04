@@ -6,12 +6,12 @@ import numpy as np
 import torch
 
 from src.models import FullKRR, InducingKRR
-from src.opts import ASkotch, ASkotchV2, PCG, SketchySAGA
+from src.opts import ASkotch, ASkotchV2, Mimosa, PCG
 
 OPT_CLASSES = {
     "askotch": ASkotch,
     "askotchv2": ASkotchV2,
-    "sketchysaga": SketchySAGA,
+    "mimosa": Mimosa,
     "pcg": PCG,
 }
 
@@ -26,9 +26,9 @@ VALIDATION_RULES = {
         "required": ["block_sz_frac", "sampling_method", "accelerated"],
         "optional": [],
     },
-    "sketchy": {
+    "mimosa": {
         "required": ["m", "bg"],
-        "optional": ["bH", "bH2", "update_freq", "p", "mu"],
+        "optional": ["bH", "bH2"],
     },
     "pcg": {
         "required": ["precond_params"],
@@ -88,15 +88,7 @@ def validate_precond_params(precond_params):
             isinstance(precond_rho, float)
             or precond_rho in ["regularization", "damped"]
         ):
-            raise ValueError("Invalid rho value for preconditioner")
-
-
-def check_inputs(experiment_args):
-    """
-    Validate the inputs for the experiment.
-    :param experiment_args: Dictionary of experiment arguments.
-    """
-    validate_experiment_args(experiment_args)
+            raise ValueError(f"Invalid rho value for {precond_type} preconditioner")
 
 
 def set_precision(precision):
@@ -182,7 +174,7 @@ def build_opt_params(model, config):
             "nu": config.nu,
             "accelerated": config.accelerated,
         }
-    elif config.opt == "sketchysaga":
+    elif config.opt == "mimosa":
         return {
             "model": model,
             "bg": config.bg,

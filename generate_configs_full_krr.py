@@ -8,7 +8,8 @@ from src.data_configs import DATA_CONFIGS
 from src.experiment_configs import (
     KERNEL_CONFIGS,
     LAMBDA_CONFIGS,
-    FULL_KRR_PERFORMANCE_TIME_CONFIGS,
+    PERFORMANCE_TIME_CONFIGS,
+    LOG_TEST_ONLY,
 )
 
 SEED = 0
@@ -116,12 +117,12 @@ def generate_combinations(sweep_params):
             },
             "task": DATA_CONFIGS[base_config["dataset"]]["task"],
             "training": {
-                "max_time": FULL_KRR_PERFORMANCE_TIME_CONFIGS[base_config["dataset"]],
+                "max_time": PERFORMANCE_TIME_CONFIGS[base_config["dataset"]],
                 "max_iter": base_config["training.max_iter"],
                 "log_freq": base_config["training.log_freq"],
                 "precision": base_config["training.precision"],
                 "seed": base_config["training.seed"],
-                "log_test_only": base_config["training.log_test_only"],
+                "log_test_only": LOG_TEST_ONLY[base_config["dataset"]],
             },
             "model": base_config["model"],
             "dataset": base_config["dataset"],
@@ -178,7 +179,9 @@ def validate_yaml_variations(output_dir):
 
 
 if __name__ == "__main__":
-    datasets_performance = ["uracil", "miniboone", "qm9", "creditcard"]
+    datasets_performance = [
+        dataset for dataset in DATA_CONFIGS.keys() if dataset != "taxi"
+    ]
 
     sweep_params_performance_full_krr = {
         "dataset": datasets_performance,
@@ -188,7 +191,6 @@ if __name__ == "__main__":
         "training.log_freq": [50],
         "training.precision": ["float32", "float64"],
         "training.seed": [SEED],
-        "training.log_test_only": [False],
         "training.max_iter": [None],
         "wandb.project": ["performance_full_krr"],
     }

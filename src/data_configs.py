@@ -1,3 +1,7 @@
+SYNTHETIC_NTR = 10000
+SYNTHETIC_NTST = 1000
+SYNTHETIC_D = 10
+
 DATA_DIR = "./data/"
 DATA_CONFIGS = {
     "a9a": {
@@ -242,10 +246,15 @@ DATA_CONFIGS = {
         "label_map": {i: 1 if i != 0 else -1 for i in range(10)},
         "task": "classification",
     },
+    "synthetic": {
+        "split": SYNTHETIC_NTR,
+        "shuffle": False,
+        "task": "regression",
+    },
     "taxi": {
         "tr": "taxi-data/subsampled_data.h5py",
         "loading": "h5py",
-        "split": 100000000,
+        "split": 500000000,
         "shuffle": True,
         "task": "regression",
     },
@@ -299,7 +308,14 @@ MOLECULES = [
     "toluene",
     "uracil",
 ]
-DATA_KEYS = list(DATA_CONFIGS.keys()) + ["synthetic"]
-SYNTHETIC_NTR = 10000
-SYNTHETIC_NTST = 1000
-SYNTHETIC_D = 10
+FALKON_DATASETS = [
+    "acsincome",
+    "airlines",
+    "benzene",
+    "click_prediction",
+    "comet_mc",
+    "higgs",
+    "hls4ml",
+    "malonaldehyde",
+    "susy",
+]

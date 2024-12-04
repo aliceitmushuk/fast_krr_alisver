@@ -3,7 +3,7 @@ from omegaconf import DictConfig, OmegaConf
 
 from src.experiment import Experiment
 from src.experiment_utils import (
-    check_inputs,
+    validate_experiment_args,
     set_precision,
     set_random_seed,
 )
@@ -51,6 +51,10 @@ def main(cfg: DictConfig):
     if cfg.training.max_time is not None:
         experiment_args["max_time"] = cfg.training.max_time
 
+    # Add model-specific arguments
+    if cfg.model == "inducing_krr":
+        experiment_args["m"] = cfg.m
+
     # Add optimizer-specific arguments
     if cfg.opt.type == "askotchv2":
         experiment_args["block_sz_frac"] = cfg.opt.block_sz_frac
@@ -58,9 +62,13 @@ def main(cfg: DictConfig):
         experiment_args["mu"] = cfg.opt.mu
         experiment_args["nu"] = cfg.opt.nu
         experiment_args["accelerated"] = cfg.opt.accelerated
+    if cfg.opt.type == "mimosa":
+        experiment_args["bg"] = cfg.opt.bg
+        experiment_args["bH"] = cfg.opt.bH
+        experiment_args["bH2"] = cfg.opt.bH2
 
     # Validate the experiment arguments
-    check_inputs(experiment_args)
+    validate_experiment_args(experiment_args)
     print(experiment_args)
 
     # Run the experiment
