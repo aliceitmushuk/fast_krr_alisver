@@ -12,6 +12,7 @@ from src.experiment_configs import (
 from src.generate_configs_utils import (
     add_kernel_params,
     generate_falkon_configs,
+    get_nested_config,
     save_configs,
 )
 
@@ -41,25 +42,9 @@ def generate_combinations(
     all_combinations = []
 
     for base_config in base_combinations:
-        nested_config = {
-            "wandb": {
-                "project": f"{base_config['wandb.project']}_{base_config['dataset']}"
-            },
-            "task": data_configs[base_config["dataset"]]["task"],
-            "training": {
-                "max_time": performance_time_configs[base_config["dataset"]],
-                "max_iter": base_config["training.max_iter"],
-                "log_freq": base_config["training.log_freq"],
-                "precision": base_config["training.precision"],
-                "seed": base_config["training.seed"],
-                "log_test_only": log_test_only[base_config["dataset"]],
-            },
-            "model": base_config["model"],
-            "m": base_config["m"],
-            "dataset": base_config["dataset"],
-            "precond": {},
-        }
-
+        nested_config = get_nested_config(
+            base_config, data_configs, performance_time_configs, log_test_only
+        )
         add_kernel_params(nested_config, kernel_configs)
         nested_config["lambd_unscaled"] = lambda_configs[base_config["dataset"]]
         all_combinations.extend(generate_pcg_configs(nested_config))

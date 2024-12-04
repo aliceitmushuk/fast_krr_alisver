@@ -15,6 +15,7 @@ from src.generate_configs_utils import (
     generate_nystrom_configs,
     generate_partial_cholesky_configs,
     generate_no_preconditioner_configs,
+    get_nested_config,
     save_configs,
 )
 
@@ -72,16 +73,16 @@ def generate_pcg_configs(base_config, rho_modes, chol_modes, preconds):
 def generate_combinations(
     sweep_params,
     kernel_configs,
+    data_configs,
+    lambda_configs,
+    performance_time_configs,
+    log_test_only,
     rho_modes,
     chol_modes,
     sampling_modes,
     acc_modes,
     blk_sz_frac,
     preconds,
-    data_configs,
-    lambda_configs,
-    performance_time_configs,
-    log_test_only,
 ):
     keys, values = zip(*sweep_params.items())
     base_combinations = [dict(zip(keys, combo)) for combo in itertools.product(*values)]
@@ -94,24 +95,9 @@ def generate_combinations(
         ):
             continue
 
-        nested_config = {
-            "wandb": {
-                "project": f"{base_config['wandb.project']}_{base_config['dataset']}"
-            },
-            "task": data_configs[base_config["dataset"]]["task"],
-            "training": {
-                "max_time": performance_time_configs[base_config["dataset"]],
-                "max_iter": base_config["training.max_iter"],
-                "log_freq": base_config["training.log_freq"],
-                "precision": base_config["training.precision"],
-                "seed": base_config["training.seed"],
-                "log_test_only": log_test_only[base_config["dataset"]],
-            },
-            "model": base_config["model"],
-            "dataset": base_config["dataset"],
-            "precond": {"r": base_config["precond.r"]},
-        }
-
+        nested_config = get_nested_config(
+            base_config, data_configs, performance_time_configs, log_test_only
+        )
         add_kernel_params(nested_config, kernel_configs)
         nested_config["lambd_unscaled"] = lambda_configs[base_config["dataset"]]
 
@@ -175,16 +161,16 @@ if __name__ == "__main__":
     combinations = generate_combinations(
         sweep_params_performance_full_krr,
         KERNEL_CONFIGS,
+        DATA_CONFIGS,
+        LAMBDA_CONFIGS,
+        PERFORMANCE_TIME_CONFIGS,
+        LOG_TEST_ONLY,
         RHO_MODES,
         CHOLESKY_MODES,
         SAMPLING_MODES,
         ACC_MODES,
         BLK_SZ_FRAC,
         PRECONDITIONERS,
-        DATA_CONFIGS,
-        LAMBDA_CONFIGS,
-        PERFORMANCE_TIME_CONFIGS,
-        LOG_TEST_ONLY,
     )
     pprint(combinations[:5])  # Debug: Print a sample of generated combinations
     save_configs(combinations, output_dir)
