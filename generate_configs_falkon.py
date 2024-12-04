@@ -62,10 +62,10 @@ if __name__ == "__main__":
         "training.precision": ["float32", "float64"],
         "training.seed": [SEED],
         "training.max_iter": [None],
-        "wandb.project": ["performance_falkon"],
+        "wandb.project": ["performance_inducing_krr"],
     }
 
-    output_dir = "performance_falkon"
+    output_dir = "performance_inducing_krr"
 
     combinations = generate_combinations(
         sweep_params_performance_falkon,

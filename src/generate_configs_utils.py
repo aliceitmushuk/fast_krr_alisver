@@ -76,13 +76,14 @@ def get_nested_config(
         },
         "model": base_config["model"],
         "dataset": base_config["dataset"],
+        "precond": {},
     }
     if "m" in base_config:
         nested_config["m"] = base_config["m"]
     if "precond.r" in base_config:
-        nested_config["precond"] = {"r": base_config["precond.r"]}
-    else:
-        nested_config["precond"] = {}
+        nested_config["precond"]["r"] = base_config["precond.r"]
+    if "precond.use_cpu" in base_config:
+        nested_config["precond"]["use_cpu"] = base_config["precond.use_cpu"]
 
     return nested_config
 
