@@ -38,6 +38,7 @@ KERNEL_CONFIGS = {
     "sensorless": {"type": "rbf", "sigma": 0.8},
     "skin_nonskin": {"type": "rbf", "sigma": "median"},
     "susy": {"type": "rbf", "sigma": 3},
+    "synthetic": {"type": "rbf", "sigma": 1},
     "taxi": {"type": "rbf", "sigma": 1},
     "volkert": {"type": "rbf", "sigma": "median"},
     "w8a": {"type": "rbf", "sigma": "median"},
@@ -80,6 +81,7 @@ LAMBDA_CONFIGS = {
     "skin_nonskin": 1.00e-06,
     "susy": 1.00e-06,
     "svhn": 1.00e-06,
+    "synthetic": 1.00e-06,
     "taxi": 2.00e-07,
     "toluene": 1.00e-09,
     "uracil": 1.00e-09,
@@ -107,6 +109,7 @@ PERFORMANCE_TIME_CONFIGS = {
     "mnist": 1800,
     "sensit_vehicle": 1800,
     "svhn": 1800,
+    "synthetic": 1800,
     "miniboone": 3600,
     "qm9": 3600,
     "uracil": 3600,
@@ -130,6 +133,7 @@ PERFORMANCE_TIME_CONFIGS = {
     "click_prediction": 10800,
     "susy": 10800,
     "higgs": 10800,
+    "taxi": 43200,
 }
 
 LOG_TEST_ONLY = {
@@ -150,6 +154,7 @@ LOG_TEST_ONLY = {
     "mnist": False,
     "sensit_vehicle": False,
     "svhn": False,
+    "synthetic": False,
     "miniboone": False,
     "qm9": False,
     "uracil": False,
@@ -173,6 +178,7 @@ LOG_TEST_ONLY = {
     "click_prediction": False,
     "susy": True,
     "higgs": True,
+    "taxi": True,
 }
 
 FALKON_INDUCING_POINTS_GRID = [10000, 20000, 50000, 100000, 200000]
