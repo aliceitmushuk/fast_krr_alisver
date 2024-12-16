@@ -133,7 +133,7 @@ PERFORMANCE_TIME_CONFIGS = {
     "click_prediction": 10800,
     "susy": 10800,
     "higgs": 10800,
-    "taxi": 43200,
+    "taxi": 86400,
 }
 
 LOG_TEST_ONLY = {
