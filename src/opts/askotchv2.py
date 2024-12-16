@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 
 from .optimizer import Optimizer
@@ -43,6 +44,7 @@ class ASkotchV2(Optimizer):
             self.probs = leverage_scores / torch.sum(leverage_scores)
         elif sampling_method == "uniform":
             self.probs = torch.ones(self.model.n) / self.model.n
+        self.probs_cpu = self.probs.cpu().numpy()
 
         if self.accelerated:
             self.beta = 1 - (self.mu / self.nu) ** 0.5
@@ -54,7 +56,18 @@ class ASkotchV2(Optimizer):
 
     def step(self):
         # Randomly select block_sz distinct indices
-        block = torch.multinomial(self.probs, self.block_sz, replacement=False)
+        try:
+            block = torch.multinomial(self.probs, self.block_sz, replacement=False)
+        # Sampling can lead to a RuntimeError if len(self.probs) > 2**24 in float32
+        # See https://github.com/pytorch/pytorch/issues/2576
+        # If this error occurs, sample on the CPU
+        except RuntimeError as e:
+            if "number of categories cannot exceed" not in str(e):
+                raise e
+            block = np.random.choice(
+                self.probs.shape[0], size=self.block_sz, replace=False, p=self.probs_cpu
+            )
+            block = torch.from_numpy(block)
 
         # Compute block preconditioner and learning rate
         block_precond, block_eta, _ = _get_block_properties(

@@ -131,7 +131,7 @@ def load_data(dataset: str, seed: int, device: torch.device) -> tuple[torch.Tens
         data = loading_method(os.path.join(DATA_DIR, ftr))
         X, y = data["X"], data["Y"]
         y = np.squeeze(y)  # Remove singleton dimension due to .mat format
-    elif dataset == "taxi_sub":
+    elif dataset == "taxi":
         with loading_method(os.path.join(DATA_DIR, ftr), "r") as f:
             X, y = f["X"][()], f["Y"][()]
         y = np.squeeze(y)

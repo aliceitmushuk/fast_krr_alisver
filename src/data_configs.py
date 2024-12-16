@@ -254,7 +254,7 @@ DATA_CONFIGS = {
     "taxi": {
         "tr": "taxi-data/subsampled_data.h5py",
         "loading": "h5py",
-        "split": 500000000,
+        "split": 100000000,
         "shuffle": True,
         "task": "regression",
     },
