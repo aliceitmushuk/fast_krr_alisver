@@ -59,7 +59,7 @@ if __name__ == "__main__":
     sweep_params_mimosa = {
         "dataset": ["taxi"],
         "model": ["inducing_krr"],
-        "m": [5_000_000],
+        "m": [1_000_000],
         "opt.type": ["mimosa"],
         "precond.r": [50],
         "precond.use_cpu": [True],
