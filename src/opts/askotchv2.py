@@ -43,6 +43,10 @@ class ASkotchV2(Optimizer):
             self.probs = leverage_scores / torch.sum(leverage_scores)
         elif sampling_method == "uniform":
             self.probs = torch.ones(self.model.n) / self.model.n
+        # Can obtain a runtime error if len(self.probs) > 2 ** 24
+        # HACK(pratik): if this can occur, move the probabilities to the CPU
+        if self.model.n > 2**24:
+            self.probs = self.probs.cpu()
 
         if self.accelerated:
             self.beta = 1 - (self.mu / self.nu) ** 0.5
