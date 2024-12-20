@@ -4,7 +4,7 @@
 
 Companion code for "Have ASkotch: Fast Methods for Large-scale, Memory-constrained Kernel Ridge Regression".
 
-## Recreating our environment
+## Recreating the Python environment
 
 Please create a Python virtual environment (we use Python 3.10.12) and activate it. After activation, please run `pip install -r requirements.txt`.
 

@@ -5,6 +5,7 @@ import numpy as np
 import wandb
 import matplotlib.pyplot as plt
 
+from sorting import sort_data
 
 OPT_COLORS = {
     "askotchv2": "tab:blue",
@@ -260,6 +261,10 @@ def plot_runs(
         raise ValueError(f"Unsupported value of x_axis: {x_axis}")
     plot_fn = METRIC_PLOT_FNS[metric]
     save_path = get_save_path(save_dir, save_name)
+
+    run_list = sort_data(
+        run_list, sort_keys=["opt", "accelerated", "sampling", "precond_type", "r", "m"]
+    )
 
     plt.figure()
 
