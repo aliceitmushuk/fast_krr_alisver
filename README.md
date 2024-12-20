@@ -2,7 +2,7 @@
 
 <img src="logo.webp" width="400" height="400" alt="SKOTCH Logo">
 
-Companion code for "Have ASkotch: Fast Methods for Large-scale, Memory-constrained Kernel Ridge Regression".
+Companion code for "Have ASkotch: Fast Cocktails for Large-scale Kernel Ridge Regression".
 
 ## Recreating the Python environment
 
@@ -10,9 +10,9 @@ Please create a Python virtual environment (we use Python 3.10.12) and activate 
 
 ## Obtaining the Taxi dataset
 
-Please clone [this GitHub repo](https://anonymous.4open.science/r/nyc-taxi-data). Then run `filter_runs.py` and `yellow_taxi_processing.sh` (NOTE: you may have to turn off the move to Google Drive step in this script) in this repo.
+Please clone [this GitHub repo](https://github.com/pratikrathore8/nyc-taxi-data). Then run `filter_runs.py` and `yellow_taxi_processing.sh` (NOTE: you may have to turn off the move to Google Drive step in this script) in this repo.
 
-This will genrerate a `.h5py` file for each month from January 2009 to December 2015. Move these files to a folder `data/taxi-data` and run `taxi_processing.py` in this (the fast_krr) repo.
+This will generate a `.h5py` file for each month from January 2009 to December 2015. Move these files to a folder `data/taxi-data` and run `taxi_processing.py` in this (the fast_krr) repo.
 
 ## Obtaining all other datasets
 

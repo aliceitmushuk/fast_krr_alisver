@@ -50,6 +50,17 @@ METRIC_PLOT_FNS = {
     "rel_suboptim": plt.semilogy,
 }
 
+METRIC_AX_PLOT_FNS = {
+    "rel_residual": "semilogy",
+    "train_loss": "plot",
+    "test_acc": "plot",
+    "test_mse": "plot",
+    "test_rmse": "plot",
+    "test_mae": "plot",
+    "test_smape": "semilogy",
+    "rel_suboptim": "semilogy",
+}
+
 OPT_LABELS = {
     "askotchv2": "ASkotch",
     "skotchv2": "Skotch",
@@ -85,6 +96,8 @@ X_AXIS_LABELS = {
     "datapasses": "Full data passes",
     "iters": "Iterations",
 }
+
+SORT_KEYS = ["opt", "accelerated", "sampling_method", "precond_type", "r", "m"]
 
 
 def set_fontsize(fontsize):
@@ -262,9 +275,7 @@ def plot_runs(
     plot_fn = METRIC_PLOT_FNS[metric]
     save_path = get_save_path(save_dir, save_name)
 
-    run_list = sort_data(
-        run_list, sort_keys=["opt", "accelerated", "sampling", "precond_type", "r", "m"]
-    )
+    run_list = sort_data(run_list, sort_keys=SORT_KEYS)
 
     plt.figure()
 
@@ -285,5 +296,86 @@ def plot_runs(
     plt.ylabel(METRIC_LABELS[metric])
     plt.legend(loc="upper center", bbox_to_anchor=(0.5, -0.15), ncol=3)
 
+    if save_path is not None:
+        plt.savefig(save_path, bbox_inches="tight")
+
+
+def plot_runs_axis(
+    ax,
+    run_list,
+    hparams_to_label,
+    metric,
+    x_axis,
+    ylim,
+    title,
+):
+    plot_fn = getattr(ax, METRIC_AX_PLOT_FNS[metric])
+    run_list = sort_data(run_list, sort_keys=SORT_KEYS)
+
+    for run in run_list:
+        y_hist = run.scan_history(keys=[metric, "_step"])
+        y = np.array([hist[metric] for hist in y_hist])
+        steps = np.array([hist["_step"] for hist in y_hist])
+
+        x = get_x(run, steps, x_axis)
+        label = get_label(run, hparams_to_label[run.config["opt"]])
+        style = get_style(run)
+
+        # Call the axis-specific plot function
+        plot_fn(x, y, label=label, **style)
+
+    ax.set_ylim(ylim)
+    ax.set_title(title)
+    ax.set_xlabel(X_AXIS_LABELS[x_axis])
+    ax.set_ylabel(METRIC_LABELS[metric])
+
+
+def plot_runs_grid(
+    run_lists,
+    hparams_to_label,
+    metrics,
+    x_axis,
+    ylims,
+    titles,
+    n_cols,
+    n_rows,
+    save_dir=None,
+    save_name=None,
+):
+    if x_axis not in ["time", "datapasses", "iters"]:
+        raise ValueError(f"Unsupported value of x_axis: {x_axis}")
+    save_path = get_save_path(save_dir, save_name)
+    _, axes = plt.subplots(n_rows, n_cols, figsize=(6 * n_rows, 8 * n_cols))
+    axes = axes.flatten()
+
+    for i, (run_list, metric, ylim, title) in enumerate(
+        zip(run_lists, metrics, ylims, titles)
+    ):
+        plot_runs_axis(axes[i], run_list, hparams_to_label, metric, x_axis, ylim, title)
+
+    # Collect all handles and labels from all axes
+    all_handles = []
+    all_labels = []
+    for ax in axes:
+        handles, labels = ax.get_legend_handles_labels()
+        all_handles.extend(handles)
+        all_labels.extend(labels)
+
+    # Deduplicate legend elements
+    unique_labels = {}
+    for h, l in zip(all_handles, all_labels):
+        if l not in unique_labels:
+            unique_labels[l] = h  # Keep the first occurrence of each label
+
+    # Set the global legend
+    plt.legend(
+        unique_labels.values(),
+        unique_labels.keys(),
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.15),
+        ncol=3,
+    )
+
+    plt.legend(loc="upper center", bbox_to_anchor=(0.5, -0.15), ncol=3)
     if save_path is not None:
         plt.savefig(save_path, bbox_inches="tight")
