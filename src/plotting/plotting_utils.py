@@ -345,7 +345,7 @@ def plot_runs_grid(
     if x_axis not in ["time", "datapasses", "iters"]:
         raise ValueError(f"Unsupported value of x_axis: {x_axis}")
     save_path = get_save_path(save_dir, save_name)
-    _, axes = plt.subplots(n_rows, n_cols, figsize=(6 * n_rows, 8 * n_cols))
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(6 * n_rows, 8 * n_cols))
     axes = axes.flatten()
 
     for i, (run_list, metric, ylim, title) in enumerate(
@@ -368,14 +368,14 @@ def plot_runs_grid(
             unique_labels[l] = h  # Keep the first occurrence of each label
 
     # Set the global legend
-    plt.legend(
+    fig.legend(
         unique_labels.values(),
         unique_labels.keys(),
         loc="upper center",
-        bbox_to_anchor=(0.5, -0.15),
+        bbox_to_anchor=(0.5, 0.0),
         ncol=3,
     )
+    plt.tight_layout()
 
-    plt.legend(loc="upper center", bbox_to_anchor=(0.5, -0.15), ncol=3)
     if save_path is not None:
         plt.savefig(save_path, bbox_inches="tight")
