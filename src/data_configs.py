@@ -308,18 +308,16 @@ MOLECULES = [
     "toluene",
     "uracil",
 ]
-# FALKON_DATASETS = [
-#     "acsincome",
-#     "airlines",
-#     "benzene",
-#     "click_prediction",
-#     "comet_mc",
-#     "higgs",
-#     "hls4ml",
-#     "malonaldehyde",
-#     "susy",
-# ]
 FALKON_DATASETS = [
+    "acsincome",
+    "airlines",
+    "benzene",
+    "click_prediction",
+    "comet_mc",
+    "higgs",
+    "hls4ml",
+    "malonaldehyde",
+    "susy",
     "mnist",
     "cifar10",
     "fashion_mnist",
@@ -333,4 +331,5 @@ FALKON_DATASETS = [
     "toluene",
     "ethanol",
     "yearpredictionmsd",
+    "covtype_binary",
 ]
