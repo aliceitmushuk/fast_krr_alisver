@@ -8,16 +8,16 @@ import matplotlib.pyplot as plt
 from sorting import sort_data
 
 OPT_COLORS = {
-    "askotchv2": "tab:blue",
-    "skotchv2": "tab:orange",
-    "pcg": "black",
+    "askotchv2": "tab:orange",
+    "skotchv2": "tab:purple",
+    "pcg": "tab:blue",
     "mimosa": "tab:pink",
 }
 
 PRECOND_MARKERS = {
     "nystrom": {"damped": "o", "regularization": "x"},
     "partial_cholesky": {"greedy": "s", "rpc": "v"},
-    "falkon": "D",
+    "falkon": {10000: "d", 20000: "*", 50000: "h", 100000: "p", 200000: "1"},
 }
 
 SAMPLING_LINESTYLES = {
@@ -160,7 +160,9 @@ def get_x(run, steps, x_axis):
 
 def _rank_label(run):
     if run.config["precond_params"] is not None:
-        return f"{RANK_LABEL} = {run.config['precond_params']['r']}"
+        r = run.config["precond_params"].get("r", None)
+        if r is not None:
+            return f"{RANK_LABEL} = {run.config['precond_params']['r']}"
     return None
 
 
@@ -229,8 +231,8 @@ def get_style(run):
             style["marker"] = PRECOND_MARKERS[precond_type][
                 run.config["precond_params"]["mode"]
             ]
-        else:
-            style["marker"] = PRECOND_MARKERS[precond_type]
+        elif precond_type == "falkon":
+            style["marker"] = PRECOND_MARKERS[precond_type][run.config["m"]]
 
     if opt == "pcg":
         style["markevery"] = MARKEVERY
