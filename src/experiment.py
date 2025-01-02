@@ -73,6 +73,10 @@ class Experiment:
                 self.exp_args["device"],
             )
         elif self.exp_args["model"] == "inducing_krr":
+            if self.exp_args["m"] > self.exp_args["n"]:
+                raise ValueError(
+                    "Number of inducing points must be less than number of data points"
+                )
             model = get_inducing_krr(
                 Xtr,
                 ytr,

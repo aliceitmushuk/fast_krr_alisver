@@ -109,9 +109,13 @@ class Model(ABC):
             )
         else:
             metrics_dict["test_mse"] = float(
-                1 / 2 * torch.norm(pred - self.b_tst) ** 2 / self.n_tst
+                torch.norm(pred - self.b_tst) ** 2 / self.n_tst
+            )
+            metrics_dict["test_msre"] = float(
+                torch.norm(pred / self.b_tst - 1.0) ** 2 / self.n_tst
             )
             metrics_dict["test_rmse"] = metrics_dict["test_mse"] ** 0.5
+            metrics_dict["test_rmsre"] = metrics_dict["test_msre"] ** 0.5
             abs_errs = (pred - self.b_tst).abs()
             metrics_dict["test_smape"] = float(
                 torch.sum(abs_errs / ((pred.abs() + self.b_tst.abs()) / 2)) / self.n_tst

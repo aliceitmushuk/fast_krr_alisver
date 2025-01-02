@@ -1,4 +1,6 @@
+import math
 import os
+import re
 import warnings
 
 import numpy as np
@@ -8,16 +10,16 @@ import matplotlib.pyplot as plt
 from sorting import sort_data
 
 OPT_COLORS = {
-    "askotchv2": "tab:blue",
-    "skotchv2": "tab:orange",
-    "pcg": "black",
+    "askotchv2": "tab:orange",
+    "skotchv2": "tab:purple",
+    "pcg": "tab:blue",
     "mimosa": "tab:pink",
 }
 
 PRECOND_MARKERS = {
     "nystrom": {"damped": "o", "regularization": "x"},
     "partial_cholesky": {"greedy": "s", "rpc": "v"},
-    "falkon": "D",
+    "falkon": {10000: "d", 20000: "*", 50000: "p", 100000: "h", 200000: "1"},
 }
 
 SAMPLING_LINESTYLES = {
@@ -25,7 +27,7 @@ SAMPLING_LINESTYLES = {
     "rls": "dashed",
 }
 
-MARKEVERY = 1
+TOT_MARKERS = 10
 MARKERSIZE = 8
 
 METRIC_LABELS = {
@@ -160,7 +162,9 @@ def get_x(run, steps, x_axis):
 
 def _rank_label(run):
     if run.config["precond_params"] is not None:
-        return f"{RANK_LABEL} = {run.config['precond_params']['r']}"
+        r = run.config["precond_params"].get("r", None)
+        if r is not None:
+            return f"{RANK_LABEL} = {run.config['precond_params']['r']}"
     return None
 
 
@@ -212,7 +216,7 @@ def get_label(run, hparams_to_label):
     return ", ".join(hparam_labels)
 
 
-def get_style(run):
+def get_style(run, n_points):
     style = {}
     opt = _get_opt(run)
     style["color"] = OPT_COLORS[opt]
@@ -229,16 +233,19 @@ def get_style(run):
             style["marker"] = PRECOND_MARKERS[precond_type][
                 run.config["precond_params"]["mode"]
             ]
-        else:
-            style["marker"] = PRECOND_MARKERS[precond_type]
+        elif precond_type == "falkon":
+            style["marker"] = PRECOND_MARKERS[precond_type][run.config["m"]]
 
-    if opt == "pcg":
-        style["markevery"] = MARKEVERY
-        style["markersize"] = MARKERSIZE
-    else:
-        style["markevery"] = 5 * MARKEVERY
-        style["markersize"] = MARKERSIZE
+    style["markevery"] = math.ceil(n_points / TOT_MARKERS)
+    style["markersize"] = MARKERSIZE
     return style
+
+
+def get_n_sci(run):
+    n = run.config["n"]
+    n_sci = re.sub(r"e\+?0*(\d+)", r" \\cdot 10^{\1}", f"{n:.2e}")
+    n_sci = re.sub(r"e-0*(\d+)", r" \\cdot 10^{-\1}", n_sci)
+    return n_sci
 
 
 def get_save_path(save_dir, save_name):
@@ -260,44 +267,16 @@ def get_save_path(save_dir, save_name):
         return None
 
 
-def plot_runs(
-    run_list,
-    hparams_to_label,
-    metric,
-    x_axis,
-    ylim,
-    title,
-    save_dir=None,
-    save_name=None,
-):
-    if x_axis not in ["time", "datapasses", "iters"]:
-        raise ValueError(f"Unsupported value of x_axis: {x_axis}")
-    plot_fn = METRIC_PLOT_FNS[metric]
-    save_path = get_save_path(save_dir, save_name)
+def _plot_run(run, metric, x_axis, hparams_to_label, plot_fn):
+    y_hist = run.scan_history(keys=[metric, "_step"])
+    y = np.array([hist[metric] for hist in y_hist])
+    steps = np.array([hist["_step"] for hist in y_hist])
 
-    run_list = sort_data(run_list, sort_keys=SORT_KEYS)
+    x = get_x(run, steps, x_axis)
+    label = get_label(run, hparams_to_label[run.config["opt"]])
+    style = get_style(run, y.shape[0])
 
-    plt.figure()
-
-    for run in run_list:
-        y_hist = run.scan_history(keys=[metric, "_step"])
-        y = np.array([hist[metric] for hist in y_hist])
-        steps = np.array([hist["_step"] for hist in y_hist])
-
-        x = get_x(run, steps, x_axis)
-        label = get_label(run, hparams_to_label[run.config["opt"]])
-        style = get_style(run)
-
-        plot_fn(x, y, label=label, **style)
-
-    plt.ylim(ylim)
-    plt.title(title)
-    plt.xlabel(X_AXIS_LABELS[x_axis])
-    plt.ylabel(METRIC_LABELS[metric])
-    plt.legend(loc="upper center", bbox_to_anchor=(0.5, -0.15), ncol=3)
-
-    if save_path is not None:
-        plt.savefig(save_path, bbox_inches="tight")
+    plot_fn(x, y, label=label, **style)
 
 
 def plot_runs_axis(
@@ -313,19 +292,11 @@ def plot_runs_axis(
     run_list = sort_data(run_list, sort_keys=SORT_KEYS)
 
     for run in run_list:
-        y_hist = run.scan_history(keys=[metric, "_step"])
-        y = np.array([hist[metric] for hist in y_hist])
-        steps = np.array([hist["_step"] for hist in y_hist])
+        _plot_run(run, metric, x_axis, hparams_to_label, plot_fn)
 
-        x = get_x(run, steps, x_axis)
-        label = get_label(run, hparams_to_label[run.config["opt"]])
-        style = get_style(run)
-
-        # Call the axis-specific plot function
-        plot_fn(x, y, label=label, **style)
-
+    n_sci = get_n_sci(run_list[0])
     ax.set_ylim(ylim)
-    ax.set_title(title)
+    ax.set_title(f"{title} ($n = {n_sci}$)")
     ax.set_xlabel(X_AXIS_LABELS[x_axis])
     ax.set_ylabel(METRIC_LABELS[metric])
 
@@ -345,8 +316,9 @@ def plot_runs_grid(
     if x_axis not in ["time", "datapasses", "iters"]:
         raise ValueError(f"Unsupported value of x_axis: {x_axis}")
     save_path = get_save_path(save_dir, save_name)
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(6 * n_rows, 8 * n_cols))
-    axes = axes.flatten()
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(8 * n_cols, 6 * n_rows))
+    if axes.ndim > 1:
+        axes = axes.flatten()
 
     for i, (run_list, metric, ylim, title) in enumerate(
         zip(run_lists, metrics, ylims, titles)
