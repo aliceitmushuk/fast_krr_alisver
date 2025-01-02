@@ -1,3 +1,4 @@
+import math
 import os
 import warnings
 
@@ -17,7 +18,7 @@ OPT_COLORS = {
 PRECOND_MARKERS = {
     "nystrom": {"damped": "o", "regularization": "x"},
     "partial_cholesky": {"greedy": "s", "rpc": "v"},
-    "falkon": {10000: "d", 20000: "*", 50000: "h", 100000: "p", 200000: "1"},
+    "falkon": {10000: "d", 20000: "*", 50000: "p", 100000: "h", 200000: "1"},
 }
 
 SAMPLING_LINESTYLES = {
@@ -25,7 +26,7 @@ SAMPLING_LINESTYLES = {
     "rls": "dashed",
 }
 
-MARKEVERY = 1
+TOT_MARKERS = 10
 MARKERSIZE = 8
 
 METRIC_LABELS = {
@@ -214,7 +215,7 @@ def get_label(run, hparams_to_label):
     return ", ".join(hparam_labels)
 
 
-def get_style(run):
+def get_style(run, n_points):
     style = {}
     opt = _get_opt(run)
     style["color"] = OPT_COLORS[opt]
@@ -234,12 +235,8 @@ def get_style(run):
         elif precond_type == "falkon":
             style["marker"] = PRECOND_MARKERS[precond_type][run.config["m"]]
 
-    if opt == "pcg":
-        style["markevery"] = MARKEVERY
-        style["markersize"] = MARKERSIZE
-    else:
-        style["markevery"] = 5 * MARKEVERY
-        style["markersize"] = MARKERSIZE
+    style["markevery"] = math.ceil(n_points / TOT_MARKERS)
+    style["markersize"] = MARKERSIZE
     return style
 
 
@@ -262,6 +259,18 @@ def get_save_path(save_dir, save_name):
         return None
 
 
+def _plot_run(run, metric, x_axis, hparams_to_label, plot_fn):
+    y_hist = run.scan_history(keys=[metric, "_step"])
+    y = np.array([hist[metric] for hist in y_hist])
+    steps = np.array([hist["_step"] for hist in y_hist])
+
+    x = get_x(run, steps, x_axis)
+    label = get_label(run, hparams_to_label[run.config["opt"]])
+    style = get_style(run, y.shape[0])
+
+    plot_fn(x, y, label=label, **style)
+
+
 def plot_runs(
     run_list,
     hparams_to_label,
@@ -282,15 +291,7 @@ def plot_runs(
     plt.figure()
 
     for run in run_list:
-        y_hist = run.scan_history(keys=[metric, "_step"])
-        y = np.array([hist[metric] for hist in y_hist])
-        steps = np.array([hist["_step"] for hist in y_hist])
-
-        x = get_x(run, steps, x_axis)
-        label = get_label(run, hparams_to_label[run.config["opt"]])
-        style = get_style(run)
-
-        plot_fn(x, y, label=label, **style)
+        _plot_run(run, metric, x_axis, hparams_to_label, plot_fn)
 
     plt.ylim(ylim)
     plt.title(title)
@@ -315,16 +316,7 @@ def plot_runs_axis(
     run_list = sort_data(run_list, sort_keys=SORT_KEYS)
 
     for run in run_list:
-        y_hist = run.scan_history(keys=[metric, "_step"])
-        y = np.array([hist[metric] for hist in y_hist])
-        steps = np.array([hist["_step"] for hist in y_hist])
-
-        x = get_x(run, steps, x_axis)
-        label = get_label(run, hparams_to_label[run.config["opt"]])
-        style = get_style(run)
-
-        # Call the axis-specific plot function
-        plot_fn(x, y, label=label, **style)
+        _plot_run(run, metric, x_axis, hparams_to_label, plot_fn)
 
     ax.set_ylim(ylim)
     ax.set_title(title)
