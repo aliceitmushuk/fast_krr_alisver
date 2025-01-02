@@ -140,23 +140,50 @@ def validate_yaml_variations(output_dir):
 
 
 if __name__ == "__main__":
-    datasets_performance = [
-        dataset for dataset in DATA_CONFIGS.keys() if dataset != "taxi"
+    # datasets_performance = [
+    #     dataset for dataset in DATA_CONFIGS.keys() if dataset != "taxi"
+    # ]
+    datasets_classification = [
+        "mnist",
+        "fashion_mnist",
+        "cifar10",
+        "svhn",
+        "miniboone",
+        "susy",
+        "higgs",
+        "covtype_binary",
+        "comet_mc",
+        "click_prediction",
     ]
+    datasets_regression = [
+        "qm9",
+        "uracil",
+        "aspirin",
+        "salicylic",
+        "naphthalene",
+        "toluene",
+        "ethanol",
+        "benzene",
+        "malonaldehyde",
+        "yearpredictionmsd",
+        "acsincome",
+        "yolanda",
+    ]
+    datasets_performance = datasets_classification + datasets_regression
 
     sweep_params_performance_full_krr = {
         "dataset": datasets_performance,
         "model": ["full_krr"],
         "opt.type": ["askotchv2", "pcg"],
         "precond.r": [100],
-        "training.log_freq": [50],
+        "training.log_freq": [20],
         "training.precision": ["float32", "float64"],
         "training.seed": [SEED],
         "training.max_iter": [None],
-        "wandb.project": ["performance_full_krr"],
+        "wandb.project": ["performance_full_krr_v2"],
     }
 
-    output_dir = "performance_full_krr"
+    output_dir = "performance_full_krr_v2"
 
     combinations = generate_combinations(
         sweep_params_performance_full_krr,
