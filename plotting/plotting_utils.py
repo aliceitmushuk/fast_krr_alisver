@@ -1,5 +1,6 @@
 import math
 import os
+import re
 import warnings
 
 import numpy as np
@@ -240,6 +241,13 @@ def get_style(run, n_points):
     return style
 
 
+def get_n_sci(run):
+    n = run.config["n"]
+    n_sci = re.sub(r"e\+?0*(\d+)", r" \\cdot 10^{\1}", f"{n:.2e}")
+    n_sci = re.sub(r"e-0*(\d+)", r" \\cdot 10^{-\1}", n_sci)
+    return n_sci
+
+
 def get_save_path(save_dir, save_name):
     if save_dir is not None and save_name is not None:
         if not os.path.exists(save_dir):
@@ -271,38 +279,6 @@ def _plot_run(run, metric, x_axis, hparams_to_label, plot_fn):
     plot_fn(x, y, label=label, **style)
 
 
-def plot_runs(
-    run_list,
-    hparams_to_label,
-    metric,
-    x_axis,
-    ylim,
-    title,
-    save_dir=None,
-    save_name=None,
-):
-    if x_axis not in ["time", "datapasses", "iters"]:
-        raise ValueError(f"Unsupported value of x_axis: {x_axis}")
-    plot_fn = METRIC_PLOT_FNS[metric]
-    save_path = get_save_path(save_dir, save_name)
-
-    run_list = sort_data(run_list, sort_keys=SORT_KEYS)
-
-    plt.figure()
-
-    for run in run_list:
-        _plot_run(run, metric, x_axis, hparams_to_label, plot_fn)
-
-    plt.ylim(ylim)
-    plt.title(title)
-    plt.xlabel(X_AXIS_LABELS[x_axis])
-    plt.ylabel(METRIC_LABELS[metric])
-    plt.legend(loc="upper center", bbox_to_anchor=(0.5, -0.15), ncol=3)
-
-    if save_path is not None:
-        plt.savefig(save_path, bbox_inches="tight")
-
-
 def plot_runs_axis(
     ax,
     run_list,
@@ -318,8 +294,9 @@ def plot_runs_axis(
     for run in run_list:
         _plot_run(run, metric, x_axis, hparams_to_label, plot_fn)
 
+    n_sci = get_n_sci(run_list[0])
     ax.set_ylim(ylim)
-    ax.set_title(title)
+    ax.set_title(f"{title} ($n = {n_sci}$)")
     ax.set_xlabel(X_AXIS_LABELS[x_axis])
     ax.set_ylabel(METRIC_LABELS[metric])
 
@@ -340,7 +317,8 @@ def plot_runs_grid(
         raise ValueError(f"Unsupported value of x_axis: {x_axis}")
     save_path = get_save_path(save_dir, save_name)
     fig, axes = plt.subplots(n_rows, n_cols, figsize=(8 * n_cols, 6 * n_rows))
-    axes = axes.flatten()
+    if axes.ndim > 1:
+        axes = axes.flatten()
 
     for i, (run_list, metric, ylim, title) in enumerate(
         zip(run_lists, metrics, ylims, titles)

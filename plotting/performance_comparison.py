@@ -9,7 +9,7 @@ from plotting_utils import (
 from plotting_utils import render_in_latex  # noqa: F401
 
 # high-level plotting parameters
-SAVE_DIR = "./plots/performance_full_krr"
+SAVE_DIR = "./plots/performance_comparison"
 EXTENSION = "pdf"
 NAME_STEM = "askotch_vs_pcg_"
 FONTSIZE = 14
@@ -34,7 +34,7 @@ ASKOTCH_FILTER = {
 }
 PCG_FLOAT32_FILTER = {
     "optimizer": lambda run: run.config["opt"] == "pcg",
-    "precision": lambda run: run.config["precision"] == "float64",
+    "precision": lambda run: run.config["precision"] == "float32",
     "finished": lambda run: run.state == "finished",
 }
 PCG_FLOAT64_FILTER = {
@@ -45,113 +45,127 @@ PCG_FLOAT64_FILTER = {
 
 # dataset-specific plotting parameters
 VISION = {
-    "cifar10": {
-        "ylim": [0.6, 1.0],
-        "metric": "test_acc",
-    },
-    "fashion_mnist": {
-        "ylim": [0.6, 1.0],
-        "metric": "test_acc",
-    },
-    "mnist": {
-        "ylim": [0.6, 1.0],
-        "metric": "test_acc",
-    },
-    "svhn": {
-        "ylim": [0.6, 1.0],
-        "metric": "test_acc",
+    "datasets": {
+        "cifar10": {
+            "ylim": [0.6, 1.0],
+            "metric": "test_acc",
+        },
+        "fashion_mnist": {
+            "ylim": [0.6, 1.0],
+            "metric": "test_acc",
+        },
+        "mnist": {
+            "ylim": [0.6, 1.0],
+            "metric": "test_acc",
+        },
+        "svhn": {
+            "ylim": [0.6, 1.0],
+            "metric": "test_acc",
+        },
     },
     "grid": {"n_rows": 2, "n_cols": 2},
     "name_ext": "vision",
 }
 PARTICLE_PHYSICS = {
-    "miniboone": {
-        "ylim": [0.6, 1.0],
-        "metric": "test_acc",
-    },
-    "susy": {
-        "ylim": [0.6, 0.9],
-        "metric": "test_acc",
-    },
-    "higgs": {
-        "ylim": [0.5, 0.8],
-        "metric": "test_acc",
+    "datasets": {
+        "miniboone": {
+            "ylim": [0.6, 1.0],
+            "metric": "test_acc",
+        },
+        "susy": {
+            "ylim": [0.6, 0.9],
+            "metric": "test_acc",
+        },
+        "higgs": {
+            "ylim": [0.5, 0.8],
+            "metric": "test_acc",
+        },
     },
     "grid": {"n_rows": 1, "n_cols": 3},
     "name_ext": "particle_physics",
 }
 TABULAR_CLASSIFICATION = {
-    "covtype_binary": {
-        "ylim": [0.0, 1.0],
-        "metric": "test_acc",
-    },
-    "comet_mc": {
-        "ylim": [0.4, 1.0],
-        "metric": "test_acc",
-    },
-    "click_prediction": {
-        "ylim": [0.4, 0.9],
-        "metric": "test_acc",
+    "datasets": {
+        "covtype_binary": {
+            "ylim": [0.0, 1.0],
+            "metric": "test_acc",
+        },
+        "comet_mc": {
+            "ylim": [0.4, 1.0],
+            "metric": "test_acc",
+        },
+        "click_prediction": {
+            "ylim": [0.4, 0.9],
+            "metric": "test_acc",
+        },
     },
     "grid": {"n_rows": 1, "n_cols": 3},
     "name_ext": "tabular_classification",
 }
 QM9 = {
-    "qm9": {
-        "ylim": [0.0, 2.0],
-        "metric": "test_smape",
+    "datasets": {
+        "qm9": {
+            "ylim": [0.0, 2.0],
+            "metric": "test_smape",
+        },
     },
     "grid": {"n_rows": 1, "n_cols": 1},
     "name_ext": "qm9",
 }
 MOLECULES_BIG = {
-    "toluene": {
-        "ylim": [0.0, 2.0],
-        "metric": "test_smape",
-    },
-    "ethanol": {
-        "ylim": [0.0, 2.0],
-        "metric": "test_smape",
-    },
-    "benzene": {
-        "ylim": [0.0, 2.0],
-        "metric": "test_smape",
-    },
-    "malonaldehyde": {
-        "ylim": [0.0, 2.0],
-        "metric": "test_smape",
+    "datasets": {
+        "toluene": {
+            "ylim": [0.0, 2.0],
+            "metric": "test_smape",
+        },
+        "ethanol": {
+            "ylim": [0.0, 2.0],
+            "metric": "test_smape",
+        },
+        "benzene": {
+            "ylim": [0.0, 2.0],
+            "metric": "test_smape",
+        },
+        "malonaldehyde": {
+            "ylim": [0.0, 2.0],
+            "metric": "test_smape",
+        },
     },
     "grid": {"n_rows": 2, "n_cols": 2},
     "name_ext": "molecules_big",
 }
 MOLECULES_SMALL = {
-    "uracil": {
-        "ylim": [0.0, 2.0],
-        "metric": "test_smape",
-    },
-    "aspirin": {
-        "ylim": [0.0, 2.0],
-        "metric": "test_smape",
-    },
-    "salicylic": {
-        "ylim": [0.0, 2.0],
-        "metric": "test_smape",
-    },
-    "naphthalene": {
-        "ylim": [0.0, 2.0],
-        "metric": "test_smape",
+    "datasets": {
+        "uracil": {
+            "ylim": [0.0, 2.0],
+            "metric": "test_smape",
+        },
+        "aspirin": {
+            "ylim": [0.0, 2.0],
+            "metric": "test_smape",
+        },
+        "salicylic": {
+            "ylim": [0.0, 2.0],
+            "metric": "test_smape",
+        },
+        "naphthalene": {
+            "ylim": [0.0, 2.0],
+            "metric": "test_smape",
+        },
     },
     "grid": {"n_rows": 2, "n_cols": 2},
     "name_ext": "molecules_small",
 }
 TABULAR_REGRESSION = {
-    "yearpredictionmsd": {
-        "ylim": [0.0, 2.0],
-        "metric": "test_smape",
-    },
-    "acsincome": {
-        "ylim": [0.0, 2.0],
-        "metric": "test_smape",
+    "datasets": {
+        "yearpredictionmsd": {
+            "ylim": [0.0, 2.0],
+            "metric": "test_smape",
+        },
+        "acsincome": {
+            "ylim": [0.0, 2.0],
+            "metric": "test_smape",
+        },
     },
     "grid": {"n_rows": 1, "n_cols": 2},
     "name_ext": "tabular_regression",
@@ -171,7 +185,7 @@ def plot_runs_dataset_grid(
     entity_name,
     project_name_full_krr,
     project_name_inducing_krr,
-    datasets,
+    datasets_cfg,
     askotch_criteria,
     pcg_criteria,
     hparams_to_label,
@@ -185,11 +199,11 @@ def plot_runs_dataset_grid(
     ylims = []
     titles = []
 
-    n_rows = datasets["grid"]["n_rows"]
-    n_cols = datasets["grid"]["n_cols"]
-    save_name = name_stem + datasets["name_ext"] + "." + extension
+    n_rows = datasets_cfg["grid"]["n_rows"]
+    n_cols = datasets_cfg["grid"]["n_cols"]
+    save_name = name_stem + datasets_cfg["name_ext"] + "." + extension
 
-    for ds, config in datasets.items():
+    for ds, config in datasets_cfg["datasets"].items():
         project_name_full_krr_ds = project_name_full_krr + ds
         project_name_inducing_krr_ds = project_name_inducing_krr + ds
 
@@ -223,25 +237,25 @@ if __name__ == "__main__":
     # render_in_latex()
 
     plot_fn = partial(
-        plot_runs_dataset_grid(
-            entity_name=ENTITY_NAME,
-            project_name_full_krr=PROJECT_FULL_KRR,
-            project_name_inducing_krr=PROJECT_INDUCING_KRR,
-            askotch_criteria=ASKOTCH_FILTER,
-            hparams_to_label=HPARAMS_TO_LABEL,
-            x_axis=X_AXIS,
-            save_dir=SAVE_DIR,
-        )
+        plot_runs_dataset_grid,
+        entity_name=ENTITY_NAME,
+        project_name_full_krr=PROJECT_FULL_KRR,
+        project_name_inducing_krr=PROJECT_INDUCING_KRR,
+        askotch_criteria=ASKOTCH_FILTER,
+        hparams_to_label=HPARAMS_TO_LABEL,
+        x_axis=X_AXIS,
+        save_dir=SAVE_DIR,
+        extension=EXTENSION,
     )
 
     for dataset in ALL_DATASETS:
         plot_fn(
-            datasets=dataset,
+            datasets_cfg=dataset,
             pcg_criteria=PCG_FLOAT32_FILTER,
             name_stem=NAME_STEM + "float32_",
         )
         plot_fn(
-            datasets=dataset,
+            datasets_cfg=dataset,
             pcg_criteria=PCG_FLOAT64_FILTER,
             name_stem=NAME_STEM + "float64_",
         )
