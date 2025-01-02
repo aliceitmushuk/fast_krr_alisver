@@ -316,9 +316,10 @@ def plot_runs_grid(
     if x_axis not in ["time", "datapasses", "iters"]:
         raise ValueError(f"Unsupported value of x_axis: {x_axis}")
     save_path = get_save_path(save_dir, save_name)
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(8 * n_cols, 6 * n_rows))
-    if axes.ndim > 1:
-        axes = axes.flatten()
+    fig, axes = plt.subplots(
+        n_rows, n_cols, squeeze=False, figsize=(8 * n_cols, 6 * n_rows)
+    )
+    axes = axes.flatten()
 
     for i, (run_list, metric, ylim, title) in enumerate(
         zip(run_lists, metrics, ylims, titles)
