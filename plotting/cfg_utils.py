@@ -1,3 +1,5 @@
+import os
+
 from base_utils import get_project_runs, filter_runs_union, plot_runs_grid
 
 
@@ -9,6 +11,18 @@ def _get_grid_shape(datasets_cfg):
 
 def _get_save_name(name_stem, datasets_cfg, extension):
     return name_stem + datasets_cfg["name_ext"] + "." + extension
+
+
+def get_save_dir(base_save_dir, name):
+    return os.path.join(base_save_dir, name)
+
+
+def create_krr_config(proj_name, base_criteria):
+    config = {
+        "proj_name": proj_name,
+        "criteria_list": base_criteria,
+    }
+    return config
 
 
 def _get_filtered_runs(krr_cfg, ds, entity_name):

@@ -1,5 +1,4 @@
 from functools import partial
-import os
 
 from constants import (
     USE_LATEX,
@@ -12,11 +11,10 @@ from constants import (
 from constants import ENTITY_NAME, PROJECT_FULL_KRR, PROJECT_INDUCING_KRR
 from constants import PERFORMANCE_DATASETS_CFG
 from base_utils import set_fontsize, render_in_latex
-from cfg_utils import plot_runs_dataset_grid
+from cfg_utils import get_save_dir, create_krr_config, plot_runs_dataset_grid
 
-# save directory and filename
-SAVE_DIR = os.path.join(BASE_SAVE_DIR, "performance_comparison")
-NAME_STEM = "askotch_vs_pcg_"
+# save directory
+SAVE_DIR = "performance_comparison"
 
 # filters for runs
 ASKOTCH_FILTER = {
@@ -50,38 +48,34 @@ if __name__ == "__main__":
         entity_name=ENTITY_NAME,
         hparams_to_label=HPARAMS_TO_LABEL,
         x_axis=X_AXIS,
-        save_dir=SAVE_DIR,
+        save_dir=get_save_dir(BASE_SAVE_DIR, SAVE_DIR),
         extension=EXTENSION,
     )
 
-    full_krr_base_cfg = {
-        "proj_name": PROJECT_FULL_KRR,
-        "criteria_list": [ASKOTCH_FILTER],
-    }
-    inducing_krr_base_cfg = {
-        "proj_name": PROJECT_INDUCING_KRR,
-        "criteria_list": [],
-    }
+    full_krr_cfg_float32 = create_krr_config(
+        PROJECT_FULL_KRR, [ASKOTCH_FILTER, PCG_FLOAT32_FILTER]
+    )
+    inducing_krr_cfg_float32 = create_krr_config(
+        PROJECT_INDUCING_KRR, [PCG_FLOAT32_FILTER]
+    )
+
+    full_krr_cfg_float64 = create_krr_config(
+        PROJECT_FULL_KRR, [ASKOTCH_FILTER, PCG_FLOAT64_FILTER]
+    )
+    inducing_krr_cfg_float64 = create_krr_config(
+        PROJECT_INDUCING_KRR, [PCG_FLOAT64_FILTER]
+    )
 
     for datasets_cfg in PERFORMANCE_DATASETS_CFG:
-        full_krr_cfg = full_krr_base_cfg.copy()
-        full_krr_cfg["criteria_list"] += [PCG_FLOAT32_FILTER]
-        inducing_krr_cfg = inducing_krr_base_cfg.copy()
-        inducing_krr_cfg["criteria_list"] += [PCG_FLOAT32_FILTER]
         plot_fn(
+            full_krr_cfg=full_krr_cfg_float32,
+            inducing_krr_cfg=inducing_krr_cfg_float32,
             datasets_cfg=datasets_cfg,
-            full_krr_cfg=full_krr_cfg,
-            inducing_krr_cfg=inducing_krr_cfg,
-            name_stem=NAME_STEM + "float32_",
+            name_stem="float32_",
         )
-
-        full_krr_cfg = full_krr_base_cfg.copy()
-        full_krr_cfg["criteria_list"] += [PCG_FLOAT64_FILTER]
-        inducing_krr_cfg = inducing_krr_base_cfg.copy()
-        inducing_krr_cfg["criteria_list"] += [PCG_FLOAT64_FILTER]
         plot_fn(
+            full_krr_cfg=full_krr_cfg_float64,
+            inducing_krr_cfg=inducing_krr_cfg_float64,
             datasets_cfg=datasets_cfg,
-            full_krr_cfg=full_krr_cfg,
-            inducing_krr_cfg=inducing_krr_cfg,
-            name_stem=NAME_STEM + "float64_",
+            name_stem="float64_",
         )
