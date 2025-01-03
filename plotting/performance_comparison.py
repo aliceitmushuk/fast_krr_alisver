@@ -54,24 +54,12 @@ if __name__ == "__main__":
         "proj_name": PROJECT_INDUCING_KRR,
         "criteria_list": [],
     }
-    full_krr_criteria_float32 = full_krr_base_cfg["criteria_list"] + [
-        PCG_FLOAT32_FILTER
-    ]
-    full_krr_criteria_float64 = full_krr_base_cfg["criteria_list"] + [
-        PCG_FLOAT64_FILTER
-    ]
-    inducing_krr_criteria_float32 = inducing_krr_base_cfg["criteria_list"] + [
-        PCG_FLOAT32_FILTER
-    ]
-    inducing_krr_criteria_float64 = inducing_krr_base_cfg["criteria_list"] + [
-        PCG_FLOAT64_FILTER
-    ]
 
     for datasets_cfg in PERFORMANCE_DATASETS_CFG:
         full_krr_cfg = full_krr_base_cfg.copy()
-        full_krr_cfg["criteria_list"] = full_krr_criteria_float32
+        full_krr_cfg["criteria_list"] += [PCG_FLOAT32_FILTER]
         inducing_krr_cfg = inducing_krr_base_cfg.copy()
-        inducing_krr_cfg["criteria_list"] = inducing_krr_criteria_float32
+        inducing_krr_cfg["criteria_list"] += [PCG_FLOAT32_FILTER]
         plot_fn(
             datasets_cfg=datasets_cfg,
             full_krr_cfg=full_krr_cfg,
@@ -80,9 +68,9 @@ if __name__ == "__main__":
         )
 
         full_krr_cfg = full_krr_base_cfg.copy()
-        full_krr_cfg["criteria_list"] = full_krr_criteria_float64
+        full_krr_cfg["criteria_list"] += [PCG_FLOAT64_FILTER]
         inducing_krr_cfg = inducing_krr_base_cfg.copy()
-        inducing_krr_cfg["criteria_list"] = inducing_krr_criteria_float64
+        inducing_krr_cfg["criteria_list"] += [PCG_FLOAT64_FILTER]
         plot_fn(
             datasets_cfg=datasets_cfg,
             full_krr_cfg=full_krr_cfg,
