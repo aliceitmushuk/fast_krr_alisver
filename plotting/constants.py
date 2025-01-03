@@ -143,7 +143,7 @@ TABULAR_REGRESSION = {
     "grid": {"n_rows": 1, "n_cols": 3},
     "name_ext": "tabular_regression",
 }
-ALL_PERFORMANCE_DATASETS = [
+PERFORMANCE_DATASETS_CFG = [
     VISION,
     PARTICLE_PHYSICS,
     TABULAR_CLASSIFICATION,

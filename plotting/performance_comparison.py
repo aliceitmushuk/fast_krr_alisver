@@ -2,10 +2,10 @@ from functools import partial
 
 from constants import EXTENSION, FONTSIZE, X_AXIS, HPARAMS_TO_LABEL
 from constants import ENTITY_NAME, PROJECT_FULL_KRR, PROJECT_INDUCING_KRR
-from constants import PERFORMANCE_DATASETS
-from utils import set_fontsize, plot_runs_grid
-from utils import render_in_latex  # noqa: F401
-from cfg_utils import get_grid_shape, get_save_name, get_filtered_krr_runs
+from constants import PERFORMANCE_DATASETS_CFG
+from base_utils import set_fontsize
+from base_utils import render_in_latex  # noqa: F401
+from cfg_utils import plot_runs_dataset_grid
 
 # high-level plotting parameters
 SAVE_DIR = "./plots/performance_comparison"
@@ -31,48 +31,6 @@ PCG_FLOAT64_FILTER = {
     "precision": lambda run: run.config["precision"] == "float64",
     "finished": lambda run: run.state == "finished",
 }
-
-
-def plot_runs_dataset_grid(
-    entity_name,
-    full_krr_cfg,
-    inducing_krr_cfg,
-    datasets_cfg,
-    hparams_to_label,
-    x_axis,
-    name_stem,
-    save_dir,
-    extension,
-):
-    run_lists = []
-    metrics = []
-    ylims = []
-    titles = []
-
-    n_rows, n_cols = get_grid_shape(datasets_cfg)
-    save_name = get_save_name(name_stem, datasets_cfg, extension)
-
-    for ds, config in datasets_cfg["datasets"].items():
-        runs_full_krr = get_filtered_krr_runs(full_krr_cfg, ds, entity_name)
-        runs_inducing_krr = get_filtered_krr_runs(inducing_krr_cfg, ds, entity_name)
-
-        run_lists.append(runs_full_krr + runs_inducing_krr)
-        metrics.append(config["metric"])
-        ylims.append(config["ylim"])
-        titles.append(ds)
-
-    plot_runs_grid(
-        run_lists,
-        hparams_to_label,
-        metrics,
-        x_axis,
-        ylims,
-        titles,
-        n_cols,
-        n_rows,
-        save_dir,
-        save_name,
-    )
 
 
 if __name__ == "__main__":
@@ -109,13 +67,13 @@ if __name__ == "__main__":
         PCG_FLOAT64_FILTER
     ]
 
-    for dataset in PERFORMANCE_DATASETS:
+    for datasets_cfg in PERFORMANCE_DATASETS_CFG:
         full_krr_cfg = full_krr_base_cfg.copy()
         full_krr_cfg["criteria_list"] = full_krr_criteria_float32
         inducing_krr_cfg = inducing_krr_base_cfg.copy()
         inducing_krr_cfg["criteria_list"] = inducing_krr_criteria_float32
         plot_fn(
-            datasets_cfg=dataset,
+            datasets_cfg=datasets_cfg,
             full_krr_cfg=full_krr_cfg,
             inducing_krr_cfg=inducing_krr_cfg,
             name_stem=NAME_STEM + "float32_",
@@ -126,7 +84,7 @@ if __name__ == "__main__":
         inducing_krr_cfg = inducing_krr_base_cfg.copy()
         inducing_krr_cfg["criteria_list"] = inducing_krr_criteria_float64
         plot_fn(
-            datasets_cfg=dataset,
+            datasets_cfg=datasets_cfg,
             full_krr_cfg=full_krr_cfg,
             inducing_krr_cfg=inducing_krr_cfg,
             name_stem=NAME_STEM + "float64_",
