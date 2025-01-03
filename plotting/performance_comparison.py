@@ -1,17 +1,24 @@
 from functools import partial
+import os
 
-from constants import EXTENSION, FONTSIZE, X_AXIS, HPARAMS_TO_LABEL
+from constants import (
+    USE_LATEX,
+    FONTSIZE,
+    X_AXIS,
+    HPARAMS_TO_LABEL,
+    BASE_SAVE_DIR,
+    EXTENSION,
+)
 from constants import ENTITY_NAME, PROJECT_FULL_KRR, PROJECT_INDUCING_KRR
 from constants import PERFORMANCE_DATASETS_CFG
-from base_utils import set_fontsize
-from base_utils import render_in_latex  # noqa: F401
+from base_utils import set_fontsize, render_in_latex
 from cfg_utils import plot_runs_dataset_grid
 
-# high-level plotting parameters
-SAVE_DIR = "./plots/performance_comparison"
+# save directory and filename
+SAVE_DIR = os.path.join(BASE_SAVE_DIR, "performance_comparison")
 NAME_STEM = "askotch_vs_pcg_"
 
-# run filters
+# filters for runs
 ASKOTCH_FILTER = {
     "optimizer": lambda run: run.config["opt"] == "askotchv2",
     "accelerated": lambda run: run.config["accelerated"],
@@ -35,7 +42,8 @@ PCG_FLOAT64_FILTER = {
 
 if __name__ == "__main__":
     set_fontsize(FONTSIZE)
-    # render_in_latex()
+    if USE_LATEX:
+        render_in_latex()
 
     plot_fn = partial(
         plot_runs_dataset_grid,

@@ -1,11 +1,13 @@
 # high-level plotting parameters
-EXTENSION = "pdf"
+USE_LATEX = False
 FONTSIZE = 18
 X_AXIS = "time"
 HPARAMS_TO_LABEL = {
     "askotchv2": ["precond", "r", "sampling_method"],
     "pcg": ["precond", "r", "m"],
 }
+BASE_SAVE_DIR = "./plots"
+EXTENSION = "pdf"
 
 # wandb project names
 ENTITY_NAME = "sketchy-opts"
