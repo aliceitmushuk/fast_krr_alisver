@@ -127,11 +127,11 @@ def filter_runs(runs, criteria):
     return [run for run in runs if check_criteria(run, criteria)]
 
 
-def filter_runs_multi(runs, criteria_list):
-    runs = []
+def filter_runs_union(runs, criteria_list):
+    runs_filtered = []
     for criteria in criteria_list:
-        runs.extend(filter_runs(runs, criteria))
-    return runs
+        runs_filtered.extend(filter_runs(runs, criteria))
+    return runs_filtered
 
 
 def get_datapasses(run, steps):

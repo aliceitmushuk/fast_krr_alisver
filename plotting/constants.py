@@ -1,6 +1,6 @@
 # high-level plotting parameters
 EXTENSION = "pdf"
-FONTSIZE = 14
+FONTSIZE = 18
 X_AXIS = "time"
 HPARAMS_TO_LABEL = {
     "askotchv2": ["precond", "r", "sampling_method"],
