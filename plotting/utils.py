@@ -127,6 +127,13 @@ def filter_runs(runs, criteria):
     return [run for run in runs if check_criteria(run, criteria)]
 
 
+def filter_runs_multi(runs, criteria_list):
+    runs = []
+    for criteria in criteria_list:
+        runs.extend(filter_runs(runs, criteria))
+    return runs
+
+
 def get_datapasses(run, steps):
     opt = run.config["opt"]
     n = run.config["n"]
