@@ -5,6 +5,7 @@ X_AXIS = "time"
 HPARAMS_TO_LABEL = {
     "askotchv2": ["precond", "r", "sampling_method"],
     "pcg": ["precond", "r", "m"],
+    "mimosa": ["precond", "r", "m"],
 }
 BASE_SAVE_DIR = "./plots"
 EXTENSION = "pdf"
@@ -154,3 +155,14 @@ PERFORMANCE_DATASETS_CFG = [
     MOLECULES_SMALL,
     TABULAR_REGRESSION,
 ]
+
+TAXI = {
+    "datasets": {
+        "taxi": {
+            "ylim": [200.0, 300.0],
+            "metric": "test_rmse",
+        },
+    },
+    "grid": {"n_rows": 1, "n_cols": 1},
+    "name_ext": "taxi",
+}

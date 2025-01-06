@@ -6,20 +6,28 @@ import warnings
 import numpy as np
 import wandb
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import matplotlib.colors as mcolors
 
 from sorting import sort_data
 
-OPT_COLORS = {
-    "askotchv2": "tab:orange",
-    "skotchv2": "tab:purple",
-    "pcg": "tab:blue",
-    "mimosa": "tab:pink",
+OPT_CMAPS = {
+    "askotchv2": cm.get_cmap("Oranges"),
+    "skotchv2": cm.get_cmap("Purples"),
+    "pcg": cm.get_cmap("Blues"),
+    "mimosa": cm.get_cmap("Greys"),
 }
+
+# Normalize rank values to colormap
+RANK_MIN = 0 + 1  # Minimum rank
+RANK_MAX = 500 + 1  # Maximum rank
+NORM = mcolors.LogNorm(vmin=RANK_MIN, vmax=RANK_MAX)
+FALKON_PLOTTING_RANK = 100  # Dummy rank to use when plotting Falkon
 
 PRECOND_MARKERS = {
     "nystrom": {"damped": "o", "regularization": "x"},
     "partial_cholesky": {"greedy": "s", "rpc": "v"},
-    "falkon": {10000: "d", 20000: "*", 50000: "p", 100000: "h", 200000: "1"},
+    "falkon": {10000: "d", 20000: "*", 50000: "p"},
 }
 
 SAMPLING_LINESTYLES = {
@@ -71,6 +79,8 @@ OPT_LABELS = {
 }
 
 RANK_LABEL = "r"
+
+RHO_LABEL = "rho"
 
 PRECOND_LABELS = {
     "nystrom": r"Nystr$\ddot{\mathrm{o}}$m",
@@ -167,11 +177,14 @@ def get_x(run, steps, x_axis):
         return steps
 
 
+def _get_rank(run):
+    return run.config.get("precond_params", {}).get("r", None)
+
+
 def _rank_label(run):
-    if run.config["precond_params"] is not None:
-        r = run.config["precond_params"].get("r", None)
-        if r is not None:
-            return f"{RANK_LABEL} = {run.config['precond_params']['r']}"
+    r = _get_rank(run)
+    if r is not None:
+        return f"{RANK_LABEL} = {r}"
     return None
 
 
@@ -180,7 +193,8 @@ def _precond_label(run):
         precond_type = run.config["precond_params"]["type"]
         label = PRECOND_LABELS[precond_type]
         if precond_type == "nystrom":
-            label += f", {RHO_LABELS[run.config['precond_params']['rho']]}"
+            run_rho = run.config["precond_params"]["rho"]
+            label += f", {RHO_LABEL} = {RHO_LABELS.get(run_rho, run_rho)}"
         if precond_type == "partial_cholesky":
             label += f", {MODE_LABELS[run.config['precond_params']['mode']]}"
         return label
@@ -223,25 +237,36 @@ def get_label(run, hparams_to_label):
     return ", ".join(hparam_labels)
 
 
+# Function to get color based on rank
+def get_color(opt, rank):
+    return OPT_CMAPS[opt](NORM(rank))
+
+
 def get_style(run, n_points):
     style = {}
-    opt = _get_opt(run)
-    style["color"] = OPT_COLORS[opt]
 
+    opt = _get_opt(run)
     if opt in ["askotchv2", "skotchv2"]:
         style["linestyle"] = SAMPLING_LINESTYLES[run.config["sampling_method"]]
+
+    r = _get_rank(run)
+    r_adj = 1 if r is None else r + 1
+
     if run.config["precond_params"] is not None:
         precond_type = run.config["precond_params"]["type"]
         if precond_type == "nystrom":
-            style["marker"] = PRECOND_MARKERS[precond_type][
-                run.config["precond_params"]["rho"]
-            ]
+            style["marker"] = PRECOND_MARKERS[precond_type].get(
+                run.config["precond_params"]["rho"], "h"
+            )
         elif precond_type == "partial_cholesky":
             style["marker"] = PRECOND_MARKERS[precond_type][
                 run.config["precond_params"]["mode"]
             ]
         elif precond_type == "falkon":
             style["marker"] = PRECOND_MARKERS[precond_type][run.config["m"]]
+            r_adj = FALKON_PLOTTING_RANK + 1
+
+    style["color"] = get_color(opt, r_adj)
 
     style["markevery"] = math.ceil(n_points / TOT_MARKERS)
     style["markersize"] = MARKERSIZE
