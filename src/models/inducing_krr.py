@@ -23,7 +23,7 @@ class InducingKRR(Model):
         super().__init__(x, b, x_tst, b_tst, kernel_params, lambd, task, w0, device)
         self.inducing_pts = inducing_pts
         self.m = self.inducing_pts.shape[0]
-        self.bm_scaled = self.lambd * self.b[self.inducing_pts]
+        self.bm_scaled = self.lambd / 2 * self.b[self.inducing_pts]
         self.inducing = True
 
         # Get inducing points kernel
@@ -68,7 +68,7 @@ class InducingKRR(Model):
         return metrics_dict
 
     def _get_grad_regularizer(self):
-        return self.bm_scaled
+        return -((self.lambd / 2) ** 2) * self.w + self.bm_scaled
 
     def _get_selection_idx(self, v1, v2):
         # Find elements of `v2` present in `v1` and their positions in `v1`
@@ -88,6 +88,9 @@ class InducingKRR(Model):
     def _get_table_aux(self, idx, w, table):
         x_idx_i = LazyTensor(self.x[idx][:, None, :])
         K_nm_idx = _get_kernel(x_idx_i, self.x_inducing_j, self.kernel_params)
+
+        # TODO: update new_weights calculation
+
         new_weights = self.n * (K_nm_idx @ w - self.b[idx])
 
         weight_diff = new_weights - table[idx]
@@ -103,7 +106,7 @@ class InducingKRR(Model):
             and torch.numel(indices_in_weight_diff) > 0
         ):
             weight_diff_selected[indices_in_table] = weight_diff[indices_in_weight_diff]
-        aux = K_nm_idx.T @ weight_diff + self.lambd * weight_diff_selected
+        aux = K_nm_idx.T @ weight_diff + self.lambd / 2 * weight_diff_selected
 
         return new_weights, aux
 
