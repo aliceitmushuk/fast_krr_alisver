@@ -6,6 +6,7 @@ import warnings
 import numpy as np
 import wandb
 import matplotlib.pyplot as plt
+import matplotlib
 
 from constants import (
     FALKON_PLOTTING_RANK,
@@ -28,6 +29,9 @@ from constants import (
     X_AXIS_LABELS,
 )
 from sorting import sort_data
+
+# set backend to pdf
+matplotlib.use("pdf")
 
 
 def set_fontsize(fontsize):
@@ -104,7 +108,7 @@ def _get_rank(run):
 def _rank_label(run):
     r = _get_rank(run)
     if r is not None:
-        return f"{RANK_LABEL} = {r}"
+        return f"${RANK_LABEL} = {r}$"
     return None
 
 
@@ -114,7 +118,7 @@ def _precond_label(run):
         label = PRECOND_LABELS[precond_type]
         if precond_type == "nystrom":
             run_rho = run.config["precond_params"]["rho"]
-            label += f", {RHO_LABEL} = {RHO_LABELS.get(run_rho, run_rho)}"
+            label += f", ${RHO_LABEL} = {RHO_LABELS.get(run_rho, run_rho)}$"
         if precond_type == "partial_cholesky":
             label += f", {MODE_LABELS[run.config['precond_params']['mode']]}"
         return label
@@ -129,7 +133,7 @@ def _sampling_label(run):
 
 def _inducing_label(run):
     if "m" in run.config:
-        return f"m = {run.config['m']}"
+        return f"$m = {run.config['m']}$"
     return None
 
 
@@ -303,3 +307,5 @@ def plot_runs_grid(
 
     if save_path is not None:
         plt.savefig(save_path, bbox_inches="tight")
+
+    plt.close(fig)

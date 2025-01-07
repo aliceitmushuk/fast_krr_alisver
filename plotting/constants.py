@@ -3,7 +3,7 @@ import matplotlib.cm as cm
 from compressed_log_norm import CompressedLogNorm
 
 # high-level plotting parameters
-USE_LATEX = False
+USE_LATEX = True
 FONTSIZE = 18
 X_AXIS = "time"
 HPARAMS_TO_LABEL = {
@@ -69,13 +69,13 @@ METRIC_LABELS = {
     "rel_suboptim": "Relative suboptimality",
 }
 OPT_LABELS = {
-    "askotchv2": "ASkotch",
-    "skotchv2": "Skotch",
+    "askotchv2": r"\texttt{ASkotch}",
+    "skotchv2": r"\texttt{Skotch}",
     "pcg": "PCG",
-    "mimosa": "Mimosa",
+    "mimosa": r"\texttt{Mimosa}",
 }
 RANK_LABEL = "r"
-RHO_LABEL = "rho"
+RHO_LABEL = r"\rho"
 PRECOND_LABELS = {
     "nystrom": r"Nystr$\ddot{\mathrm{o}}$m",
     "partial_cholesky": "Partial Cholesky",
@@ -86,8 +86,8 @@ MODE_LABELS = {
     "rpc": "RPC",
 }
 RHO_LABELS = {
-    "damped": "damped",
-    "regularization": "regularization",
+    "damped": r"\mathrm{damped}",
+    "regularization": r"\mathrm{regularization}",
 }
 SAMPLING_LABELS = {
     "uniform": "uniform",
