@@ -6,7 +6,6 @@ import warnings
 import numpy as np
 import wandb
 import matplotlib.pyplot as plt
-import matplotlib
 
 from constants import (
     FALKON_PLOTTING_RANK,
@@ -29,9 +28,6 @@ from constants import (
     X_AXIS_LABELS,
 )
 from sorting import sort_data
-
-# set backend to pdf
-matplotlib.use("pdf")
 
 
 def set_fontsize(fontsize):

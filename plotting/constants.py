@@ -258,3 +258,14 @@ TAXI = {
     "grid": {"n_rows": 1, "n_cols": 1},
     "name_ext": "taxi",
 }
+
+LIN_CVG = {
+    "datasets": {
+        "synthetic": {
+            "ylim": [0.0, 1.0],
+            "metric": "rel_residual",
+        },
+    },
+    "grid": {"n_rows": 1, "n_cols": 1},
+    "name_ext": "synthetic",
+}
