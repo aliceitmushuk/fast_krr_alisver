@@ -1,5 +1,7 @@
 from functools import partial
 
+from tqdm import tqdm
+
 from constants import (
     USE_LATEX,
     FONTSIZE,
@@ -58,7 +60,6 @@ if __name__ == "__main__":
     inducing_krr_cfg_float32 = create_krr_config(
         PROJECT_INDUCING_KRR, [PCG_FLOAT32_FILTER]
     )
-
     full_krr_cfg_float64 = create_krr_config(
         PROJECT_FULL_KRR, [ASKOTCH_FILTER, PCG_FLOAT64_FILTER]
     )
@@ -66,16 +67,21 @@ if __name__ == "__main__":
         PROJECT_INDUCING_KRR, [PCG_FLOAT64_FILTER]
     )
 
-    for datasets_cfg in PERFORMANCE_DATASETS_CFG:
-        plot_fn(
-            full_krr_cfg=full_krr_cfg_float32,
-            inducing_krr_cfg=inducing_krr_cfg_float32,
-            datasets_cfg=datasets_cfg,
-            name_stem="float32_",
-        )
-        plot_fn(
-            full_krr_cfg=full_krr_cfg_float64,
-            inducing_krr_cfg=inducing_krr_cfg_float64,
-            datasets_cfg=datasets_cfg,
-            name_stem="float64_",
-        )
+    with tqdm(
+        total=2 * len(PERFORMANCE_DATASETS_CFG), desc="Performance comparison"
+    ) as pbar:
+        for datasets_cfg in PERFORMANCE_DATASETS_CFG:
+            plot_fn(
+                full_krr_cfg=full_krr_cfg_float32,
+                inducing_krr_cfg=inducing_krr_cfg_float32,
+                datasets_cfg=datasets_cfg,
+                name_stem="float32_",
+            )
+            pbar.update(1)
+            plot_fn(
+                full_krr_cfg=full_krr_cfg_float64,
+                inducing_krr_cfg=inducing_krr_cfg_float64,
+                datasets_cfg=datasets_cfg,
+                name_stem="float64_",
+            )
+            pbar.update(1)

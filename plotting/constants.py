@@ -1,3 +1,7 @@
+import matplotlib.cm as cm
+
+from compressed_log_norm import CompressedLogNorm
+
 # high-level plotting parameters
 USE_LATEX = False
 FONTSIZE = 18
@@ -9,6 +13,94 @@ HPARAMS_TO_LABEL = {
 }
 BASE_SAVE_DIR = "./plots"
 EXTENSION = "pdf"
+
+# colormap for each optimizer
+OPT_CMAPS = {
+    "askotchv2": cm.get_cmap("Oranges"),
+    "skotchv2": cm.get_cmap("Purples"),
+    "pcg": cm.get_cmap("Blues"),
+    "mimosa": cm.get_cmap("Greys"),
+}
+
+# Normalize rank values to colormap
+RANK_MIN = 0 + 1  # Minimum rank
+RANK_MAX = 500 + 1  # Maximum rank
+NORM = CompressedLogNorm(vmin=RANK_MIN, vmax=RANK_MAX, compress_factor=0.4)
+FALKON_PLOTTING_RANK = 100  # Dummy rank to use when plotting Falkon
+
+# markers for each preconditioner
+PRECOND_MARKERS = {
+    "nystrom": {"damped": "o", "regularization": "x"},
+    "partial_cholesky": {"greedy": "s", "rpc": "v"},
+    "falkon": {10000: "d", 20000: "*", 50000: "p"},
+}
+
+# linestyles for each sampling method
+SAMPLING_LINESTYLES = {
+    "uniform": "solid",
+    "rls": "dashed",
+}
+
+# number of markers and marker size
+TOT_MARKERS = 10
+MARKERSIZE = 8
+
+# plotting functions for each metric
+METRIC_AX_PLOT_FNS = {
+    "rel_residual": "semilogy",
+    "train_loss": "plot",
+    "test_acc": "plot",
+    "test_mse": "plot",
+    "test_rmse": "plot",
+    "test_mae": "plot",
+    "test_smape": "semilogy",
+    "rel_suboptim": "semilogy",
+}
+
+# labels for metrics, optimizers, and hyperparameters
+METRIC_LABELS = {
+    "rel_residual": "Relative residual",
+    "train_loss": "Training loss",
+    "test_acc": "Test accuracy",
+    "test_mse": "Test MSE",
+    "test_rmse": "Test RMSE",
+    "test_mae": "Test MAE",
+    "test_smape": "Test SMAPE",
+    "rel_suboptim": "Relative suboptimality",
+}
+OPT_LABELS = {
+    "askotchv2": "ASkotch",
+    "skotchv2": "Skotch",
+    "pcg": "PCG",
+    "mimosa": "Mimosa",
+}
+RANK_LABEL = "r"
+RHO_LABEL = "rho"
+PRECOND_LABELS = {
+    "nystrom": r"Nystr$\ddot{\mathrm{o}}$m",
+    "partial_cholesky": "Partial Cholesky",
+    "falkon": "Falkon",
+}
+MODE_LABELS = {
+    "greedy": "greedy",
+    "rpc": "RPC",
+}
+RHO_LABELS = {
+    "damped": "damped",
+    "regularization": "regularization",
+}
+SAMPLING_LABELS = {
+    "uniform": "uniform",
+    "rls": "RLS",
+}
+X_AXIS_LABELS = {
+    "time": "Time (s)",
+    "datapasses": "Full data passes",
+    "iters": "Iterations",
+}
+
+# sorting keys for hyperparameters
+SORT_KEYS = ["opt", "accelerated", "sampling_method", "precond_type", "r", "m"]
 
 # wandb project names
 ENTITY_NAME = "sketchy-opts"

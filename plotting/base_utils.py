@@ -6,110 +6,28 @@ import warnings
 import numpy as np
 import wandb
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-import matplotlib.colors as mcolors
 
+from constants import (
+    FALKON_PLOTTING_RANK,
+    MARKERSIZE,
+    METRIC_AX_PLOT_FNS,
+    METRIC_LABELS,
+    MODE_LABELS,
+    NORM,
+    OPT_CMAPS,
+    OPT_LABELS,
+    PRECOND_LABELS,
+    PRECOND_MARKERS,
+    RANK_LABEL,
+    RHO_LABEL,
+    RHO_LABELS,
+    SAMPLING_LABELS,
+    SAMPLING_LINESTYLES,
+    SORT_KEYS,
+    TOT_MARKERS,
+    X_AXIS_LABELS,
+)
 from sorting import sort_data
-
-OPT_CMAPS = {
-    "askotchv2": cm.get_cmap("Oranges"),
-    "skotchv2": cm.get_cmap("Purples"),
-    "pcg": cm.get_cmap("Blues"),
-    "mimosa": cm.get_cmap("Greys"),
-}
-
-# Normalize rank values to colormap
-RANK_MIN = 0 + 1  # Minimum rank
-RANK_MAX = 500 + 1  # Maximum rank
-NORM = mcolors.LogNorm(vmin=RANK_MIN, vmax=RANK_MAX)
-FALKON_PLOTTING_RANK = 100  # Dummy rank to use when plotting Falkon
-
-PRECOND_MARKERS = {
-    "nystrom": {"damped": "o", "regularization": "x"},
-    "partial_cholesky": {"greedy": "s", "rpc": "v"},
-    "falkon": {10000: "d", 20000: "*", 50000: "p"},
-}
-
-SAMPLING_LINESTYLES = {
-    "uniform": "solid",
-    "rls": "dashed",
-}
-
-TOT_MARKERS = 10
-MARKERSIZE = 8
-
-METRIC_LABELS = {
-    "rel_residual": "Relative residual",
-    "train_loss": "Training loss",
-    "test_acc": "Test accuracy",
-    "test_mse": "Test MSE",
-    "test_rmse": "Test RMSE",
-    "test_mae": "Test MAE",
-    "test_smape": "Test SMAPE",
-    "rel_suboptim": "Relative suboptimality",
-}
-
-METRIC_PLOT_FNS = {
-    "rel_residual": plt.semilogy,
-    "train_loss": plt.plot,
-    "test_acc": plt.plot,
-    "test_mse": plt.plot,
-    "test_rmse": plt.plot,
-    "test_mae": plt.plot,
-    "test_smape": plt.semilogy,
-    "rel_suboptim": plt.semilogy,
-}
-
-METRIC_AX_PLOT_FNS = {
-    "rel_residual": "semilogy",
-    "train_loss": "plot",
-    "test_acc": "plot",
-    "test_mse": "plot",
-    "test_rmse": "plot",
-    "test_mae": "plot",
-    "test_smape": "semilogy",
-    "rel_suboptim": "semilogy",
-}
-
-OPT_LABELS = {
-    "askotchv2": "ASkotch",
-    "skotchv2": "Skotch",
-    "pcg": "PCG",
-    "mimosa": "Mimosa",
-}
-
-RANK_LABEL = "r"
-
-RHO_LABEL = "rho"
-
-PRECOND_LABELS = {
-    "nystrom": r"Nystr$\ddot{\mathrm{o}}$m",
-    "partial_cholesky": "Partial Cholesky",
-    "falkon": "Falkon",
-}
-
-MODE_LABELS = {
-    "greedy": "greedy",
-    "rpc": "RPC",
-}
-
-RHO_LABELS = {
-    "damped": "damped",
-    "regularization": "regularization",
-}
-
-SAMPLING_LABELS = {
-    "uniform": "uniform",
-    "rls": "RLS",
-}
-
-X_AXIS_LABELS = {
-    "time": "Time (s)",
-    "datapasses": "Full data passes",
-    "iters": "Iterations",
-}
-
-SORT_KEYS = ["opt", "accelerated", "sampling_method", "precond_type", "r", "m"]
 
 
 def set_fontsize(fontsize):
@@ -178,7 +96,9 @@ def get_x(run, steps, x_axis):
 
 
 def _get_rank(run):
-    return run.config.get("precond_params", {}).get("r", None)
+    if run.config["precond_params"] is not None:
+        return run.config["precond_params"].get("r", None)
+    return None
 
 
 def _rank_label(run):
@@ -237,7 +157,6 @@ def get_label(run, hparams_to_label):
     return ", ".join(hparam_labels)
 
 
-# Function to get color based on rank
 def get_color(opt, rank):
     return OPT_CMAPS[opt](NORM(rank))
 

@@ -1,5 +1,7 @@
 from functools import partial
 
+from tqdm import tqdm
+
 from constants import (
     USE_LATEX,
     FONTSIZE,
@@ -39,5 +41,5 @@ if __name__ == "__main__":
 
     full_krr_cfg = create_krr_config(PROJECT_FULL_KRR, [ASKOTCH_FILTER])
 
-    for datasets_cfg in PERFORMANCE_DATASETS_CFG:
+    for datasets_cfg in tqdm(PERFORMANCE_DATASETS_CFG, desc="Ablation"):
         plot_fn(full_krr_cfg=full_krr_cfg, datasets_cfg=datasets_cfg, name_stem="")
