@@ -89,6 +89,8 @@ class InducingKRR(Model):
         # Find where the indices are in the inducing points
         indices_in_table, indices_in_w = self._get_selection_idx(self.inducing_pts, idx)
         w_selected = torch.zeros(idx.shape[0], device=self.device)
+        # Select the appropriate elements of w to update weights
+        # Be careful with the case where there are no common indices
         if torch.numel(indices_in_table) > 0 and torch.numel(indices_in_w) > 0:
             w_selected[indices_in_w] = w[indices_in_table]
         x_idx_i = LazyTensor(self.x[idx][:, None, :])
