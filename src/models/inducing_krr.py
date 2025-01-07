@@ -86,26 +86,24 @@ class InducingKRR(Model):
         return indices_in_v1, indices_in_v2
 
     def _get_table_aux(self, idx, w, table):
+        # Find where the indices are in the inducing points
+        indices_in_table, indices_in_w = self._get_selection_idx(self.inducing_pts, idx)
+        w_selected = torch.zeros(idx.shape[0], device=self.device)
+        if torch.numel(indices_in_table) > 0 and torch.numel(indices_in_w) > 0:
+            w_selected[indices_in_w] = w[indices_in_table]
         x_idx_i = LazyTensor(self.x[idx][:, None, :])
         K_nm_idx = _get_kernel(x_idx_i, self.x_inducing_j, self.kernel_params)
-
-        # TODO: update new_weights calculation
-
-        new_weights = self.n * (K_nm_idx @ w - self.b[idx])
+        new_weights = self.n * (
+            K_nm_idx @ w + self.lambd / 2 * w_selected - self.b[idx]
+        )
 
         weight_diff = new_weights - table[idx]
         weight_diff_selected = torch.zeros(self.m, device=self.device)
-        # Find where the indices are in the inducing points
-        indices_in_table, indices_in_weight_diff = self._get_selection_idx(
-            self.inducing_pts, idx
-        )
+
         # Update the weight difference for the indices in the inducing points
         # Be careful with the case where there are no common indices
-        if (
-            torch.numel(indices_in_table) > 0
-            and torch.numel(indices_in_weight_diff) > 0
-        ):
-            weight_diff_selected[indices_in_table] = weight_diff[indices_in_weight_diff]
+        if torch.numel(indices_in_table) > 0 and torch.numel(indices_in_w) > 0:
+            weight_diff_selected[indices_in_table] = weight_diff[indices_in_w]
         aux = K_nm_idx.T @ weight_diff + self.lambd / 2 * weight_diff_selected
 
         return new_weights, aux
