@@ -117,5 +117,4 @@ if __name__ == "__main__":
     )
 
     save_configs(combinations_askotchv2 + combinations_pcg, "lin_cvg_full_krr")
-    save_configs(combinations_falkon, "lin_cvg_falkon")
-    save_configs(combinations_mimosa, "lin_cvg_mimosa")
+    save_configs(combinations_falkon + combinations_mimosa, "lin_cvg_inducing_krr")
