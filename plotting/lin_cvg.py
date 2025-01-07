@@ -33,6 +33,7 @@ ASKOTCH_FILTER = {
 }
 MIMOSA_FILTER = {
     "optimizer": lambda run: run.config["opt"] == "mimosa",
+    "rho": lambda run: run.config.get("precond_params", {}).get("rho", None) == 3e1,
     "precision": lambda run: run.config["precision"] == "float64",
     "finished": lambda run: run.state == "finished",
 }
