@@ -332,4 +332,5 @@ FALKON_DATASETS = [
     "ethanol",
     "yearpredictionmsd",
     "covtype_binary",
+    "yolanda",
 ]

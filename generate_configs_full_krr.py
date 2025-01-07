@@ -1,5 +1,4 @@
 import itertools
-from pprint import pprint
 import glob
 import yaml
 
@@ -89,12 +88,6 @@ def generate_combinations(
     all_combinations = []
 
     for base_config in base_combinations:
-        if (
-            base_config["opt.type"] == "askotchv2"
-            and base_config["training.precision"] == "float64"
-        ):
-            continue
-
         nested_config = get_nested_config(
             base_config, data_configs, performance_time_configs, log_test_only
         )
@@ -140,9 +133,6 @@ def validate_yaml_variations(output_dir):
 
 
 if __name__ == "__main__":
-    # datasets_performance = [
-    #     dataset for dataset in DATA_CONFIGS.keys() if dataset != "taxi"
-    # ]
     datasets_classification = [
         "mnist",
         "fashion_mnist",
@@ -171,10 +161,22 @@ if __name__ == "__main__":
     ]
     datasets_performance = datasets_classification + datasets_regression
 
-    sweep_params_performance_full_krr = {
+    sweep_params_performance_full_krr_askotchv2 = {
         "dataset": datasets_performance,
         "model": ["full_krr"],
-        "opt.type": ["askotchv2", "pcg"],
+        "opt.type": ["askotchv2"],
+        "precond.r": [100],
+        "training.log_freq": [20],
+        "training.precision": ["float32"],
+        "training.seed": [SEED],
+        "training.max_iter": [None],
+        "wandb.project": ["performance_full_krr_v2"],
+    }
+
+    sweep_params_performance_full_krr_pcg = {
+        "dataset": datasets_performance,
+        "model": ["full_krr"],
+        "opt.type": ["pcg"],
         "precond.r": [100],
         "training.log_freq": [20],
         "training.precision": ["float32", "float64"],
@@ -185,8 +187,8 @@ if __name__ == "__main__":
 
     output_dir = "performance_full_krr_v2"
 
-    combinations = generate_combinations(
-        sweep_params_performance_full_krr,
+    combinations_askotchv2 = generate_combinations(
+        sweep_params_performance_full_krr_askotchv2,
         KERNEL_CONFIGS,
         DATA_CONFIGS,
         LAMBDA_CONFIGS,
@@ -199,6 +201,19 @@ if __name__ == "__main__":
         BLK_SZ_FRAC,
         PRECONDITIONERS,
     )
-    pprint(combinations[:5])  # Debug: Print a sample of generated combinations
-    save_configs(combinations, output_dir)
+    combinations_pcg = generate_combinations(
+        sweep_params_performance_full_krr_pcg,
+        KERNEL_CONFIGS,
+        DATA_CONFIGS,
+        LAMBDA_CONFIGS,
+        PERFORMANCE_TIME_CONFIGS,
+        LOG_TEST_ONLY,
+        RHO_MODES,
+        CHOLESKY_MODES,
+        SAMPLING_MODES,
+        ACC_MODES,
+        BLK_SZ_FRAC,
+        PRECONDITIONERS,
+    )
+    save_configs(combinations_askotchv2 + combinations_pcg, output_dir)
     validate_yaml_variations(output_dir)

@@ -7,99 +7,27 @@ import numpy as np
 import wandb
 import matplotlib.pyplot as plt
 
+from constants import (
+    FALKON_PLOTTING_RANK,
+    MARKERSIZE,
+    METRIC_AX_PLOT_FNS,
+    METRIC_LABELS,
+    MODE_LABELS,
+    NORM,
+    OPT_CMAPS,
+    OPT_LABELS,
+    PRECOND_LABELS,
+    PRECOND_MARKERS,
+    RANK_LABEL,
+    RHO_LABEL,
+    RHO_LABELS,
+    SAMPLING_LABELS,
+    SAMPLING_LINESTYLES,
+    SORT_KEYS,
+    TOT_MARKERS,
+    X_AXIS_LABELS,
+)
 from sorting import sort_data
-
-OPT_COLORS = {
-    "askotchv2": "tab:orange",
-    "skotchv2": "tab:purple",
-    "pcg": "tab:blue",
-    "mimosa": "tab:pink",
-}
-
-PRECOND_MARKERS = {
-    "nystrom": {"damped": "o", "regularization": "x"},
-    "partial_cholesky": {"greedy": "s", "rpc": "v"},
-    "falkon": {10000: "d", 20000: "*", 50000: "p", 100000: "h", 200000: "1"},
-}
-
-SAMPLING_LINESTYLES = {
-    "uniform": "solid",
-    "rls": "dashed",
-}
-
-TOT_MARKERS = 10
-MARKERSIZE = 8
-
-METRIC_LABELS = {
-    "rel_residual": "Relative residual",
-    "train_loss": "Training loss",
-    "test_acc": "Test accuracy",
-    "test_mse": "Test MSE",
-    "test_rmse": "Test RMSE",
-    "test_mae": "Test MAE",
-    "test_smape": "Test SMAPE",
-    "rel_suboptim": "Relative suboptimality",
-}
-
-METRIC_PLOT_FNS = {
-    "rel_residual": plt.semilogy,
-    "train_loss": plt.plot,
-    "test_acc": plt.plot,
-    "test_mse": plt.plot,
-    "test_rmse": plt.plot,
-    "test_mae": plt.plot,
-    "test_smape": plt.semilogy,
-    "rel_suboptim": plt.semilogy,
-}
-
-METRIC_AX_PLOT_FNS = {
-    "rel_residual": "semilogy",
-    "train_loss": "plot",
-    "test_acc": "plot",
-    "test_mse": "plot",
-    "test_rmse": "plot",
-    "test_mae": "plot",
-    "test_smape": "semilogy",
-    "rel_suboptim": "semilogy",
-}
-
-OPT_LABELS = {
-    "askotchv2": "ASkotch",
-    "skotchv2": "Skotch",
-    "pcg": "PCG",
-    "mimosa": "Mimosa",
-}
-
-RANK_LABEL = "r"
-
-PRECOND_LABELS = {
-    "nystrom": r"Nystr$\ddot{\mathrm{o}}$m",
-    "partial_cholesky": "Partial Cholesky",
-    "falkon": "Falkon",
-}
-
-MODE_LABELS = {
-    "greedy": "greedy",
-    "rpc": "RPC",
-}
-
-RHO_LABELS = {
-    "damped": "damped",
-    "regularization": "regularization",
-}
-
-SAMPLING_LABELS = {
-    "uniform": "uniform",
-    "rls": "RLS",
-}
-
-X_AXIS_LABELS = {
-    "time": "Time (s)",
-    "datapasses": "Full data passes",
-    "iters": "Iterations",
-}
-
-SORT_KEYS = ["opt", "accelerated", "sampling_method", "precond_type", "r", "m"]
 
 
 def set_fontsize(fontsize):
@@ -125,6 +53,13 @@ def check_criteria(run, criteria):
 
 def filter_runs(runs, criteria):
     return [run for run in runs if check_criteria(run, criteria)]
+
+
+def filter_runs_union(runs, criteria_list):
+    runs_filtered = []
+    for criteria in criteria_list:
+        runs_filtered.extend(filter_runs(runs, criteria))
+    return runs_filtered
 
 
 def get_datapasses(run, steps):
@@ -160,11 +95,16 @@ def get_x(run, steps, x_axis):
         return steps
 
 
-def _rank_label(run):
+def _get_rank(run):
     if run.config["precond_params"] is not None:
-        r = run.config["precond_params"].get("r", None)
-        if r is not None:
-            return f"{RANK_LABEL} = {run.config['precond_params']['r']}"
+        return run.config["precond_params"].get("r", None)
+    return None
+
+
+def _rank_label(run):
+    r = _get_rank(run)
+    if r is not None:
+        return f"{RANK_LABEL} = {r}"
     return None
 
 
@@ -173,7 +113,8 @@ def _precond_label(run):
         precond_type = run.config["precond_params"]["type"]
         label = PRECOND_LABELS[precond_type]
         if precond_type == "nystrom":
-            label += f", {RHO_LABELS[run.config['precond_params']['rho']]}"
+            run_rho = run.config["precond_params"]["rho"]
+            label += f", {RHO_LABEL} = {RHO_LABELS.get(run_rho, run_rho)}"
         if precond_type == "partial_cholesky":
             label += f", {MODE_LABELS[run.config['precond_params']['mode']]}"
         return label
@@ -216,25 +157,35 @@ def get_label(run, hparams_to_label):
     return ", ".join(hparam_labels)
 
 
+def get_color(opt, rank):
+    return OPT_CMAPS[opt](NORM(rank))
+
+
 def get_style(run, n_points):
     style = {}
-    opt = _get_opt(run)
-    style["color"] = OPT_COLORS[opt]
 
+    opt = _get_opt(run)
     if opt in ["askotchv2", "skotchv2"]:
         style["linestyle"] = SAMPLING_LINESTYLES[run.config["sampling_method"]]
+
+    r = _get_rank(run)
+    r_adj = 1 if r is None else r + 1
+
     if run.config["precond_params"] is not None:
         precond_type = run.config["precond_params"]["type"]
         if precond_type == "nystrom":
-            style["marker"] = PRECOND_MARKERS[precond_type][
-                run.config["precond_params"]["rho"]
-            ]
+            style["marker"] = PRECOND_MARKERS[precond_type].get(
+                run.config["precond_params"]["rho"], "h"
+            )
         elif precond_type == "partial_cholesky":
             style["marker"] = PRECOND_MARKERS[precond_type][
                 run.config["precond_params"]["mode"]
             ]
         elif precond_type == "falkon":
             style["marker"] = PRECOND_MARKERS[precond_type][run.config["m"]]
+            r_adj = FALKON_PLOTTING_RANK + 1
+
+    style["color"] = get_color(opt, r_adj)
 
     style["markevery"] = math.ceil(n_points / TOT_MARKERS)
     style["markersize"] = MARKERSIZE
@@ -316,9 +267,10 @@ def plot_runs_grid(
     if x_axis not in ["time", "datapasses", "iters"]:
         raise ValueError(f"Unsupported value of x_axis: {x_axis}")
     save_path = get_save_path(save_dir, save_name)
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(8 * n_cols, 6 * n_rows))
-    if axes.ndim > 1:
-        axes = axes.flatten()
+    fig, axes = plt.subplots(
+        n_rows, n_cols, squeeze=False, figsize=(8 * n_cols, 6 * n_rows)
+    )
+    axes = axes.flatten()
 
     for i, (run_list, metric, ylim, title) in enumerate(
         zip(run_lists, metrics, ylims, titles)

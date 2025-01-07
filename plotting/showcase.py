@@ -10,13 +10,17 @@ from constants import (
     BASE_SAVE_DIR,
     EXTENSION,
 )
-from constants import ENTITY_NAME, PROJECT_FULL_KRR, PROJECT_INDUCING_KRR
-from constants import PERFORMANCE_DATASETS_CFG
+from constants import ENTITY_NAME
+from constants import TAXI
 from base_utils import set_fontsize, render_in_latex
 from cfg_utils import get_save_dir, create_krr_config, plot_runs_dataset_grid
 
+# wandb project names
+PROJECT_FULL_KRR = "performance_full_krr_"
+PROJECT_INDUCING_KRR = "performance_inducing_krr_"
+
 # save directory
-SAVE_DIR = "performance_comparison"
+SAVE_DIR = "showcase"
 
 # filters for runs
 ASKOTCH_FILTER = {
@@ -36,6 +40,11 @@ PCG_FLOAT32_FILTER = {
 PCG_FLOAT64_FILTER = {
     "optimizer": lambda run: run.config["opt"] == "pcg",
     "precision": lambda run: run.config["precision"] == "float64",
+    "finished": lambda run: run.state == "finished",
+}
+MIMOSA_FILTER = {
+    "optimizer": lambda run: run.config["opt"] == "mimosa",
+    "rho": lambda run: run.config.get("precond_params", {}).get("rho", None) == 1e6,
     "finished": lambda run: run.state == "finished",
 }
 
@@ -60,28 +69,26 @@ if __name__ == "__main__":
     inducing_krr_cfg_float32 = create_krr_config(
         PROJECT_INDUCING_KRR, [PCG_FLOAT32_FILTER]
     )
+
     full_krr_cfg_float64 = create_krr_config(
         PROJECT_FULL_KRR, [ASKOTCH_FILTER, PCG_FLOAT64_FILTER]
     )
     inducing_krr_cfg_float64 = create_krr_config(
-        PROJECT_INDUCING_KRR, [PCG_FLOAT64_FILTER]
+        PROJECT_INDUCING_KRR, [PCG_FLOAT64_FILTER, MIMOSA_FILTER]
     )
 
-    with tqdm(
-        total=2 * len(PERFORMANCE_DATASETS_CFG), desc="Performance comparison"
-    ) as pbar:
-        for datasets_cfg in PERFORMANCE_DATASETS_CFG:
-            plot_fn(
-                full_krr_cfg=full_krr_cfg_float32,
-                inducing_krr_cfg=inducing_krr_cfg_float32,
-                datasets_cfg=datasets_cfg,
-                name_stem="float32_",
-            )
-            pbar.update(1)
-            plot_fn(
-                full_krr_cfg=full_krr_cfg_float64,
-                inducing_krr_cfg=inducing_krr_cfg_float64,
-                datasets_cfg=datasets_cfg,
-                name_stem="float64_",
-            )
-            pbar.update(1)
+    with tqdm(total=2, desc="Showcase") as pbar:
+        plot_fn(
+            full_krr_cfg=full_krr_cfg_float32,
+            inducing_krr_cfg=inducing_krr_cfg_float32,
+            datasets_cfg=TAXI,
+            name_stem="float32_",
+        )
+        pbar.update(1)
+        plot_fn(
+            full_krr_cfg=full_krr_cfg_float64,
+            inducing_krr_cfg=inducing_krr_cfg_float64,
+            datasets_cfg=TAXI,
+            name_stem="float64_",
+        )
+        pbar.update(1)
