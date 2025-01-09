@@ -77,12 +77,12 @@ OPT_LABELS = {
 RANK_LABEL = "r"
 RHO_LABEL = r"\rho"
 PRECOND_LABELS = {
-    "nystrom": r"Nystr$\ddot{\mathrm{o}}$m",
-    "partial_cholesky": "Partial Cholesky",
-    "falkon": "Falkon",
+    "nystrom": [r"Nystr$\ddot{\mathrm{o}}$m"],
+    "partial_cholesky": [],
+    "falkon": ["Falkon"],
 }
 MODE_LABELS = {
-    "greedy": "greedy",
+    "greedy": "GC",
     "rpc": "RPC",
 }
 RHO_LABELS = {

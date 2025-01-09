@@ -111,13 +111,13 @@ def _rank_label(run):
 def _precond_label(run):
     if run.config["precond_params"] is not None:
         precond_type = run.config["precond_params"]["type"]
-        label = PRECOND_LABELS[precond_type]
+        label_comps = PRECOND_LABELS[precond_type].copy()
         if precond_type == "nystrom":
             run_rho = run.config["precond_params"]["rho"]
-            label += f", ${RHO_LABEL} = {RHO_LABELS.get(run_rho, run_rho)}$"
+            label_comps.append(f"${RHO_LABEL} = {RHO_LABELS.get(run_rho, run_rho)}$")
         if precond_type == "partial_cholesky":
-            label += f", {MODE_LABELS[run.config['precond_params']['mode']]}"
-        return label
+            label_comps.append(f"{MODE_LABELS[run.config['precond_params']['mode']]}")
+        return ", ".join(label_comps)
     return None
 
 
