@@ -136,6 +136,10 @@ PARTICLE_PHYSICS = {
             "ylim": [0.6, 1.0],
             "metric": "test_acc",
         },
+        "comet_mc": {
+            "ylim": [0.4, 1.0],
+            "metric": "test_acc",
+        },
         "susy": {
             "ylim": [0.6, 0.9],
             "metric": "test_acc",
@@ -145,7 +149,7 @@ PARTICLE_PHYSICS = {
             "metric": "test_acc",
         },
     },
-    "grid": {"n_rows": 1, "n_cols": 3},
+    "grid": {"n_rows": 2, "n_cols": 2},
     "name_ext": "particle_physics",
 }
 TABULAR_CLASSIFICATION = {
@@ -154,16 +158,12 @@ TABULAR_CLASSIFICATION = {
             "ylim": [0.0, 1.0],
             "metric": "test_acc",
         },
-        "comet_mc": {
-            "ylim": [0.4, 1.0],
-            "metric": "test_acc",
-        },
         "click_prediction": {
             "ylim": [0.4, 0.9],
             "metric": "test_acc",
         },
     },
-    "grid": {"n_rows": 1, "n_cols": 3},
+    "grid": {"n_rows": 1, "n_cols": 2},
     "name_ext": "tabular_classification",
 }
 QM9 = {
