@@ -18,7 +18,9 @@ BG_MODES = [256]
 RHO_MODES = ["damped", "regularization"]
 RHO_MODES_MIMOSA = [1e0, 3e0, 1e1, 3e1, 1e2]
 BLK_SZ_FRAC = 0.1
-FAKE_TIME_CONFIG = {"synthetic": None}
+FAKE_TIME_CONFIG = {
+    "synthetic": 180000
+}  # HACK(pratik): make time limit so large that max iterations is stopping criterion
 
 if __name__ == "__main__":
     sweep_params_askotchv2 = {
@@ -45,8 +47,6 @@ if __name__ == "__main__":
         "training.max_iter": [100_000],
         "wandb.project": ["performance_inducing_krr"],
     }
-
-    fake_time_config = {"synthetic": None}
 
     combinations_askotchv2 = gc_full_krr(
         sweep_params_askotchv2,

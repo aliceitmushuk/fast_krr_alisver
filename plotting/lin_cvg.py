@@ -5,7 +5,6 @@ from tqdm import tqdm
 from constants import (
     USE_LATEX,
     FONTSIZE,
-    X_AXIS,
     HPARAMS_TO_LABEL,
     BASE_SAVE_DIR,
     EXTENSION,
@@ -18,6 +17,9 @@ from cfg_utils import get_save_dir, create_krr_config, plot_runs_dataset_grid
 # wandb project names
 PROJECT_FULL_KRR = "performance_full_krr_v2_"
 PROJECT_INDUCING_KRR = "performance_inducing_krr_"
+
+# use a different x-axis for linear convergence
+X_AXIS = "iters"
 
 # save directory
 SAVE_DIR = "lin_cvg"
