@@ -14,6 +14,17 @@ HPARAMS_TO_LABEL = {
 BASE_SAVE_DIR = "./plots"
 EXTENSION = "pdf"
 
+# figure size
+SZ_COL = 8
+SZ_ROW = 6
+
+# legend specs
+LEGEND_SPECS = {
+    "loc": "upper center",
+    "bbox_to_anchor": (0.5, 0.0),
+    "ncol": 3,
+}
+
 # colormap for each optimizer
 OPT_CMAPS = {
     "askotchv2": cm.get_cmap("Oranges"),

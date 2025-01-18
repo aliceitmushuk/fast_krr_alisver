@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 
 from constants import (
     FALKON_PLOTTING_RANK,
+    LEGEND_SPECS,
     MARKERSIZE,
     METRIC_AX_PLOT_FNS,
     METRIC_LABELS,
@@ -24,6 +25,8 @@ from constants import (
     SAMPLING_LABELS,
     SAMPLING_LINESTYLES,
     SORT_KEYS,
+    SZ_COL,
+    SZ_ROW,
     TOT_MARKERS,
     X_AXIS_LABELS,
 )
@@ -271,7 +274,7 @@ def plot_runs_grid(
         raise ValueError(f"Unsupported value of x_axis: {x_axis}")
     save_path = get_save_path(save_dir, save_name)
     fig, axes = plt.subplots(
-        n_rows, n_cols, squeeze=False, figsize=(8 * n_cols, 6 * n_rows)
+        n_rows, n_cols, squeeze=False, figsize=(SZ_COL * n_cols, SZ_ROW * n_rows)
     )
     axes = axes.flatten()
 
@@ -298,9 +301,7 @@ def plot_runs_grid(
     fig.legend(
         unique_labels.values(),
         unique_labels.keys(),
-        loc="upper center",
-        bbox_to_anchor=(0.5, 0.0),
-        ncol=3,
+        **LEGEND_SPECS,
     )
     plt.tight_layout()
 
