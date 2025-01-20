@@ -6,6 +6,7 @@ scripts=(
     "lin_cvg.py"
     "performance_comparison.py"
     "showcase.py"
+    "dims.py"
 )
 
 # Function to handle cleanup when script is interrupted
