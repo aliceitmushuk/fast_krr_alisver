@@ -224,9 +224,18 @@ def get_save_path(save_dir, save_name):
         return None
 
 
+def _clean_data(y):
+    # If there are NaNs in y, set all elements from the first NaN onwards to infinity
+    nan_index = np.where(np.isnan(y))[0]
+    if nan_index.size > 0:  # Check if there is at least one NaN
+        first_nan_index = nan_index[0]
+        y[first_nan_index:] = np.inf
+    return y
+
+
 def _plot_run(run, metric, x_axis, hparams_to_label, plot_fn):
     y_hist = run.scan_history(keys=[metric, "_step"])
-    y = np.array([hist[metric] for hist in y_hist])
+    y = _clean_data(np.array([hist[metric] for hist in y_hist], dtype=np.float64))
     steps = np.array([hist["_step"] for hist in y_hist])
 
     x = get_x(run, steps, x_axis)

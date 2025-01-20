@@ -191,19 +191,19 @@ MOLECULES_BIG = {
     "datasets": {
         "toluene": {
             "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "metric": "test_mae",
         },
         "ethanol": {
             "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "metric": "test_mae",
         },
         "benzene": {
             "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "metric": "test_mae",
         },
         "malonaldehyde": {
             "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "metric": "test_mae",
         },
     },
     "grid": {"n_rows": 2, "n_cols": 2},
@@ -213,19 +213,19 @@ MOLECULES_SMALL = {
     "datasets": {
         "uracil": {
             "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "metric": "test_mae",
         },
         "aspirin": {
             "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "metric": "test_mae",
         },
         "salicylic": {
             "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "metric": "test_mae",
         },
         "naphthalene": {
             "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "metric": "test_mae",
         },
     },
     "grid": {"n_rows": 2, "n_cols": 2},
@@ -234,16 +234,16 @@ MOLECULES_SMALL = {
 TABULAR_REGRESSION = {
     "datasets": {
         "yolanda": {
-            "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "ylim": [6, 10],
+            "metric": "test_mae",
         },
         "yearpredictionmsd": {
-            "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "ylim": [6, 10],
+            "metric": "test_mae",
         },
         "acsincome": {
-            "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "ylim": [2.8e4, 3e4],
+            "metric": "test_mae",
         },
     },
     "grid": {"n_rows": 1, "n_cols": 3},
