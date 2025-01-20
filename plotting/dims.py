@@ -2,6 +2,7 @@ import os
 import sys
 
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 import numpy as np
 from pykeops.torch import LazyTensor
 import torch
@@ -18,7 +19,7 @@ from constants import (
 from base_utils import render_in_latex, set_fontsize, get_save_path
 
 SEED = 0
-N = 10000
+N = 10_000
 D = 10
 LAMBDA_UNSCALED = 1e-6
 GAMMAS = [1, 2, 4, 8, 16, 32, 64, 128, 256]
@@ -51,12 +52,31 @@ def _get_actual_tensor(lazy_tensor, dim, device):
     return lazy_tensor @ torch.eye(dim, device=device)
 
 
+def _get_eigs_sorted(mat):
+    eigs = torch.linalg.eigvals(mat)
+    return torch.sort(eigs.real, descending=True)[0]
+
+
 def _gamma_lmin_eff_dim(spectrum, gamma, lambd):
     return torch.sum(spectrum / (spectrum + gamma * (lambd + torch.min(spectrum))))
 
 
 def _gamma_flat_dim(spectrum, gamma, lambd):
     return torch.sum(spectrum > gamma * (lambd + torch.min(spectrum)))
+
+
+DIM_FNS = {"eff": _gamma_lmin_eff_dim, "flat": _gamma_flat_dim}
+
+
+def _get_dim(dim_type, spectrum, gamma, lambd):
+    dim_fn = DIM_FNS.get(dim_type, None)
+    if dim_fn is None:
+        raise ValueError(f"Invalid type {dim_type}")
+    return dim_fn(spectrum, gamma, lambd)
+
+
+def _get_dim_multiple(dim_type, spectrum, gammas, lambd):
+    return np.array([_get_dim(dim_type, spectrum, gamma, lambd) for gamma in gammas])
 
 
 if __name__ == "__main__":
@@ -67,7 +87,7 @@ if __name__ == "__main__":
     set_fontsize(FONTSIZE)
     set_random_seed(SEED)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    figsize = (SZ_COL, SZ_ROW)
+    figsize = (2 * SZ_COL, SZ_ROW)
     save_dir = os.path.join(BASE_SAVE_DIR, SAVE_DIR)
 
     lambd = N * LAMBDA_UNSCALED
@@ -87,124 +107,68 @@ if __name__ == "__main__":
     matern52_kernel = _get_actual_tensor(matern52_kernel, N, device)
 
     # Compute kernel eigenvalues
-    l1laplace_eigs = torch.linalg.eigvals(l1laplace_kernel.cpu())
-    rbf_eigs = torch.linalg.eigvals(rbf_kernel.cpu())
-    matern52_eigs = torch.linalg.eigvals(matern52_kernel.cpu())
-    l1laplace_eigs = torch.sort(l1laplace_eigs.real, descending=True)[0]
-    rbf_eigs = torch.sort(rbf_eigs.real, descending=True)[0]
-    matern52_eigs = torch.sort(matern52_eigs.real, descending=True)[0]
-
-    # Plot kernel eigenvalues
-    fig, axes = plt.subplots(1, 1, figsize=figsize)
-    axes.semilogy(l1laplace_eigs.cpu().numpy(), label="Laplacian", color="tab:blue")
-    axes.semilogy(matern52_eigs.cpu().numpy(), label="Matern 5/2", color="tab:orange")
-    axes.semilogy(rbf_eigs.cpu().numpy(), label="RBF", color="tab:pink")
-    axes.set_ylabel(r"$\lambda_i(K)$")
-    axes.set_xlabel(r"$i$")
-    fig.legend(**LEGEND_SPECS)
-    fig.tight_layout()
-    plt.savefig(get_save_path(save_dir, f"spectra.{EXTENSION}"), bbox_inches="tight")
+    l1laplace_eigs = _get_eigs_sorted(l1laplace_kernel.cpu())
+    rbf_eigs = _get_eigs_sorted(rbf_kernel.cpu())
+    matern52_eigs = _get_eigs_sorted(matern52_kernel.cpu())
 
     # Compute effective and flat dimensions
-    l1_laplace_eff_dims = np.array(
-        [_gamma_lmin_eff_dim(l1laplace_eigs, gamma, lambd) for gamma in GAMMAS]
-    )
-    rbf_eff_dims = np.array(
-        [_gamma_lmin_eff_dim(rbf_eigs, gamma, lambd) for gamma in GAMMAS]
-    )
-    matern52_eff_dims = np.array(
-        [_gamma_lmin_eff_dim(matern52_eigs, gamma, lambd) for gamma in GAMMAS]
-    )
+    l1_laplace_eff_dims = _get_dim_multiple("eff", l1laplace_eigs, GAMMAS, lambd)
+    rbf_eff_dims = _get_dim_multiple("eff", rbf_eigs, GAMMAS, lambd)
+    matern52_eff_dims = _get_dim_multiple("eff", matern52_eigs, GAMMAS, lambd)
+    l1_laplace_flat_dims = _get_dim_multiple("flat", l1laplace_eigs, GAMMAS, lambd)
+    rbf_flat_dims = _get_dim_multiple("flat", rbf_eigs, GAMMAS, lambd)
+    matern52_flat_dims = _get_dim_multiple("flat", matern52_eigs, GAMMAS, lambd)
 
-    l1_laplace_flat_dims = np.array(
-        [_gamma_flat_dim(l1laplace_eigs, gamma, lambd) for gamma in GAMMAS]
-    )
-    rbf_flat_dims = np.array(
-        [_gamma_flat_dim(rbf_eigs, gamma, lambd) for gamma in GAMMAS]
-    )
-    matern52_flat_dims = np.array(
-        [_gamma_flat_dim(matern52_eigs, gamma, lambd) for gamma in GAMMAS]
-    )
+    # Plot spectra, effective, and flat dimensions
+    fig, axes = plt.subplots(1, 2, figsize=figsize)
 
-    # Plot effective and flat dimensions
-    fig, axes = plt.subplots(1, 1, figsize=figsize)
-    axes.semilogy(
-        GAMMAS,
-        l1_laplace_eff_dims,
-        label=r"Laplacian $d^{\gamma \lambda}(K)$",
-        linestyle="dashed",
-        color="tab:blue",
+    # Subfigure 1: Kernel eigenvalues
+    axes[0].semilogy(l1laplace_eigs.cpu().numpy(), label="Laplacian", color="tab:blue")
+    axes[0].semilogy(
+        matern52_eigs.cpu().numpy(), label="Matern 5/2", color="tab:orange"
     )
-    axes.semilogy(
-        GAMMAS,
-        l1_laplace_flat_dims,
-        label=r"Laplacian $d_\flat^\gamma(K_{\lambda})$",
-        linestyle="solid",
-        color="tab:blue",
-    )
-    axes.semilogy(
-        GAMMAS,
-        matern52_eff_dims,
-        label=r"Matern 5/2 $d^{\gamma \lambda}(K)$",
-        linestyle="dashed",
-        color="tab:orange",
-    )
-    axes.semilogy(
-        GAMMAS,
-        matern52_flat_dims,
-        label=r"Matern 5/2 $d_\flat^\gamma(K_{\lambda})$",
-        linestyle="solid",
-        color="tab:orange",
-    )
-    axes.semilogy(
-        GAMMAS,
-        rbf_eff_dims,
-        label=r"RBF $d^{\gamma \lambda}(K)$",
-        linestyle="dashed",
-        color="tab:pink",
-    )
-    axes.semilogy(
-        GAMMAS,
-        rbf_flat_dims,
-        label=r"RBF $d_\flat^\gamma(K_{\lambda})$",
-        linestyle="solid",
-        color="tab:pink",
-    )
-    axes.semilogx()
-    axes.set_xlabel(r"$\gamma$")
-    axes.set_ylabel(r"Dimension")
-    fig.legend(**LEGEND_SPECS)
-    fig.tight_layout()
-    plt.savefig(get_save_path(save_dir, f"dimensions.{EXTENSION}"), bbox_inches="tight")
+    axes[0].semilogy(rbf_eigs.cpu().numpy(), label="RBF", color="tab:pink")
+    axes[0].set_ylabel(r"$\lambda_i(K)$")
+    axes[0].set_xlabel(r"$i$")
+    axes[0].set_title("Kernel spectra")
 
-    # Plot ratio of flat to effective dimensions
-    fig, axes = plt.subplots(1, 1, figsize=figsize)
-    axes.semilogy(
-        GAMMAS,
-        l1_laplace_flat_dims / l1_laplace_eff_dims,
-        label="Laplacian",
-        linestyle="solid",
-        color="tab:blue",
-    )
-    axes.semilogy(
-        GAMMAS,
-        matern52_flat_dims / matern52_eff_dims,
-        label="Matern 5/2",
-        linestyle="solid",
-        color="tab:orange",
-    )
-    axes.semilogy(
-        GAMMAS,
-        rbf_flat_dims / rbf_eff_dims,
-        label="RBF",
-        linestyle="solid",
-        color="tab:pink",
-    )
-    axes.semilogx()
-    axes.set_xlabel(r"$\gamma$")
-    axes.set_ylabel(r"$d_\flat^\gamma(K_{\lambda}) / d^{\gamma \lambda}(K)$")
-    fig.legend(**LEGEND_SPECS)
+    # Subfigure 2: Effective and flat dimensions
+    axes[1].semilogy(GAMMAS, l1_laplace_eff_dims, linestyle="dashed", color="tab:blue")
+    axes[1].semilogy(GAMMAS, l1_laplace_flat_dims, linestyle="solid", color="tab:blue")
+    axes[1].semilogy(GAMMAS, matern52_eff_dims, linestyle="dashed", color="tab:orange")
+    axes[1].semilogy(GAMMAS, matern52_flat_dims, linestyle="solid", color="tab:orange")
+    axes[1].semilogy(GAMMAS, rbf_eff_dims, linestyle="dashed", color="tab:pink")
+    axes[1].semilogy(GAMMAS, rbf_flat_dims, linestyle="solid", color="tab:pink")
+
+    axes[1].semilogx()
+    axes[1].set_xlabel(r"$\gamma$")
+    axes[1].set_ylabel(r"Dimension")
+    axes[1].set_title("Effective and flat dimensions")
+
+    # Custom legend with three lines for kernels and two for dimensions
+    legend_elements = [
+        Line2D([0], [0], color="tab:blue", label="Laplacian"),
+        Line2D([0], [0], color="tab:orange", label="Matern 5/2"),
+        Line2D([0], [0], color="tab:pink", label="RBF"),
+        Line2D(
+            [0],
+            [0],
+            linestyle="dashed",
+            color="black",
+            label=r"$d^{\gamma \lambda}(K)$",
+        ),
+        Line2D(
+            [0],
+            [0],
+            linestyle="solid",
+            color="black",
+            label=r"$d_\flat^\gamma(K_{\lambda})$",
+        ),
+    ]
+    fig.legend(handles=legend_elements, **LEGEND_SPECS)
+
+    # Save the figure
     fig.tight_layout()
     plt.savefig(
-        get_save_path(save_dir, f"dimension_ratio.{EXTENSION}"), bbox_inches="tight"
+        get_save_path(save_dir, f"spectra_dim.{EXTENSION}"), bbox_inches="tight"
     )
