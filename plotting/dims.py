@@ -19,7 +19,7 @@ from constants import (
 from base_utils import render_in_latex, set_fontsize, get_save_path
 
 SEED = 0
-N = 1_000
+N = 10_000
 D = 10
 LAMBDA_UNSCALED = 1e-6
 GAMMAS = [1, 2, 4, 8, 16, 32, 64, 128, 256]
