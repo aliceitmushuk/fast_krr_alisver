@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 
 from constants import (
     FALKON_PLOTTING_RANK,
+    LEGEND_SPECS,
     MARKERSIZE,
     METRIC_AX_PLOT_FNS,
     METRIC_LABELS,
@@ -24,6 +25,8 @@ from constants import (
     SAMPLING_LABELS,
     SAMPLING_LINESTYLES,
     SORT_KEYS,
+    SZ_COL,
+    SZ_ROW,
     TOT_MARKERS,
     X_AXIS_LABELS,
 )
@@ -104,20 +107,20 @@ def _get_rank(run):
 def _rank_label(run):
     r = _get_rank(run)
     if r is not None:
-        return f"{RANK_LABEL} = {r}"
+        return f"${RANK_LABEL} = {r}$"
     return None
 
 
 def _precond_label(run):
     if run.config["precond_params"] is not None:
         precond_type = run.config["precond_params"]["type"]
-        label = PRECOND_LABELS[precond_type]
+        label_comps = PRECOND_LABELS[precond_type].copy()
         if precond_type == "nystrom":
             run_rho = run.config["precond_params"]["rho"]
-            label += f", {RHO_LABEL} = {RHO_LABELS.get(run_rho, run_rho)}"
+            label_comps.append(f"${RHO_LABEL} = {RHO_LABELS.get(run_rho, run_rho)}$")
         if precond_type == "partial_cholesky":
-            label += f", {MODE_LABELS[run.config['precond_params']['mode']]}"
-        return label
+            label_comps.append(f"{MODE_LABELS[run.config['precond_params']['mode']]}")
+        return ", ".join(label_comps)
     return None
 
 
@@ -129,7 +132,7 @@ def _sampling_label(run):
 
 def _inducing_label(run):
     if "m" in run.config:
-        return f"m = {run.config['m']}"
+        return f"$m = {run.config['m']}$"
     return None
 
 
@@ -149,7 +152,10 @@ LABEL_FNS = {
 
 def get_label(run, hparams_to_label):
     opt = _get_opt(run)
-    hparam_labels = [OPT_LABELS[opt]]
+    if opt == "pcg" and run.config["precond_params"]["type"] == "falkon":
+        hparam_labels = []
+    else:
+        hparam_labels = [OPT_LABELS[opt]]
     for hparam in hparams_to_label:
         hparam_label = LABEL_FNS[hparam](run)
         if hparam_label is not None:
@@ -218,9 +224,18 @@ def get_save_path(save_dir, save_name):
         return None
 
 
+def _clean_data(y):
+    # If there are NaNs in y, set all elements from the first NaN onwards to infinity
+    nan_index = np.where(np.isnan(y))[0]
+    if nan_index.size > 0:  # Check if there is at least one NaN
+        first_nan_index = nan_index[0]
+        y[first_nan_index:] = np.inf
+    return y
+
+
 def _plot_run(run, metric, x_axis, hparams_to_label, plot_fn):
     y_hist = run.scan_history(keys=[metric, "_step"])
-    y = np.array([hist[metric] for hist in y_hist])
+    y = _clean_data(np.array([hist[metric] for hist in y_hist], dtype=np.float64))
     steps = np.array([hist["_step"] for hist in y_hist])
 
     x = get_x(run, steps, x_axis)
@@ -268,7 +283,7 @@ def plot_runs_grid(
         raise ValueError(f"Unsupported value of x_axis: {x_axis}")
     save_path = get_save_path(save_dir, save_name)
     fig, axes = plt.subplots(
-        n_rows, n_cols, squeeze=False, figsize=(8 * n_cols, 6 * n_rows)
+        n_rows, n_cols, squeeze=False, figsize=(SZ_COL * n_cols, SZ_ROW * n_rows)
     )
     axes = axes.flatten()
 
@@ -295,11 +310,11 @@ def plot_runs_grid(
     fig.legend(
         unique_labels.values(),
         unique_labels.keys(),
-        loc="upper center",
-        bbox_to_anchor=(0.5, 0.0),
-        ncol=3,
+        **LEGEND_SPECS,
     )
     plt.tight_layout()
 
     if save_path is not None:
         plt.savefig(save_path, bbox_inches="tight")
+
+    plt.close(fig)

@@ -1,5 +1,5 @@
 import os
-from typing import Union
+from typing import Optional, Union
 
 import h5py
 import numpy as np
@@ -15,6 +15,7 @@ from .data_configs import (
     DATA_DIR,
     DATA_CONFIGS,
     MOLECULES,
+    REMOVE_LABEL_MEANS,
     SYNTHETIC_NTR,
     SYNTHETIC_NTST,
     SYNTHETIC_D,
@@ -30,7 +31,9 @@ LOADING_METHODS = {
 }
 
 
-def _standardize(data_tr: np.ndarray, data_tst: np.ndarray) -> tuple[np.ndarray]:
+def _standardize(
+    data_tr: np.ndarray, data_tst: np.ndarray, with_std: Optional[bool] = True
+) -> tuple[np.ndarray]:
     reshaped = False
 
     # If data is one dimensional, reshape to 2D
@@ -39,7 +42,7 @@ def _standardize(data_tr: np.ndarray, data_tst: np.ndarray) -> tuple[np.ndarray]
         data_tr = data_tr.reshape(-1, 1)
         data_tst = data_tst.reshape(-1, 1)
 
-    scaler = StandardScaler()
+    scaler = StandardScaler(with_std=with_std)
     data_tr = scaler.fit_transform(data_tr)
     data_tst = scaler.transform(data_tst)
 
@@ -186,7 +189,9 @@ def load_data(dataset: str, seed: int, device: torch.device) -> tuple[torch.Tens
         )
 
     # Standardize
-    X, Xtst = _standardize(X, Xtst)
+    X, Xtst = _standardize(X, Xtst, with_std=True)
+    if dataset in REMOVE_LABEL_MEANS:
+        y, ytst = _standardize(y, ytst, with_std=False)
 
     # Convert to torch tensors
     X, Xtst, y, ytst = _np_to_torch_tr_tst(X, Xtst, y, ytst, device)

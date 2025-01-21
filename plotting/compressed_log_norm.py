@@ -4,7 +4,7 @@ import numpy as np
 
 # Custom compressed normalization (log scale with a shift)
 class CompressedLogNorm(mcolors.Normalize):
-    def __init__(self, vmin, vmax, compress_factor=0.5):
+    def __init__(self, vmin, vmax, compress_factor=0.4):
         super().__init__(vmin=vmin, vmax=vmax, clip=False)
         self.compress_factor = compress_factor
 

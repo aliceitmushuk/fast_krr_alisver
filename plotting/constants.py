@@ -3,7 +3,7 @@ import matplotlib.cm as cm
 from compressed_log_norm import CompressedLogNorm
 
 # high-level plotting parameters
-USE_LATEX = False
+USE_LATEX = True
 FONTSIZE = 18
 X_AXIS = "time"
 HPARAMS_TO_LABEL = {
@@ -13,6 +13,17 @@ HPARAMS_TO_LABEL = {
 }
 BASE_SAVE_DIR = "./plots"
 EXTENSION = "pdf"
+
+# figure size
+SZ_COL = 8
+SZ_ROW = 6
+
+# legend specs
+LEGEND_SPECS = {
+    "loc": "upper center",
+    "bbox_to_anchor": (0.5, 0.0),
+    "ncol": 3,
+}
 
 # colormap for each optimizer
 OPT_CMAPS = {
@@ -69,25 +80,25 @@ METRIC_LABELS = {
     "rel_suboptim": "Relative suboptimality",
 }
 OPT_LABELS = {
-    "askotchv2": "ASkotch",
-    "skotchv2": "Skotch",
+    "askotchv2": r"\texttt{ASkotch}",
+    "skotchv2": r"\texttt{Skotch}",
     "pcg": "PCG",
-    "mimosa": "Mimosa",
+    "mimosa": r"\texttt{Mimosa}",
 }
 RANK_LABEL = "r"
-RHO_LABEL = "rho"
+RHO_LABEL = r"\rho"
 PRECOND_LABELS = {
-    "nystrom": r"Nystr$\ddot{\mathrm{o}}$m",
-    "partial_cholesky": "Partial Cholesky",
-    "falkon": "Falkon",
+    "nystrom": [r"Nystr$\ddot{\mathrm{o}}$m"],
+    "partial_cholesky": [],
+    "falkon": ["Falkon"],
 }
 MODE_LABELS = {
-    "greedy": "greedy",
+    "greedy": "GC",
     "rpc": "RPC",
 }
 RHO_LABELS = {
-    "damped": "damped",
-    "regularization": "regularization",
+    "damped": r"\mathrm{damped}",
+    "regularization": r"\mathrm{regularization}",
 }
 SAMPLING_LABELS = {
     "uniform": "uniform",
@@ -136,6 +147,10 @@ PARTICLE_PHYSICS = {
             "ylim": [0.6, 1.0],
             "metric": "test_acc",
         },
+        "comet_mc": {
+            "ylim": [0.4, 1.0],
+            "metric": "test_acc",
+        },
         "susy": {
             "ylim": [0.6, 0.9],
             "metric": "test_acc",
@@ -145,7 +160,7 @@ PARTICLE_PHYSICS = {
             "metric": "test_acc",
         },
     },
-    "grid": {"n_rows": 1, "n_cols": 3},
+    "grid": {"n_rows": 2, "n_cols": 2},
     "name_ext": "particle_physics",
 }
 TABULAR_CLASSIFICATION = {
@@ -154,16 +169,12 @@ TABULAR_CLASSIFICATION = {
             "ylim": [0.0, 1.0],
             "metric": "test_acc",
         },
-        "comet_mc": {
-            "ylim": [0.4, 1.0],
-            "metric": "test_acc",
-        },
         "click_prediction": {
             "ylim": [0.4, 0.9],
             "metric": "test_acc",
         },
     },
-    "grid": {"n_rows": 1, "n_cols": 3},
+    "grid": {"n_rows": 1, "n_cols": 2},
     "name_ext": "tabular_classification",
 }
 QM9 = {
@@ -180,19 +191,19 @@ MOLECULES_BIG = {
     "datasets": {
         "toluene": {
             "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "metric": "test_mae",
         },
         "ethanol": {
             "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "metric": "test_mae",
         },
         "benzene": {
             "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "metric": "test_mae",
         },
         "malonaldehyde": {
             "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "metric": "test_mae",
         },
     },
     "grid": {"n_rows": 2, "n_cols": 2},
@@ -202,19 +213,19 @@ MOLECULES_SMALL = {
     "datasets": {
         "uracil": {
             "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "metric": "test_mae",
         },
         "aspirin": {
             "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "metric": "test_mae",
         },
         "salicylic": {
             "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "metric": "test_mae",
         },
         "naphthalene": {
             "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "metric": "test_mae",
         },
     },
     "grid": {"n_rows": 2, "n_cols": 2},
@@ -223,16 +234,16 @@ MOLECULES_SMALL = {
 TABULAR_REGRESSION = {
     "datasets": {
         "yolanda": {
-            "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "ylim": [6, 10],
+            "metric": "test_mae",
         },
         "yearpredictionmsd": {
-            "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "ylim": [6, 10],
+            "metric": "test_mae",
         },
         "acsincome": {
-            "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "ylim": [2.8e4, 3e4],
+            "metric": "test_mae",
         },
     },
     "grid": {"n_rows": 1, "n_cols": 3},
@@ -257,4 +268,15 @@ TAXI = {
     },
     "grid": {"n_rows": 1, "n_cols": 1},
     "name_ext": "taxi",
+}
+
+LIN_CVG = {
+    "datasets": {
+        "synthetic": {
+            "ylim": [0.0, 1.0],
+            "metric": "rel_residual",
+        },
+    },
+    "grid": {"n_rows": 1, "n_cols": 1},
+    "name_ext": "synthetic",
 }

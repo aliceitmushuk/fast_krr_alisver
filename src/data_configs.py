@@ -334,3 +334,16 @@ FALKON_DATASETS = [
     "covtype_binary",
     "yolanda",
 ]
+REMOVE_LABEL_MEANS = [
+    "aspirin",
+    "benzene",
+    "ethanol",
+    "malonaldehyde",
+    "naphthalene",
+    "salicylic",
+    "toluene",
+    "uracil",
+    "yolanda",
+    "yearpredictionmsd",
+    "acsincome",
+]
