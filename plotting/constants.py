@@ -4,7 +4,7 @@ from compressed_log_norm import CompressedLogNorm
 
 # high-level plotting parameters
 USE_LATEX = True
-FONTSIZE = 18
+FONTSIZE = 20
 X_AXIS = "time"
 HPARAMS_TO_LABEL = {
     "askotchv2": ["precond", "r", "sampling_method"],

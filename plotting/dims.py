@@ -125,7 +125,7 @@ if __name__ == "__main__":
     # Subfigure 1: Kernel eigenvalues
     axes[0].semilogy(l1laplace_eigs.cpu().numpy(), label="Laplacian", color="tab:blue")
     axes[0].semilogy(
-        matern52_eigs.cpu().numpy(), label=r"Mat\'{e}rn 5/2", color="tab:orange"
+        matern52_eigs.cpu().numpy(), label=r"Mat\'{e}rn-5/2", color="tab:orange"
     )
     axes[0].semilogy(rbf_eigs.cpu().numpy(), label="RBF", color="tab:pink")
     axes[0].set_ylabel(r"$\lambda_i(K)$")
@@ -148,7 +148,7 @@ if __name__ == "__main__":
     # Custom legend with three lines for kernels and two for dimensions
     legend_elements = [
         Line2D([0], [0], color="tab:blue", label="Laplacian"),
-        Line2D([0], [0], color="tab:orange", label=r"Mat\'{e}rn 5/2"),
+        Line2D([0], [0], color="tab:orange", label=r"Mat\'{e}rn-5/2"),
         Line2D([0], [0], color="tab:pink", label="RBF"),
         Line2D(
             [0],
