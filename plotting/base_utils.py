@@ -65,7 +65,7 @@ def filter_runs_union(runs, criteria_list):
     return runs_filtered
 
 
-def get_datapasses(run, steps):
+def _get_datapasses(run, steps):
     opt = run.config["opt"]
     n = run.config["n"]
     m = run.config.get("m", None)
@@ -86,14 +86,24 @@ def get_datapasses(run, steps):
     return scaling_factor * steps
 
 
+def _get_cum_times(run):
+    times_hist = run.scan_history(keys=["iter_time"])
+    times = np.array([time["iter_time"] for time in times_hist])
+    cum_times = np.cumsum(times)
+    return cum_times
+
+
+def _get_avg_time(run):
+    cum_times = _get_cum_times(run)
+    return cum_times[-1] / cum_times.shape[0]
+
+
 def get_x(run, steps, x_axis):
     if x_axis == "time":
-        times_hist = run.scan_history(keys=["iter_time"])
-        times = np.array([time["iter_time"] for time in times_hist])
-        cum_times = np.cumsum(times)
+        cum_times = _get_cum_times(run)
         return cum_times[steps]
     elif x_axis == "datapasses":
-        return get_datapasses(run, steps)
+        return _get_datapasses(run, steps)
     elif x_axis == "iters":
         return steps
 
@@ -312,6 +322,41 @@ def plot_runs_grid(
         unique_labels.keys(),
         **LEGEND_SPECS,
     )
+    plt.tight_layout()
+
+    if save_path is not None:
+        plt.savefig(save_path, bbox_inches="tight")
+
+    plt.close(fig)
+
+
+def plot_per_iter_runtime_ratios(
+    run_pairs,
+    x_label,
+    save_dir=None,
+    save_name=None,
+):
+    save_path = get_save_path(save_dir, save_name)
+    avg_time_ratios = []
+
+    fig, ax = plt.subplots(figsize=(SZ_COL, SZ_ROW))
+    for run_pair in run_pairs:
+        # Plot the minimum average time for each pair of runs
+        min_avg_time_x = np.inf
+        min_avg_time_y = np.inf
+        for run in run_pair["x"]:
+            avg_time = _get_avg_time(run)
+            min_avg_time_x = min(min_avg_time_x, avg_time)
+        for run in run_pair["y"]:
+            avg_time = _get_avg_time(run)
+            min_avg_time_y = min(min_avg_time_y, avg_time)
+        time_ratio = min_avg_time_x / min_avg_time_y
+        # Check that time ratio is not infinite
+        if not np.isinf(time_ratio):
+            avg_time_ratios.append(time_ratio)
+
+    ax.hist(avg_time_ratios, bins=20, color="blue", alpha=1.0)
+    ax.set_xlabel(x_label)
     plt.tight_layout()
 
     if save_path is not None:
