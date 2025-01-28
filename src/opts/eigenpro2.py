@@ -2,13 +2,11 @@ from typing import Optional
 
 import torch
 
-from .optimizer import Optimizer
-from .utils.minibatch_generator import MinibatchGenerator
-from .utils.bcd import _get_block
+from .eigenpro import EigenPro
 from .utils.sgd import _get_minibatch
 
 
-class EigenPro2(Optimizer):
+class EigenPro2(EigenPro):
     # Based on https://github.com/EigenPro/EigenPro-pytorch/tree/master
     def __init__(
         self,
@@ -18,29 +16,13 @@ class EigenPro2(Optimizer):
         r: int,
         gamma: Optional[float] = 0.95,
     ):
-        super().__init__(model, None)
-        self.bg = bg
-        self.block_sz = block_sz
-        self.r = r
+        super().__init__(model, bg, block_sz, r)
         self.gamma = gamma
-        self.generator = MinibatchGenerator(self.model.n, self.bg)
-        self.probs = torch.ones(self.model.n) / self.model.n
-        self.probs_cpu = self.probs.cpu().numpy()
-        self.K_fn = self.model._get_kernel_fn()
         self._apply_precond, self.eta, self.block = self._setup()
         # print(f"EigenPro2: eta={self.eta}")
 
     def _setup(self):
-        block = _get_block(self.probs, self.probs_cpu, self.block_sz)
-        block_lin_op, _, _ = self.model._get_block_lin_ops(block)
-        Ks = block_lin_op(torch.eye(block.shape[0], device=self.model.device))
-
-        eigvals, eigvecs = torch.lobpcg(Ks / Ks.shape[0], self.r + 1)
-        eigvecs = eigvecs / (Ks.shape[0] ** 0.5)
-        beta = Ks.diag().max()
-
-        eigvals, tail_eigval = eigvals[: self.r - 1], eigvals[self.r - 1]
-        eigvecs = eigvecs[:, : self.r - 1]
+        eigvals, eigvecs, beta, tail_eigval, block = self._get_top_eigensys()
 
         scale = (eigvals[0] / tail_eigval) ** self.gamma
         diag = (1 - torch.pow(tail_eigval / eigvals, self.gamma)) / eigvals

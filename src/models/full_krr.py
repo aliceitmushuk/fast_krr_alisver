@@ -4,7 +4,6 @@ from pykeops.torch import LazyTensor
 from ..kernels.kernel_inits import (
     _get_kernel,
     _get_kernels_start,
-    _get_row,
     _get_trace,
     _get_diag,
 )
@@ -51,21 +50,6 @@ class FullKRR(Model):
 
         return K_lin_op, K_trace
 
-    def _get_block_lin_ops(self, block):
-        xb_i = LazyTensor(self.x[block][:, None, :])
-        xb_j = LazyTensor(self.x[block][None, :, :])
-        Kb = _get_kernel(xb_i, xb_j, self.kernel_params)
-
-        def Kb_lin_op(v):
-            return Kb @ v
-
-        def Kb_lin_op_reg(v):
-            return Kb @ v + self.lambd * v
-
-        Kb_trace = _get_trace(Kb.shape[0], self.kernel_params)
-
-        return Kb_lin_op, Kb_lin_op_reg, Kb_trace
-
     def _get_diag(self, sz=None):
         if sz is None:
             return _get_diag(self.n, self.kernel_params)
@@ -77,14 +61,3 @@ class FullKRR(Model):
             return _get_diag(n, self.kernel_params)
 
         return K_diag_fn
-
-    def _get_kernel_fn(self):
-        def K_fn(x_i, x_j, get_row):
-            if get_row:
-                return _get_row(x_i, x_j, self.kernel_params)  # Tensor
-            else:
-                x_i_lz = LazyTensor(x_i[:, None, :])
-                x_j_lz = LazyTensor(x_j[None, :, :])
-                return _get_kernel(x_i_lz, x_j_lz, self.kernel_params)  # LazyTensor
-
-        return K_fn
