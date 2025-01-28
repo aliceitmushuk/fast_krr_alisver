@@ -27,13 +27,8 @@ class EigenPro2(Optimizer):
         self.probs = torch.ones(self.model.n) / self.model.n
         self.probs_cpu = self.probs.cpu().numpy()
         self.K_fn = self.model._get_kernel_fn()
-        (
-            self._apply_precond,
-            self.top_eigval,
-            self.beta,
-            self.eta,
-            self.block,
-        ) = self._setup()
+        self._apply_precond, self.eta, self.block = self._setup()
+        # print(f"EigenPro2: eta={self.eta}")
 
     def _setup(self):
         block = _get_block(self.probs, self.probs_cpu, self.block_sz)
@@ -56,7 +51,7 @@ class EigenPro2(Optimizer):
         new_top_eigval = eigvals[0] / scale
         eta = self._compute_eta(new_top_eigval, beta)
 
-        return _apply_precond, new_top_eigval, beta, eta, block
+        return _apply_precond, eta, block
 
     def _compute_eta(self, new_top_eigval, beta):
         if self.bg < beta / new_top_eigval + 1:
