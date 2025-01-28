@@ -23,7 +23,6 @@ class EigenPro2(EigenPro):
 
     def _setup(self):
         eigvals, eigvecs, beta, tail_eigval, block = self._get_top_eigensys()
-
         scale = (eigvals[0] / tail_eigval) ** self.gamma
         diag = (1 - torch.pow(tail_eigval / eigvals, self.gamma)) / eigvals
 
@@ -35,17 +34,10 @@ class EigenPro2(EigenPro):
 
         return _apply_precond, eta, block
 
-    def _compute_eta(self, new_top_eigval, beta):
-        if self.bg < beta / new_top_eigval + 1:
-            eta = self.bg / beta
-        else:
-            eta = 0.99 * 2 * self.bg / (beta + (self.bg - 1) * new_top_eigval)
-        return eta / self.bg
-
     def step(self):
         idx = _get_minibatch(self.generator)
         grad = self.model._get_block_grad(self.model.w, idx)
         self.model.w[idx] -= self.eta * grad
-        kmat = self.K_fn(self.model.x[self.block], self.model.x[idx], get_row=False)
-        d = self._apply_precond(grad, kmat)
+        Kbm = self.K_fn(self.model.x[self.block], self.model.x[idx], get_row=False)
+        d = self._apply_precond(grad, Kbm)
         self.model.w[self.block] += self.eta * d

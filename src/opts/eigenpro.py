@@ -35,3 +35,10 @@ class EigenPro(Optimizer):
         eigvecs = eigvecs[:, :-1]
 
         return eigvals, eigvecs, beta, tail_eigval, block
+
+    def _compute_eta(self, eigval, beta):
+        if self.bg < beta / eigval + 1:
+            eta = self.bg / beta
+        else:
+            eta = 2 * self.bg / (beta + (self.bg - 1) * eigval)
+        return eta / self.bg
