@@ -12,10 +12,10 @@ class EigenPro4(EigenPro):
     def __init__(
         self,
         model,
-        bg: int,
         block_sz: int,
         r: int,
         proj_freq: int,
+        bg: Optional[int] = None,
         proj_inner_iters: Optional[int] = 10,
     ):
         super().__init__(model, bg, block_sz, r)
@@ -36,7 +36,7 @@ class EigenPro4(EigenPro):
         def _apply_precond(v, kmat):
             return eigvecs @ (diag * (eigvecs.T @ (kmat @ v)))
 
-        eta = self._compute_eta(tail_eigval, beta)
+        eta = self._compute_bg_eta(tail_eigval, beta)
 
         return _apply_precond, eta, block
 

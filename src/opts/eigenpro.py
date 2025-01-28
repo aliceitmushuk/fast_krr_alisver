@@ -17,7 +17,7 @@ class EigenPro(Optimizer):
         self.bg = bg
         self.block_sz = block_sz
         self.r = r
-        self.generator = MinibatchGenerator(self.model.n, self.bg)
+        self.generator = None
         self.probs = torch.ones(self.model.n) / self.model.n
         self.probs_cpu = self.probs.cpu().numpy()
         self.K_fn = self.model._get_kernel_fn()
@@ -36,7 +36,11 @@ class EigenPro(Optimizer):
 
         return eigvals, eigvecs, beta, tail_eigval, block
 
-    def _compute_eta(self, eigval, beta):
+    def _compute_bg_eta(self, eigval, beta):
+        if self.bg is None:
+            self.bg = min(int(beta / eigval + 1), self.model.n // 10)
+        self.generator = MinibatchGenerator(self.model.n, self.bg)
+
         if self.bg < beta / eigval + 1:
             eta = self.bg / beta
         else:

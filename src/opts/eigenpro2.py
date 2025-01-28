@@ -11,9 +11,9 @@ class EigenPro2(EigenPro):
     def __init__(
         self,
         model,
-        bg: int,
         block_sz: int,
         r: int,
+        bg: Optional[int] = None,
         gamma: Optional[float] = 0.95,
     ):
         super().__init__(model, bg, block_sz, r)
@@ -30,7 +30,7 @@ class EigenPro2(EigenPro):
             return eigvecs @ (diag * (eigvecs.T @ (kmat @ v)))
 
         new_top_eigval = eigvals[0] / scale
-        eta = self._compute_eta(new_top_eigval, beta)
+        eta = self._compute_bg_eta(new_top_eigval, beta)
 
         return _apply_precond, eta, block
 
