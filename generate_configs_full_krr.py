@@ -11,6 +11,7 @@ from src.experiment_configs import (
 )
 from src.generate_configs_utils import (
     add_kernel_params,
+    generate_newton_configs,
     generate_nystrom_configs,
     generate_partial_cholesky_configs,
     generate_no_preconditioner_configs,
@@ -30,7 +31,7 @@ BLK_SZ_FRAC = 0.1
 
 
 def generate_askotchv2_configs(
-    base_config, rho_modes, sampling_modes, acc_modes, blk_sz_frac
+    base_config, rho_modes, sampling_modes, acc_modes, preconds, blk_sz_frac
 ):
     configs = []
     for block_sampling, accelerated in itertools.product(sampling_modes, acc_modes):
@@ -44,10 +45,18 @@ def generate_askotchv2_configs(
             "nu": None,
         }
         # Add all preconditioner configurations
-        configs.extend(
-            generate_nystrom_configs(config, rho_modes, config["precond"]["r"])
-        )
-        configs.extend(generate_no_preconditioner_configs(config))
+        for precond in preconds:
+            # Skip partial cholesky with askotchv2
+            if precond == "partial_cholesky":
+                continue
+            elif precond == "nystrom":
+                configs.extend(
+                    generate_nystrom_configs(config, rho_modes, config["precond"]["r"])
+                )
+            elif precond == "newton":
+                configs.extend(generate_newton_configs(config, rho_modes))
+            elif precond is None:
+                configs.extend(generate_no_preconditioner_configs(config))
     return configs
 
 
@@ -97,7 +106,12 @@ def generate_combinations(
         if base_config["opt.type"] == "askotchv2":
             all_combinations.extend(
                 generate_askotchv2_configs(
-                    nested_config, rho_modes, sampling_modes, acc_modes, blk_sz_frac
+                    nested_config,
+                    rho_modes,
+                    sampling_modes,
+                    acc_modes,
+                    preconds,
+                    blk_sz_frac,
                 )
             )
         elif base_config["opt.type"] == "pcg":

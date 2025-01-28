@@ -1,13 +1,16 @@
 import matplotlib.cm as cm
 
-from compressed_log_norm import CompressedLogNorm
+from compressed_root_norm import CompressedRootNorm
 
 # high-level plotting parameters
 USE_LATEX = True
-FONTSIZE = 18
+FONTSIZE = 20
 X_AXIS = "time"
 HPARAMS_TO_LABEL = {
     "askotchv2": ["precond", "r", "sampling_method"],
+    "skotchv2": ["precond", "r", "sampling_method"],
+    "sap": ["b"],
+    "nsap": ["b"],
     "pcg": ["precond", "r", "m"],
     "mimosa": ["precond", "r", "m"],
 }
@@ -29,14 +32,16 @@ LEGEND_SPECS = {
 OPT_CMAPS = {
     "askotchv2": cm.get_cmap("Oranges"),
     "skotchv2": cm.get_cmap("Purples"),
+    "sap": cm.get_cmap("Reds"),
+    "nsap": cm.get_cmap("Greens"),
     "pcg": cm.get_cmap("Blues"),
     "mimosa": cm.get_cmap("Greys"),
 }
 
 # Normalize rank values to colormap
-RANK_MIN = 0 + 1  # Minimum rank
+RANK_MIN = 0  # Minimum rank
 RANK_MAX = 500 + 1  # Maximum rank
-NORM = CompressedLogNorm(vmin=RANK_MIN, vmax=RANK_MAX, compress_factor=0.4)
+NORM = CompressedRootNorm(vmin=RANK_MIN, vmax=RANK_MAX, root=3)
 FALKON_PLOTTING_RANK = 100  # Dummy rank to use when plotting Falkon
 
 # markers for each preconditioner
@@ -82,10 +87,13 @@ METRIC_LABELS = {
 OPT_LABELS = {
     "askotchv2": r"\texttt{ASkotch}",
     "skotchv2": r"\texttt{Skotch}",
+    "sap": "SAP",
+    "nsap": "NSAP",
     "pcg": "PCG",
     "mimosa": r"\texttt{Mimosa}",
 }
 RANK_LABEL = "r"
+BLKSZ_LABEL = "b"
 RHO_LABEL = r"\rho"
 PRECOND_LABELS = {
     "nystrom": [r"Nystr$\ddot{\mathrm{o}}$m"],
@@ -111,7 +119,7 @@ X_AXIS_LABELS = {
 }
 
 # sorting keys for hyperparameters
-SORT_KEYS = ["opt", "accelerated", "sampling_method", "precond_type", "r", "m"]
+SORT_KEYS = ["opt", "accelerated", "sampling_method", "precond_type", "r", "b", "m"]
 
 # wandb project names
 ENTITY_NAME = "sketchy-opts"

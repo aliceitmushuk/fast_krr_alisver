@@ -7,6 +7,7 @@ scripts=(
     "performance_comparison.py"
     "showcase.py"
     "dims.py"
+    "iter_times.py"
 )
 
 # Function to handle cleanup when script is interrupted

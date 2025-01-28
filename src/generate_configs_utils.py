@@ -12,6 +12,18 @@ def add_kernel_params(config, kernel_configs):
         config["kernel"]["nu"] = kernel_params["nu"]
 
 
+def generate_newton_configs(base_config, rho_modes):
+    configs = []
+    for rho in rho_modes:
+        config = base_config.copy()
+        config["precond"] = {
+            "type": "newton",
+            "rho": rho,
+        }
+        configs.append(config)
+    return configs
+
+
 def generate_nystrom_configs(base_config, rho_modes, r, use_cpu=False):
     configs = []
     for rho in rho_modes:
