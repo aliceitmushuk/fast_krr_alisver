@@ -95,5 +95,5 @@ class EigenPro4(EigenPro):
         self.n_inner_iters += 1
         if self.n_inner_iters == self.proj_freq:
             theta = self._project(self.h)
-            self.model.w -= self.model.n / self.bg * self.eta * theta
+            self.model.w -= self.eta * theta
             self._reset()

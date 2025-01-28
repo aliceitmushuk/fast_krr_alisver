@@ -8,7 +8,7 @@ from ..models import FullKRR
 from .utils.sgd import _get_minibatch
 
 
-class EigenPro4(EigenPro):
+class EigenPro3(EigenPro):
     def __init__(
         self,
         model,
@@ -69,4 +69,4 @@ class EigenPro4(EigenPro):
         grad = Kmz @ self.model.w - self.model.b[idx]
         Kbm = self.K_fn(self.model.x[self.block], self.model.x[idx], get_row=False)
         self.h = Kmz.T @ grad - self.Kzb @ self._apply_precond(grad, Kbm)
-        self.model.w -= self.model.n / self.bg * self.eta * self._project(self.h)
+        self.model.w -= self.eta * self._project(self.h)
