@@ -1,9 +1,15 @@
+from get_opt import _get_opt
+
+
 def sort_data(data, sort_keys):
     # Define sorting orders
     opt_order = {
         "askotchv2": 0,
-        "mimosa": 1,
-        "pcg": 2,
+        "skotchv2": 1,
+        "mimosa": 2,
+        "sap": 3,
+        "nsap": 4,
+        "pcg": 5,
     }
     accelerated_order = {
         True: 0,
@@ -28,7 +34,7 @@ def sort_data(data, sort_keys):
 
         # Sort by "opt" key
         if "opt" in sort_keys:
-            key.append(opt_order.get(d_config.get("opt"), float("inf")))
+            key.append(opt_order.get(_get_opt(d), float("inf")))
 
         # Sort by "accelerated" key
         if "accelerated" in sort_keys:
@@ -78,6 +84,9 @@ def sort_data(data, sort_keys):
             if precond_params is None:
                 precond_params = {}
             key.append(precond_params.get("r", float("inf")))
+
+        if "b" in sort_keys:
+            key.append(d_config.get("block_sz", float("inf")))
 
         # Sort by "m" key
         if "m" in sort_keys:

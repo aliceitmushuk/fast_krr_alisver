@@ -8,6 +8,7 @@ import wandb
 import matplotlib.pyplot as plt
 
 from constants import (
+    BLKSZ_LABEL,
     FALKON_PLOTTING_RANK,
     LEGEND_SPECS,
     MARKERSIZE,
@@ -30,6 +31,7 @@ from constants import (
     TOT_MARKERS,
     X_AXIS_LABELS,
 )
+from get_opt import _get_opt
 from sorting import sort_data
 
 
@@ -108,6 +110,10 @@ def get_x(run, steps, x_axis):
         return steps
 
 
+def _get_blksz(run):
+    return run.config.get("block_sz", None)
+
+
 def _get_rank(run):
     if run.config["precond_params"] is not None:
         return run.config["precond_params"].get("r", None)
@@ -118,6 +124,13 @@ def _rank_label(run):
     r = _get_rank(run)
     if r is not None:
         return f"${RANK_LABEL} = {r}$"
+    return None
+
+
+def _blksz_label(run):
+    blksz = _get_blksz(run)
+    if blksz is not None:
+        return f"${BLKSZ_LABEL} = {blksz}$"
     return None
 
 
@@ -146,17 +159,12 @@ def _inducing_label(run):
     return None
 
 
-def _get_opt(run):
-    if run.config["opt"] == "askotchv2" and not run.config["accelerated"]:
-        return "skotchv2"
-    return run.config["opt"]
-
-
 LABEL_FNS = {
     "r": _rank_label,
     "precond": _precond_label,
     "sampling_method": _sampling_label,
     "m": _inducing_label,
+    "b": _blksz_label,
 }
 
 
@@ -181,10 +189,10 @@ def get_style(run, n_points):
     style = {}
 
     opt = _get_opt(run)
-    if opt in ["askotchv2", "skotchv2"]:
+    if opt in ["askotchv2", "skotchv2", "nsap", "sap"]:
         style["linestyle"] = SAMPLING_LINESTYLES[run.config["sampling_method"]]
 
-    r = _get_rank(run)
+    r = _get_rank(run) if opt not in ["nsap", "sap"] else _get_blksz(run)
     r_adj = 1 if r is None else r + 1
 
     if run.config["precond_params"] is not None:
@@ -249,7 +257,7 @@ def _plot_run(run, metric, x_axis, hparams_to_label, plot_fn):
     steps = np.array([hist["_step"] for hist in y_hist])
 
     x = get_x(run, steps, x_axis)
-    label = get_label(run, hparams_to_label[run.config["opt"]])
+    label = get_label(run, hparams_to_label[_get_opt(run)])
     style = get_style(run, y.shape[0])
 
     plot_fn(x, y, label=label, **style)

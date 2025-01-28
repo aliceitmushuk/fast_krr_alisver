@@ -28,14 +28,35 @@ SAVE_DIR = "lin_cvg"
 ASKOTCH_FILTER = {
     "optimizer": lambda run: run.config["opt"] == "askotchv2",
     "accelerated": lambda run: run.config["accelerated"],
-    "preconditioned": lambda run: run.config["precond_params"] is not None,
+    "nystrom": lambda run: run.config["precond_params"] is not None
+    and run.config["precond_params"]["type"] == "nystrom",
+    "damped": lambda run: run.config["precond_params"] is not None
+    and run.config["precond_params"]["rho"] == "damped",
+    "sampling": lambda run: run.config["sampling_method"] == "uniform",
+    "precision": lambda run: run.config["precision"] == "float64",
+    "finished": lambda run: run.state == "finished",
+}
+SAP_FILTER = {
+    "optimizer": lambda run: run.config["opt"] == "askotchv2",
+    "accelerated": lambda run: run.config["accelerated"],
+    "newton": lambda run: run.config["precond_params"] is not None
+    and run.config["precond_params"]["type"] == "newton",
+    "regularization": lambda run: run.config["precond_params"] is not None
+    and run.config["precond_params"]["rho"] == "regularization",
     "sampling": lambda run: run.config["sampling_method"] == "uniform",
     "precision": lambda run: run.config["precision"] == "float64",
     "finished": lambda run: run.state == "finished",
 }
 MIMOSA_FILTER = {
     "optimizer": lambda run: run.config["opt"] == "mimosa",
-    "rho": lambda run: run.config.get("precond_params", {}).get("rho", None) == 3e1,
+    "rho": lambda run: run.config["precond_params"] is not None
+    and run.config["precond_params"]["rho"] == 3e1,
+    "precision": lambda run: run.config["precision"] == "float64",
+    "finished": lambda run: run.state == "finished",
+}
+SAGA_FILTER = {
+    "optimizer": lambda run: run.config["opt"] == "mimosa",
+    "no_precond": lambda run: run.config["precond_params"] is None,
     "precision": lambda run: run.config["precision"] == "float64",
     "finished": lambda run: run.state == "finished",
 }
@@ -55,8 +76,12 @@ if __name__ == "__main__":
         extension=EXTENSION,
     )
 
-    full_krr_cfg_float64 = create_krr_config(PROJECT_FULL_KRR, [ASKOTCH_FILTER])
-    inducing_krr_cfg_float64 = create_krr_config(PROJECT_INDUCING_KRR, [MIMOSA_FILTER])
+    full_krr_cfg_float64 = create_krr_config(
+        PROJECT_FULL_KRR, [ASKOTCH_FILTER, SAP_FILTER]
+    )
+    inducing_krr_cfg_float64 = create_krr_config(
+        PROJECT_INDUCING_KRR, [MIMOSA_FILTER, SAGA_FILTER]
+    )
 
     with tqdm(total=2, desc="Linear convergence") as pbar:
         plot_fn(
