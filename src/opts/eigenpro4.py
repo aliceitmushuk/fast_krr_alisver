@@ -22,7 +22,11 @@ class EigenPro4(EigenPro):
         self.proj_freq = proj_freq
         self.proj_inner_iters = proj_inner_iters
         self._apply_precond, self.eta, self.block = self._setup()
-        self.Kzb = self.K_fn(self.model.inducing_pts, self.block, get_row=False)
+        self.Kzb = self.K_fn(
+            self.model.x[self.model.inducing_pts],
+            self.model.x[self.block],
+            get_row=False,
+        )
         self._reset()
 
     def _setup(self):
@@ -37,7 +41,7 @@ class EigenPro4(EigenPro):
         return _apply_precond, eta, block
 
     def _reset(self):
-        self.Z_tmp = torch.empty(0, device=self.model.device)
+        self.Z_tmp = torch.empty(0, device=self.model.device, dtype=torch.int64)
         self.alpha_tmp = torch.empty(0, device=self.model.device)
         self.alpha_b = torch.zeros(self.block_sz, device=self.model.device)
         self.h = torch.zeros_like(self.model.w, device=self.model.device)
@@ -68,14 +72,19 @@ class EigenPro4(EigenPro):
 
     def step(self):
         idx = _get_minibatch(self.generator)
-        Kmz = self.K_fn(self.model.x[idx], self.model.inducing_pts, get_row=False)
+        Kmz = self.K_fn(
+            self.model.x[idx], self.model.x[self.model.inducing_pts], get_row=False
+        )
         grad = Kmz @ self.model.w - self.model.b[idx]
         if self.Z_tmp.shape[0] > 0:
-            Kmz_temp = self.K_fn(self.model.x[idx], self.Z_tmp, get_row=False)
+            Kmz_temp = self.K_fn(
+                self.model.x[idx], self.model.x[self.Z_tmp], get_row=False
+            )
             grad += Kmz_temp @ self.alpha_tmp
-        Kbm = self.K_fn(self.block, self.model.x[idx], get_row=False)
+        Kbm = self.K_fn(self.model.x[self.block], self.model.x[idx], get_row=False)
         grad += Kbm.T @ self.alpha_b
 
+        idx = idx.to(self.model.device)  # to prevent device mismatch
         self.Z_tmp = torch.cat([self.Z_tmp, idx])
         self.alpha_tmp = torch.cat([self.alpha_tmp, -self.eta * grad])
 

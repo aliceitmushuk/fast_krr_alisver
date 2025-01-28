@@ -69,7 +69,7 @@ class Model(ABC):
 
         self.b_norm = torch.norm(self.b)
         self.n = self.x.shape[0]
-        self.n_tst = self.x_tst.shape[0]
+        self.n_tst = self.x_tst.shape[0] if self.x_tst is not None else 0
 
         self.K_tst = None  # To be set in subclass
 
