@@ -32,7 +32,7 @@ def _get_kernels_start(x, x_tst, kernel_params, Ktr_needed=True):
     if Ktr_needed:
         K = _get_kernel(x_i, x_j, kernel_params)
 
-    # NOTE(pratik): we set x_tst to None when computing the projection in EgenPro4
+    # NOTE(pratik): we set x_tst to None when computing the projection in EigenPro4
     K_tst = None
     if x_tst is not None:
         K_tst = _get_kernel(x_tst_i, x_j, kernel_params)

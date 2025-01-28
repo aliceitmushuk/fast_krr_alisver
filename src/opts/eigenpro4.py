@@ -2,7 +2,8 @@ from typing import Optional
 
 import torch
 
-from .optimizer import EigenPro, EigenPro2
+from .eigenpro import EigenPro
+from .eigenpro2 import EigenPro2
 from ..models import FullKRR
 from .utils.sgd import _get_minibatch
 
