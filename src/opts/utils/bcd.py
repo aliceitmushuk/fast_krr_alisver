@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 
 from .general import _get_L, _apply_precond
@@ -80,3 +81,16 @@ def _get_block_update(model, w, block, precond):
     dir = _apply_precond(gb, precond)
 
     return dir
+
+
+def _get_block(probs, probs_cpu, block_sz):
+    try:
+        block = torch.multinomial(probs, block_sz, replacement=False)
+    except RuntimeError as e:
+        if "number of categories cannot exceed" not in str(e):
+            raise e
+        block = np.random.choice(
+            probs.shape[0], size=block_sz, replace=False, p=probs_cpu
+        )
+        block = torch.from_numpy(block)
+    return block
