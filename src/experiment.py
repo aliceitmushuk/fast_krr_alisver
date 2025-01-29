@@ -53,6 +53,7 @@ class Experiment:
     def _update_eigenpro_config(self, config, opt):
         if config.opt in ["eigenpro2", "eigenpro3"]:
             config.update({"bg": opt.bg}, allow_val_change=True)
+            config.update({"eta": opt.eta}, allow_val_change=True)
 
     def _time_exceeded(self, n_iters, time_elapsed):
         if "max_time" in self.exp_args:
