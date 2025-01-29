@@ -35,7 +35,7 @@ def main(cfg: DictConfig):
         "lambd_unscaled": cfg.lambd_unscaled,
         "opt": cfg.opt.type,
         "precond_params": precond_params
-        if precond_params["type"] is not None
+        if precond_params.get("type", None) is not None
         else None,
         "log_freq": cfg.training.log_freq,
         "log_test_only": cfg.training.log_test_only,

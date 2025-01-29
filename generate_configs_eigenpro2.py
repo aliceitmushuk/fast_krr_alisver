@@ -58,7 +58,7 @@ if __name__ == "__main__":
     sweep_params_performance_eigenpro2 = {
         "dataset": PERFORMANCE_DATASETS,
         "model": ["full_krr"],
-        "opt.type": ["askotchv2"],
+        "opt.type": ["eigenpro2"],
         "training.log_freq": [20],
         "training.precision": ["float32"],
         "training.seed": [SEED],
