@@ -62,6 +62,14 @@ def main(cfg: DictConfig):
         experiment_args["mu"] = cfg.opt.mu
         experiment_args["nu"] = cfg.opt.nu
         experiment_args["accelerated"] = cfg.opt.accelerated
+    if cfg.opt.type in ["eigenpro2", "eigenpro3"]:
+        experiment_args["block_sz"] = cfg.opt.block_sz
+        experiment_args["r"] = cfg.opt.r
+        experiment_args["bg"] = cfg.opt.bg
+        if cfg.opt.type == "eigenpro2":
+            experiment_args["gamma"] = cfg.opt.gamma
+        if cfg.opt.type == "eigenpro3":
+            experiment_args["proj_inner_iters"] = cfg.opt.proj_inner_iters
     if cfg.opt.type == "mimosa":
         experiment_args["bg"] = cfg.opt.bg
         experiment_args["bH"] = cfg.opt.bH

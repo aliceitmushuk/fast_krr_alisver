@@ -32,11 +32,26 @@ class Experiment:
         if "nu" in self.exp_args and self.exp_args["nu"] is None:
             self.exp_args["nu"] = self.exp_args["n"] / self.exp_args["block_sz"]
 
+        # EigenPro2 parameters
+        if "gamma" in self.exp_args and self.exp_args["gamma"] is None:
+            self.exp_args["gamma"] = 0.95
+
+        # EigenPro3 parameters
+        if (
+            "proj_inner_iters" in self.exp_args
+            and self.exp_args["proj_inner_iters"] is None
+        ):
+            self.exp_args["proj_inner_iters"] = 10
+
         # Mimosa parameters
         if "bH" in self.exp_args and self.exp_args["bH"] is None:
             self.exp_args["bH"] = int(self.exp_args["n"] ** 0.5)
         if "bH2" in self.exp_args and self.exp_args["bH2"] is None:
             self.exp_args["bH2"] = max(1, self.exp_args["n"] // 50)
+
+    def _update_eigenpro_config(self, config, opt):
+        if config.opt in ["eigenpro2", "eigenpro3"]:
+            config.update({"bg": opt.bg})
 
     def _time_exceeded(self, n_iters, time_elapsed):
         if "max_time" in self.exp_args:
@@ -83,9 +98,7 @@ class Experiment:
                 Xtst,
                 ytst,
                 self.exp_args["kernel_params"],
-                not (
-                    self.exp_args["log_test_only"] and self.exp_args["opt"] == "mimosa"
-                ),
+                not (self.exp_args["log_test_only"] and self.exp_args["opt"] != "pcg"),
                 self.exp_args["m"],
                 self.exp_args["lambd"],
                 self.exp_args["task"],
@@ -103,6 +116,7 @@ class Experiment:
                 # Select and initialize the optimizer
                 logger.reset_timer()
                 opt = get_opt(model, config)
+                self._update_eigenpro_config(config, opt)
                 eval_loc = self._get_eval_loc(model)
 
                 logger.update_cum_time()
