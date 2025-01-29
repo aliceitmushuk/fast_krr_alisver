@@ -1,6 +1,14 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Union
+
+from pykeops.torch import LazyTensor
 import torch
+
+from ..kernels.kernel_inits import (
+    _get_kernel,
+    _get_trace,
+    _get_row,
+)
 
 
 class Model(ABC):
@@ -61,7 +69,7 @@ class Model(ABC):
 
         self.b_norm = torch.norm(self.b)
         self.n = self.x.shape[0]
-        self.n_tst = self.x_tst.shape[0]
+        self.n_tst = self.x_tst.shape[0] if self.x_tst is not None else 0
 
         self.K_tst = None  # To be set in subclass
 
@@ -141,3 +149,29 @@ class Model(ABC):
             metrics_dict.update(self._compute_train_metrics(v))
         metrics_dict.update(self._compute_test_metrics(v))
         return metrics_dict
+
+    def _get_block_lin_ops(self, block):
+        xb_i = LazyTensor(self.x[block][:, None, :])
+        xb_j = LazyTensor(self.x[block][None, :, :])
+        Kb = _get_kernel(xb_i, xb_j, self.kernel_params)
+
+        def Kb_lin_op(v):
+            return Kb @ v
+
+        def Kb_lin_op_reg(v):
+            return Kb @ v + self.lambd * v
+
+        Kb_trace = _get_trace(Kb.shape[0], self.kernel_params)
+
+        return Kb_lin_op, Kb_lin_op_reg, Kb_trace
+
+    def _get_kernel_fn(self):
+        def K_fn(x_i, x_j, get_row):
+            if get_row:
+                return _get_row(x_i, x_j, self.kernel_params)  # Tensor
+            else:
+                x_i_lz = LazyTensor(x_i[:, None, :])
+                x_j_lz = LazyTensor(x_j[None, :, :])
+                return _get_kernel(x_i_lz, x_j_lz, self.kernel_params)  # LazyTensor
+
+        return K_fn

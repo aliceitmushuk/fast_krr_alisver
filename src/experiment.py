@@ -5,7 +5,7 @@ from .experiment_utils import get_full_krr, get_inducing_krr, get_opt, get_bandw
 from .data_utils import load_data
 from .logger import Logger
 
-N_PAIRS = 1000  # Number of samples for median heuristic in kernel bandwith computation
+N_PAIRS = 1000  # Number of samples for median heuristic in kernel bandwidth computation
 
 
 class Experiment:
