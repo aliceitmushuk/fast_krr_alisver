@@ -1,7 +1,7 @@
 import itertools
 from pprint import pprint
 
-from src.data_configs import DATA_CONFIGS, FALKON_DATASETS
+from src.data_configs import DATA_CONFIGS, PERFORMANCE_DATASETS
 from src.experiment_configs import (
     KERNEL_CONFIGS,
     LAMBDA_CONFIGS,
@@ -54,7 +54,7 @@ def generate_combinations(
 
 if __name__ == "__main__":
     sweep_params_performance_falkon = {
-        "dataset": FALKON_DATASETS,
+        "dataset": PERFORMANCE_DATASETS,
         "model": ["inducing_krr"],
         "m": FALKON_INDUCING_POINTS_GRID,
         "opt.type": ["pcg"],

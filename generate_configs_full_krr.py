@@ -2,7 +2,7 @@ import itertools
 import glob
 import yaml
 
-from src.data_configs import DATA_CONFIGS
+from src.data_configs import DATA_CONFIGS, PERFORMANCE_DATASETS
 from src.experiment_configs import (
     KERNEL_CONFIGS,
     LAMBDA_CONFIGS,
@@ -147,36 +147,8 @@ def validate_yaml_variations(output_dir):
 
 
 if __name__ == "__main__":
-    datasets_classification = [
-        "mnist",
-        "fashion_mnist",
-        "cifar10",
-        "svhn",
-        "miniboone",
-        "susy",
-        "higgs",
-        "covtype_binary",
-        "comet_mc",
-        "click_prediction",
-    ]
-    datasets_regression = [
-        "qm9",
-        "uracil",
-        "aspirin",
-        "salicylic",
-        "naphthalene",
-        "toluene",
-        "ethanol",
-        "benzene",
-        "malonaldehyde",
-        "yearpredictionmsd",
-        "acsincome",
-        "yolanda",
-    ]
-    datasets_performance = datasets_classification + datasets_regression
-
     sweep_params_performance_full_krr_askotchv2 = {
-        "dataset": datasets_performance,
+        "dataset": PERFORMANCE_DATASETS,
         "model": ["full_krr"],
         "opt.type": ["askotchv2"],
         "precond.r": [100],
@@ -188,7 +160,7 @@ if __name__ == "__main__":
     }
 
     sweep_params_performance_full_krr_pcg = {
-        "dataset": datasets_performance,
+        "dataset": PERFORMANCE_DATASETS,
         "model": ["full_krr"],
         "opt.type": ["pcg"],
         "precond.r": [100],

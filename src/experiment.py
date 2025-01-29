@@ -49,9 +49,10 @@ class Experiment:
         if "bH2" in self.exp_args and self.exp_args["bH2"] is None:
             self.exp_args["bH2"] = max(1, self.exp_args["n"] // 50)
 
+    # Accounts for EigenPro methods automatically setting bg based on the data
     def _update_eigenpro_config(self, config, opt):
         if config.opt in ["eigenpro2", "eigenpro3"]:
-            config.update({"bg": opt.bg})
+            config.update({"bg": opt.bg}, allow_val_change=True)
 
     def _time_exceeded(self, n_iters, time_elapsed):
         if "max_time" in self.exp_args:
