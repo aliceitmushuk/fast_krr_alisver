@@ -2,13 +2,14 @@ from typing import Optional
 
 import torch
 
-from .eigenpro import EigenPro
+from .eigenpro_base import EigenProBase
 from .eigenpro2 import EigenPro2
 from ..models import FullKRR
 from .utils.sgd import _get_minibatch
 
 
-class EigenPro3(EigenPro):
+class EigenPro3(EigenProBase):
+    # Based on https://github.com/EigenPro/EigenPro3
     def __init__(
         self,
         model,

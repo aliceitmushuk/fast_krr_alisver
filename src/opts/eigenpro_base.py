@@ -5,7 +5,7 @@ from .utils.bcd import _get_block
 from .utils.minibatch_generator import MinibatchGenerator
 
 
-class EigenPro(Optimizer):
+class EigenProBase(Optimizer):
     def __init__(
         self,
         model,

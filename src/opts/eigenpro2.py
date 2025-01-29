@@ -2,12 +2,12 @@ from typing import Optional
 
 import torch
 
-from .eigenpro import EigenPro
+from .eigenpro_base import EigenProBase
 from .utils.sgd import _get_minibatch
 
 
-class EigenPro2(EigenPro):
-    # Based on https://github.com/EigenPro/EigenPro-pytorch/tree/master
+class EigenPro2(EigenProBase):
+    # Based on https://github.com/EigenPro/EigenPro-pytorch
     def __init__(
         self,
         model,
