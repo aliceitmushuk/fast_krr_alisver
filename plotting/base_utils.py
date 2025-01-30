@@ -6,17 +6,18 @@ import warnings
 import numpy as np
 import wandb
 import matplotlib.pyplot as plt
+from matplotlib.colors import Colormap
 
 from constants import (
     BLKSZ_LABEL,
-    FALKON_PLOTTING_RANK,
+    DUMMY_PLOTTING_RANK,
     LEGEND_SPECS,
     MARKERSIZE,
     METRIC_AX_PLOT_FNS,
     METRIC_LABELS,
     MODE_LABELS,
     NORM,
-    OPT_CMAPS,
+    OPT_COLORS,
     OPT_LABELS,
     PRECOND_LABELS,
     PRECOND_MARKERS,
@@ -84,6 +85,7 @@ def _get_datapasses(run, steps):
             scaling_factor = 1
     elif opt == "mimosa":
         scaling_factor = 2 * m * bg / (n**2)
+    # TODO(pratik): add scaling factors for other optimizers
 
     return scaling_factor * steps
 
@@ -182,7 +184,10 @@ def get_label(run, hparams_to_label):
 
 
 def get_color(opt, rank):
-    return OPT_CMAPS[opt](NORM(rank))
+    if isinstance(OPT_COLORS[opt], Colormap):
+        return OPT_COLORS[opt](NORM(rank))
+    else:
+        return OPT_COLORS[opt]
 
 
 def get_style(run, n_points):
@@ -207,7 +212,10 @@ def get_style(run, n_points):
             ]
         elif precond_type == "falkon":
             style["marker"] = PRECOND_MARKERS[precond_type][run.config["m"]]
-            r_adj = FALKON_PLOTTING_RANK + 1
+            r_adj = DUMMY_PLOTTING_RANK + 1
+    if opt in ["eigenpro2", "eigenpro3"]:
+        style["marker"] = PRECOND_MARKERS["falkon"][run.config["m"]]
+        r_adj = DUMMY_PLOTTING_RANK + 1
 
     style["color"] = get_color(opt, r_adj)
 

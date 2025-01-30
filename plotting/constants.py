@@ -11,6 +11,8 @@ HPARAMS_TO_LABEL = {
     "skotchv2": ["precond", "r", "sampling_method"],
     "sap": ["b"],
     "nsap": ["b"],
+    "eigenpro2": [],
+    "eigenpro3": ["m"],
     "pcg": ["precond", "r", "m"],
     "mimosa": ["precond", "r", "m"],
 }
@@ -28,12 +30,14 @@ LEGEND_SPECS = {
     "ncol": 3,
 }
 
-# colormap for each optimizer
-OPT_CMAPS = {
+# colors for each optimizer
+OPT_COLORS = {
     "askotchv2": cm.get_cmap("Oranges"),
     "skotchv2": cm.get_cmap("Purples"),
     "sap": cm.get_cmap("Reds"),
     "nsap": cm.get_cmap("Greens"),
+    "eigenpro2": "tab:pink",
+    "eigenpro3": "tab:brown",
     "pcg": cm.get_cmap("Blues"),
     "mimosa": cm.get_cmap("Greys"),
 }
@@ -42,13 +46,21 @@ OPT_CMAPS = {
 RANK_MIN = 0  # Minimum rank
 RANK_MAX = 500 + 1  # Maximum rank
 NORM = CompressedRootNorm(vmin=RANK_MIN, vmax=RANK_MAX, root=3)
-FALKON_PLOTTING_RANK = 100  # Dummy rank to use when plotting Falkon
+DUMMY_PLOTTING_RANK = 100  # Dummy rank to use when plotting Falkon and EigenPro methods
 
 # markers for each preconditioner
 PRECOND_MARKERS = {
     "nystrom": {"damped": "o", "regularization": "x"},
     "partial_cholesky": {"greedy": "s", "rpc": "v"},
-    "falkon": {10000: "d", 20000: "*", 50000: "p"},
+    "falkon": {
+        10000: "d",
+        20000: "*",
+        50000: "p",
+        100000: "h",
+        200000: "+",
+        500000: "8",
+        1000000: "D",
+    },
 }
 
 # linestyles for each sampling method
@@ -89,6 +101,8 @@ OPT_LABELS = {
     "skotchv2": r"\texttt{Skotch}",
     "sap": "SAP",
     "nsap": "NSAP",
+    "eigenpro2": "EigenPro2",
+    "eigenpro3": "EigenPro3",
     "pcg": "PCG",
     "mimosa": r"\texttt{Mimosa}",
 }

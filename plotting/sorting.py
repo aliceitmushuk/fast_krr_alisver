@@ -9,7 +9,9 @@ def sort_data(data, sort_keys):
         "mimosa": 2,
         "sap": 3,
         "nsap": 4,
-        "pcg": 5,
+        "eigenpro2": 5,
+        "eigenpro3": 6,
+        "pcg": 7,
     }
     accelerated_order = {
         True: 0,
