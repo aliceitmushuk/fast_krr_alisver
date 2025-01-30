@@ -1,6 +1,6 @@
 import matplotlib.cm as cm
 
-from compressed_root_norm import CompressedRootNorm
+from .compressed_root_norm import CompressedRootNorm
 
 # high-level plotting parameters
 USE_LATEX = True

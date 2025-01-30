@@ -59,7 +59,7 @@ if __name__ == "__main__":
         "dataset": PERFORMANCE_DATASETS,
         "model": ["full_krr"],
         "opt.type": ["eigenpro2"],
-        "training.log_freq": [20],
+        "training.log_freq": [100],
         "training.precision": ["float32"],
         "training.seed": [SEED],
         "training.max_iter": [None],
