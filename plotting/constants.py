@@ -28,6 +28,7 @@ LEGEND_SPECS = {
     "loc": "upper center",
     "bbox_to_anchor": (0.5, 0.0),
     "ncol": 3,
+    "frameon": False,
 }
 
 # colors for each optimizer
@@ -101,8 +102,8 @@ OPT_LABELS = {
     "skotchv2": r"\texttt{Skotch}",
     "sap": "SAP",
     "nsap": "NSAP",
-    "eigenpro2": "EigenPro2",
-    "eigenpro3": "EigenPro3",
+    "eigenpro2": "EigenPro 2.0",
+    "eigenpro3": "EigenPro 3.0",
     "pcg": "PCG",
     "mimosa": r"\texttt{Mimosa}",
 }
@@ -272,13 +273,13 @@ TABULAR_REGRESSION = {
     "name_ext": "tabular_regression",
 }
 PERFORMANCE_DATASETS_CFG = [
-    # VISION,
+    VISION,
     PARTICLE_PHYSICS,
-    # TABULAR_CLASSIFICATION,
-    # QM9,
-    # MOLECULES_BIG,
-    # MOLECULES_SMALL,
-    # TABULAR_REGRESSION,
+    TABULAR_CLASSIFICATION,
+    QM9,
+    MOLECULES_BIG,
+    MOLECULES_SMALL,
+    TABULAR_REGRESSION,
 ]
 
 TAXI = {

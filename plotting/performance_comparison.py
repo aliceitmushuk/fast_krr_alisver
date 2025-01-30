@@ -16,7 +16,7 @@ from base_utils import set_fontsize, render_in_latex
 from cfg_utils import get_save_dir, create_krr_config, plot_runs_dataset_grid
 
 # save directory
-SAVE_DIR = "performance_comparison_v2"
+SAVE_DIR = "performance_comparison"
 
 # filters for runs
 ASKOTCH_FILTER = {
