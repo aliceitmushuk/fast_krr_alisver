@@ -213,7 +213,7 @@ def get_style(run, n_points):
         elif precond_type == "falkon":
             style["marker"] = PRECOND_MARKERS[precond_type][run.config["m"]]
             r_adj = DUMMY_PLOTTING_RANK + 1
-    if opt in ["eigenpro2", "eigenpro3"]:
+    if opt == "eigenpro3":
         style["marker"] = PRECOND_MARKERS["falkon"][run.config["m"]]
         r_adj = DUMMY_PLOTTING_RANK + 1
 
@@ -229,6 +229,21 @@ def get_n_sci(run):
     n_sci = re.sub(r"e\+?0*(\d+)", r" \\cdot 10^{\1}", f"{n:.2e}")
     n_sci = re.sub(r"e-0*(\d+)", r" \\cdot 10^{-\1}", n_sci)
     return n_sci
+
+
+def keep_largest_m(runs_ds):
+    best_runs = {}
+
+    for run in runs_ds:
+        opt = _get_opt(run)
+        m_value = run.config.get("m", None)
+        if m_value is None:
+            continue
+
+        if opt not in best_runs or m_value > best_runs[opt].config["m"]:
+            best_runs[opt] = run
+
+    return list(best_runs.values())
 
 
 def get_save_path(save_dir, save_name):

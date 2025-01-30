@@ -16,7 +16,7 @@ from base_utils import set_fontsize, render_in_latex
 from cfg_utils import get_save_dir, create_krr_config, plot_runs_dataset_grid
 
 # save directory
-SAVE_DIR = "performance_comparison"
+SAVE_DIR = "performance_comparison_v2"
 
 # filters for runs
 ASKOTCH_FILTER = {
@@ -26,6 +26,14 @@ ASKOTCH_FILTER = {
     "rho_damped": lambda run: run.config.get("precond_params", {}).get("rho", None)
     == "damped",
     "sampling": lambda run: run.config["sampling_method"] == "uniform",
+    "finished": lambda run: run.state == "finished",
+}
+EIGENPRO2_FILTER = {
+    "optimizer": lambda run: run.config["opt"] == "eigenpro2",
+    "finished": lambda run: run.state == "finished",
+}
+EIGENPRO3_FILTER = {
+    "optimizer": lambda run: run.config["opt"] == "eigenpro3",
     "finished": lambda run: run.state == "finished",
 }
 PCG_FLOAT32_FILTER = {
@@ -61,10 +69,10 @@ if __name__ == "__main__":
         PROJECT_INDUCING_KRR, [PCG_FLOAT32_FILTER]
     )
     full_krr_cfg_float64 = create_krr_config(
-        PROJECT_FULL_KRR, [ASKOTCH_FILTER, PCG_FLOAT64_FILTER]
+        PROJECT_FULL_KRR, [ASKOTCH_FILTER, EIGENPRO2_FILTER, PCG_FLOAT64_FILTER]
     )
     inducing_krr_cfg_float64 = create_krr_config(
-        PROJECT_INDUCING_KRR, [PCG_FLOAT64_FILTER]
+        PROJECT_INDUCING_KRR, [EIGENPRO3_FILTER, PCG_FLOAT64_FILTER]
     )
 
     with tqdm(

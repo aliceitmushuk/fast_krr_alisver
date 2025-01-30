@@ -1,6 +1,6 @@
 import matplotlib.cm as cm
 
-from .compressed_root_norm import CompressedRootNorm
+from compressed_root_norm import CompressedRootNorm
 
 # high-level plotting parameters
 USE_LATEX = True
@@ -272,13 +272,13 @@ TABULAR_REGRESSION = {
     "name_ext": "tabular_regression",
 }
 PERFORMANCE_DATASETS_CFG = [
-    VISION,
+    # VISION,
     PARTICLE_PHYSICS,
-    TABULAR_CLASSIFICATION,
-    QM9,
-    MOLECULES_BIG,
-    MOLECULES_SMALL,
-    TABULAR_REGRESSION,
+    # TABULAR_CLASSIFICATION,
+    # QM9,
+    # MOLECULES_BIG,
+    # MOLECULES_SMALL,
+    # TABULAR_REGRESSION,
 ]
 
 TAXI = {
