@@ -21,6 +21,7 @@ SAVE_DIR = "askotch_ablation"
 # filters for runs
 ASKOTCH_FILTER = {
     "optimizer": lambda run: run.config["opt"] == "askotchv2",
+    "block_sz_frac": lambda run: run.config["block_sz_frac"] == 0.01,
     "finished": lambda run: run.state == "finished",
 }
 
