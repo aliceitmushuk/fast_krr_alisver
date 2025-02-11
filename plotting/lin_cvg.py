@@ -74,6 +74,7 @@ if __name__ == "__main__":
         x_axis=X_AXIS,
         save_dir=get_save_dir(BASE_SAVE_DIR, SAVE_DIR),
         extension=EXTENSION,
+        keep_largest_m_runs=False,
     )
 
     full_krr_cfg_float64 = create_krr_config(

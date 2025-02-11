@@ -50,6 +50,7 @@ def plot_runs_dataset_grid(
     name_stem,
     save_dir,
     extension,
+    keep_largest_m_runs=True,
 ):
     run_lists = []
     metrics = []
@@ -62,7 +63,8 @@ def plot_runs_dataset_grid(
     for ds, config in datasets_cfg["datasets"].items():
         runs_full_krr = _get_filtered_runs(full_krr_cfg, ds, entity_name)
         runs_inducing_krr = _get_filtered_runs(inducing_krr_cfg, ds, entity_name)
-        runs_inducing_krr = keep_largest_m(runs_inducing_krr)
+        if keep_largest_m_runs:
+            runs_inducing_krr = keep_largest_m(runs_inducing_krr, config["metric"])
         run_lists.append(runs_full_krr + runs_inducing_krr)
         metrics.append(config["metric"])
         ylims.append(config["ylim"])

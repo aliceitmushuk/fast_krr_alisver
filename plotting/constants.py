@@ -1,4 +1,5 @@
 import matplotlib.cm as cm
+import numpy as np
 
 from compressed_root_norm import CompressedRootNorm
 
@@ -47,20 +48,20 @@ OPT_COLORS = {
 RANK_MIN = 0  # Minimum rank
 RANK_MAX = 500 + 1  # Maximum rank
 NORM = CompressedRootNorm(vmin=RANK_MIN, vmax=RANK_MAX, root=3)
-DUMMY_PLOTTING_RANK = 100  # Dummy rank to use when plotting Falkon and EigenPro methods
+DUMMY_PLOTTING_RANK = 100  # Dummy rank to use when plotting Falkon and EigenPro2
 
 # markers for each preconditioner
 PRECOND_MARKERS = {
     "nystrom": {"damped": "o", "regularization": "x"},
-    "partial_cholesky": {"greedy": "s", "rpc": "v"},
+    "partial_cholesky": {"greedy": "D", "rpc": "v"},
     "falkon": {
         10000: "d",
         20000: "*",
-        50000: "p",
-        100000: "h",
-        200000: "+",
+        50000: "s",
+        100000: "p",
+        200000: "h",
         500000: "8",
-        1000000: "D",
+        1000000: "+",
     },
 }
 
@@ -85,6 +86,9 @@ METRIC_AX_PLOT_FNS = {
     "test_smape": "semilogy",
     "rel_suboptim": "semilogy",
 }
+
+# nan replacement value for plotting
+NAN_REPLACEMENT = np.inf
 
 # labels for metrics, optimizers, and hyperparameters
 METRIC_LABELS = {
@@ -171,15 +175,15 @@ PARTICLE_PHYSICS = {
             "metric": "test_acc",
         },
         "comet_mc": {
-            "ylim": [0.4, 1.0],
+            "ylim": [0.0, 1.0],
             "metric": "test_acc",
         },
         "susy": {
-            "ylim": [0.6, 0.9],
+            "ylim": [0.4, 0.85],
             "metric": "test_acc",
         },
         "higgs": {
-            "ylim": [0.5, 0.8],
+            "ylim": [0.4, 0.8],
             "metric": "test_acc",
         },
     },
@@ -193,7 +197,7 @@ TABULAR_CLASSIFICATION = {
             "metric": "test_acc",
         },
         "click_prediction": {
-            "ylim": [0.4, 0.9],
+            "ylim": [0.0, 0.9],
             "metric": "test_acc",
         },
     },
@@ -285,7 +289,7 @@ PERFORMANCE_DATASETS_CFG = [
 TAXI = {
     "datasets": {
         "taxi": {
-            "ylim": [200.0, 300.0],
+            "ylim": [220.0, 340.0],
             "metric": "test_rmse",
         },
     },

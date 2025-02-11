@@ -16,6 +16,7 @@ from constants import (
     METRIC_AX_PLOT_FNS,
     METRIC_LABELS,
     MODE_LABELS,
+    NAN_REPLACEMENT,
     NORM,
     OPT_COLORS,
     OPT_LABELS,
@@ -231,7 +232,40 @@ def get_n_sci(run):
     return n_sci
 
 
-def keep_largest_m(runs_ds):
+def _detect_nans(y):
+    nan_index = np.where(np.isnan(y))[0]
+    if nan_index.size > 0:
+        first_nan_index = nan_index[0]
+        return first_nan_index
+    return None
+
+
+def _clean_data(y):
+    # If there are NaNs in y, set all elements from the first NaN onwards to infinity
+    first_nan_index = _detect_nans(y)
+    if first_nan_index is not None:
+        y[first_nan_index:] = NAN_REPLACEMENT
+    return y
+
+
+def _get_clean_data(run, metric):
+    y_hist = run.scan_history(keys=[metric, "_step"])
+    y = np.array([hist[metric] for hist in y_hist], dtype=np.float64)
+    steps = np.array([hist["_step"] for hist in y_hist])
+    return _clean_data(y), steps
+
+
+def _plot_run(run, metric, x_axis, hparams_to_label, plot_fn):
+    y, steps = _get_clean_data(run, metric)
+    x = get_x(run, steps, x_axis)
+    label = get_label(run, hparams_to_label[_get_opt(run)])
+    style = get_style(run, y.shape[0])
+
+    (handle,) = plot_fn(x, y, label=label, **style)
+    return label, handle
+
+
+def keep_largest_m(runs_ds, metric):
     best_runs = {}
 
     for run in runs_ds:
@@ -239,6 +273,12 @@ def keep_largest_m(runs_ds):
         m_value = run.config.get("m", None)
         if m_value is None:
             continue
+
+        # for eigenpro3, only keep runs that have no NaNs in the metric
+        if opt == "eigenpro3":
+            y, _ = _get_clean_data(run, metric)
+            if np.any(y == NAN_REPLACEMENT):
+                continue
 
         if opt not in best_runs or m_value > best_runs[opt].config["m"]:
             best_runs[opt] = run
@@ -265,27 +305,6 @@ def get_save_path(save_dir, save_name):
         return None
 
 
-def _clean_data(y):
-    # If there are NaNs in y, set all elements from the first NaN onwards to infinity
-    nan_index = np.where(np.isnan(y))[0]
-    if nan_index.size > 0:  # Check if there is at least one NaN
-        first_nan_index = nan_index[0]
-        y[first_nan_index:] = np.inf
-    return y
-
-
-def _plot_run(run, metric, x_axis, hparams_to_label, plot_fn):
-    y_hist = run.scan_history(keys=[metric, "_step"])
-    y = _clean_data(np.array([hist[metric] for hist in y_hist], dtype=np.float64))
-    steps = np.array([hist["_step"] for hist in y_hist])
-
-    x = get_x(run, steps, x_axis)
-    label = get_label(run, hparams_to_label[_get_opt(run)])
-    style = get_style(run, y.shape[0])
-
-    plot_fn(x, y, label=label, **style)
-
-
 def plot_runs_axis(
     ax,
     run_list,
@@ -296,16 +315,20 @@ def plot_runs_axis(
     title,
 ):
     plot_fn = getattr(ax, METRIC_AX_PLOT_FNS[metric])
+    # Sort the data so runs appear on top of each other in a consistent order
     run_list = sort_data(run_list, sort_keys=SORT_KEYS)
+    labels = {}
 
     for run in run_list:
-        _plot_run(run, metric, x_axis, hparams_to_label, plot_fn)
+        label, handle = _plot_run(run, metric, x_axis, hparams_to_label, plot_fn)
+        labels[run] = {"label": label, "handle": handle}
 
     n_sci = get_n_sci(run_list[0])
     ax.set_ylim(ylim)
     ax.set_title(f"{title} ($n = {n_sci}$)")
     ax.set_xlabel(X_AXIS_LABELS[x_axis])
     ax.set_ylabel(METRIC_LABELS[metric])
+    return labels
 
 
 def plot_runs_grid(
@@ -328,24 +351,27 @@ def plot_runs_grid(
     )
     axes = axes.flatten()
 
+    labels = {}
     for i, (run_list, metric, ylim, title) in enumerate(
         zip(run_lists, metrics, ylims, titles)
     ):
-        plot_runs_axis(axes[i], run_list, hparams_to_label, metric, x_axis, ylim, title)
+        labels_subplot = plot_runs_axis(
+            axes[i], run_list, hparams_to_label, metric, x_axis, ylim, title
+        )
+        labels.update(labels_subplot)
 
-    # Collect all handles and labels from all axes
-    all_handles = []
-    all_labels = []
-    for ax in axes:
-        handles, labels = ax.get_legend_handles_labels()
-        all_handles.extend(handles)
-        all_labels.extend(labels)
+    # Get sorting for all runs -- this is essential for sorting the legend
+    all_runs = [run for run_list in run_lists for run in run_list]
+    all_runs = sort_data(all_runs, sort_keys=SORT_KEYS)
 
-    # Deduplicate legend elements
+    # Go through all runs and get the labels in the same order as the sorted runs
     unique_labels = {}
-    for h, l in zip(all_handles, all_labels):
-        if l not in unique_labels:
-            unique_labels[l] = h  # Keep the first occurrence of each label
+    for run in all_runs:
+        if run in labels:
+            label = labels[run]["label"]
+            handle = labels[run]["handle"]
+            if label not in unique_labels:
+                unique_labels[label] = handle
 
     # Set the global legend
     fig.legend(

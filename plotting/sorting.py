@@ -24,7 +24,7 @@ def sort_data(data, sort_keys):
     precond_order = {
         "nystrom": 0,
         "partial_cholesky": 1,
-        "falkon": 3,
+        "falkon": 2,
     }
     rho_order = {"damped": 0, "regularization": 1}
     mode_order = {"rpc": 0, "greedy": 1}
