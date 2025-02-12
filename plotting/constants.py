@@ -207,8 +207,8 @@ TABULAR_CLASSIFICATION = {
 QM9 = {
     "datasets": {
         "qm9": {
-            "ylim": [0.0, 2.0],
-            "metric": "test_smape",
+            "ylim": [0.0, 2.5],
+            "metric": "test_mae",
         },
     },
     "grid": {"n_rows": 1, "n_cols": 1},
@@ -276,15 +276,20 @@ TABULAR_REGRESSION = {
     "grid": {"n_rows": 1, "n_cols": 3},
     "name_ext": "tabular_regression",
 }
-PERFORMANCE_DATASETS_CFG = [
+PERFORMANCE_DATASETS_CLASSIFICATION_CFG = [
     VISION,
     PARTICLE_PHYSICS,
     TABULAR_CLASSIFICATION,
+]
+PERFORMANCE_DATASETS_REGRESSION_CFG = [
     QM9,
     MOLECULES_BIG,
     MOLECULES_SMALL,
     TABULAR_REGRESSION,
 ]
+PERFORMANCE_DATASETS_CFG = (
+    PERFORMANCE_DATASETS_CLASSIFICATION_CFG + PERFORMANCE_DATASETS_REGRESSION_CFG
+)
 
 TAXI = {
     "datasets": {

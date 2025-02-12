@@ -93,6 +93,7 @@ if __name__ == "__main__":
                 inducing_krr_cfg=inducing_krr_cfg_float32,
                 datasets_cfg=datasets_cfg,
                 name_stem="float32_",
+                keep_largest_m_runs=False,
             )
             pbar.update(1)
             plot_fn(
