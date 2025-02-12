@@ -12,6 +12,7 @@ def sort_data(data, sort_keys):
         "eigenpro2": 5,
         "eigenpro3": 6,
         "pcg": 7,
+        "falkon": 8,
     }
     accelerated_order = {
         True: 0,
@@ -24,7 +25,6 @@ def sort_data(data, sort_keys):
     precond_order = {
         "nystrom": 0,
         "partial_cholesky": 1,
-        "falkon": 2,
     }
     rho_order = {"damped": 0, "regularization": 1}
     mode_order = {"rpc": 0, "greedy": 1}
@@ -76,7 +76,7 @@ def sort_data(data, sort_keys):
                 mode = precond_params.get("mode", float("inf"))
                 key.append(mode_order.get(mode, float("inf")))
 
-            # Handle "falkon" or other preconditioners
+            # Handle other preconditioners
             else:
                 key.append(precond_order.get(precond_type, float("inf")))
 

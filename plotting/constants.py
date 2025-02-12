@@ -14,7 +14,8 @@ HPARAMS_TO_LABEL = {
     "nsap": ["b"],
     "eigenpro2": [],
     "eigenpro3": ["m"],
-    "pcg": ["precond", "r", "m"],
+    "pcg": ["precond", "r"],
+    "falkon": ["m"],
     "mimosa": ["precond", "r", "m"],
 }
 BASE_SAVE_DIR = "./plots"
@@ -41,6 +42,7 @@ OPT_COLORS = {
     "eigenpro2": "tab:pink",
     "eigenpro3": "tab:brown",
     "pcg": cm.get_cmap("Blues"),
+    "falkon": "black",
     "mimosa": cm.get_cmap("Greys"),
 }
 
@@ -48,7 +50,7 @@ OPT_COLORS = {
 RANK_MIN = 0  # Minimum rank
 RANK_MAX = 500 + 1  # Maximum rank
 NORM = CompressedRootNorm(vmin=RANK_MIN, vmax=RANK_MAX, root=3)
-DUMMY_PLOTTING_RANK = 100  # Dummy rank to use when plotting Falkon and EigenPro2
+DUMMY_PLOTTING_RANK = 100  # Dummy rank for performance plots
 
 # markers for each preconditioner
 PRECOND_MARKERS = {
@@ -109,6 +111,7 @@ OPT_LABELS = {
     "eigenpro2": "EigenPro 2.0",
     "eigenpro3": "EigenPro 3.0",
     "pcg": "PCG",
+    "falkon": "Falkon",
     "mimosa": r"\texttt{Mimosa}",
 }
 RANK_LABEL = "r"
@@ -117,7 +120,6 @@ RHO_LABEL = r"\rho"
 PRECOND_LABELS = {
     "nystrom": [r"Nystr$\ddot{\mathrm{o}}$m"],
     "partial_cholesky": [],
-    "falkon": ["Falkon"],
 }
 MODE_LABELS = {
     "greedy": "GC",

@@ -173,10 +173,7 @@ LABEL_FNS = {
 
 def get_label(run, hparams_to_label):
     opt = _get_opt(run)
-    if opt == "pcg" and run.config["precond_params"]["type"] == "falkon":
-        hparam_labels = []
-    else:
-        hparam_labels = [OPT_LABELS[opt]]
+    hparam_labels = [OPT_LABELS[opt]]
     for hparam in hparams_to_label:
         hparam_label = LABEL_FNS[hparam](run)
         if hparam_label is not None:
