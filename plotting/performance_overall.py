@@ -261,7 +261,7 @@ if __name__ == "__main__":
         save_dir=SAVE_DIR,
     )
 
-    with tqdm(total=2, desc="Performance plots") as pbar:
+    with tqdm(total=2, desc="Performance overall") as pbar:
         perf_classification_float32, perf_regression_float32 = performance_fn(
             filters=FILTERS_FLOAT32
         )

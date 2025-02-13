@@ -321,6 +321,11 @@ def plot_runs_axis(
         label, handle = _plot_run(run, metric, x_axis, hparams_to_label, plot_fn)
         labels[run] = {"label": label, "handle": handle}
 
+    # If we are plotting with respect to time, restrict the x-axis to the maximum time
+    if x_axis == "time":
+        max_time = run_list[0].config["max_time"]
+        ax.set_xlim(0, max_time * 1.02)
+
     n_sci = get_n_sci(run_list[0])
     ax.set_ylim(ylim)
     ax.set_title(f"{title} ($n = {n_sci}$)")
