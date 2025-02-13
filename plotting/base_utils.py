@@ -20,6 +20,7 @@ from constants import (
     NORM,
     OPT_COLORS,
     OPT_LABELS,
+    PERFORMANCE_AXIS_LABELS,
     PRECOND_LABELS,
     PRECOND_MARKERS,
     RANK_LABEL,
@@ -371,12 +372,52 @@ def plot_runs_grid(
                 unique_labels[label] = handle
 
     # Set the global legend
-    fig.legend(
-        unique_labels.values(),
-        unique_labels.keys(),
-        **LEGEND_SPECS,
-    )
+    fig.legend(unique_labels.values(), unique_labels.keys(), **LEGEND_SPECS)
     plt.tight_layout()
+
+    if save_path is not None:
+        plt.savefig(save_path, bbox_inches="tight")
+
+    plt.close(fig)
+
+
+def plot_performance_grid(
+    performance_dicts,
+    titles,
+    n_cols,
+    n_rows,
+    save_dir=None,
+    save_name=None,
+):
+    save_path = get_save_path(save_dir, save_name)
+    fig, axes = plt.subplots(
+        n_rows, n_cols, squeeze=False, figsize=(SZ_COL * n_cols, SZ_ROW * n_rows)
+    )
+    axes = axes.flatten()
+
+    for i, (performance_dict, title) in enumerate(zip(performance_dicts, titles)):
+        ax = axes[i]
+        for opt, performance in performance_dict.items():
+            ax.plot(
+                performance,
+                label=OPT_LABELS[opt],
+                color=get_color(opt, DUMMY_PLOTTING_RANK),
+            )
+        ax.set_title(title)
+        ax.set_xlabel(PERFORMANCE_AXIS_LABELS["x"])
+        ax.set_ylabel(PERFORMANCE_AXIS_LABELS["y"])
+
+    # Collect all handles and labels
+    handles, labels = [], []
+    for ax in axes:
+        h_ax, l_ax = ax.get_legend_handles_labels()
+        for handle, label in zip(h_ax, l_ax):
+            if label not in labels:  # Avoid duplicate labels
+                labels.append(label)
+                handles.append(handle)
+
+    # Set the global legend
+    fig.legend(handles, labels, **LEGEND_SPECS)
 
     if save_path is not None:
         plt.savefig(save_path, bbox_inches="tight")

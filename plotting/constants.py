@@ -139,6 +139,12 @@ X_AXIS_LABELS = {
     "iters": "Iterations",
 }
 
+# axis labels for performance plots
+PERFORMANCE_AXIS_LABELS = {
+    "x": "Fraction of time budget",
+    "y": "Fraction of problems solved",
+}
+
 # sorting keys for hyperparameters
 SORT_KEYS = ["opt", "accelerated", "sampling_method", "precond_type", "r", "b", "m"]
 
