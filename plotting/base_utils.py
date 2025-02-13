@@ -388,6 +388,7 @@ def plot_runs_grid(
 
 def plot_performance_grid(
     performance_dicts,
+    x_vals,
     titles,
     n_cols,
     n_rows,
@@ -404,6 +405,7 @@ def plot_performance_grid(
         ax = axes[i]
         for opt, performance in performance_dict.items():
             ax.plot(
+                x_vals,
                 performance,
                 label=OPT_LABELS[opt],
                 color=get_color(opt, DUMMY_PLOTTING_RANK),

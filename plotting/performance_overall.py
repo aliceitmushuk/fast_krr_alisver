@@ -4,7 +4,7 @@ import numpy as np
 from tqdm import tqdm
 
 from constants import ENTITY_NAME, PROJECT_FULL_KRR, PROJECT_INDUCING_KRR
-from constants import FONTSIZE, USE_LATEX
+from constants import FONTSIZE, USE_LATEX, BASE_SAVE_DIR, EXTENSION
 from constants import (
     PERFORMANCE_DATASETS_CLASSIFICATION_CFG,
     PERFORMANCE_DATASETS_REGRESSION_CFG,
@@ -16,7 +16,7 @@ from base_utils import (
     get_x,
     plot_performance_grid,
 )
-from cfg_utils import create_krr_config, _get_filtered_runs
+from cfg_utils import create_krr_config, _get_filtered_runs, get_save_dir
 
 # save directory
 SAVE_DIR = "performance_comparison"
@@ -119,7 +119,7 @@ def get_peak_metric(run, metric):
 def get_best_metric_val(krr_runs_dataset):
     metric = krr_runs_dataset["metric"]
     best_metric_val = 0 if metric == "test_acc" else np.inf
-    for key, value in krr_runs_dataset["runs"].items():
+    for _, value in krr_runs_dataset["runs"].items():
         for run in value:
             peak_metric = get_peak_metric(run, metric)
             if metric == "test_acc":
@@ -255,10 +255,11 @@ if __name__ == "__main__":
 
     plot_fn = partial(
         plot_performance_grid,
+        x_values=TIME_BUDGET,
         titles=["Classification", "Regression"],
         n_cols=2,
         n_rows=1,
-        save_dir=SAVE_DIR,
+        save_dir=get_save_dir(BASE_SAVE_DIR, SAVE_DIR),
     )
 
     with tqdm(total=2, desc="Performance overall") as pbar:
@@ -267,7 +268,7 @@ if __name__ == "__main__":
         )
         plot_fn(
             performance_dicts=[perf_classification_float32, perf_regression_float32],
-            save_name="float32_overall",
+            save_name=f"float32_overall.{EXTENSION}",
         )
         pbar.update(1)
         perf_classification_float64, perf_regression_float64 = performance_fn(
@@ -275,6 +276,6 @@ if __name__ == "__main__":
         )
         plot_fn(
             performance_dicts=[perf_classification_float64, perf_regression_float64],
-            save_name="float64_overall",
+            save_name=f"float64_overall.{EXTENSION}",
         )
         pbar.update(1)
