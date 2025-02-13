@@ -308,11 +308,16 @@ def plot_runs_axis(
     run_list,
     hparams_to_label,
     metric,
+    plot_fn_str,
     x_axis,
     ylim,
     title,
 ):
-    plot_fn = getattr(ax, METRIC_AX_PLOT_FNS[metric])
+    # Allow overriding the default plot function for the metric
+    if plot_fn_str is not None:
+        plot_fn = getattr(ax, plot_fn_str)
+    else:
+        plot_fn = getattr(ax, METRIC_AX_PLOT_FNS[metric])
     # Sort the data so runs appear on top of each other in a consistent order
     run_list = sort_data(run_list, sort_keys=SORT_KEYS)
     labels = {}
@@ -338,6 +343,7 @@ def plot_runs_grid(
     run_lists,
     hparams_to_label,
     metrics,
+    plot_fns,
     x_axis,
     ylims,
     titles,
@@ -355,11 +361,11 @@ def plot_runs_grid(
     axes = axes.flatten()
 
     labels = {}
-    for i, (run_list, metric, ylim, title) in enumerate(
-        zip(run_lists, metrics, ylims, titles)
+    for i, (run_list, metric, plot_fn, ylim, title) in enumerate(
+        zip(run_lists, metrics, plot_fns, ylims, titles)
     ):
         labels_subplot = plot_runs_axis(
-            axes[i], run_list, hparams_to_label, metric, x_axis, ylim, title
+            axes[i], run_list, hparams_to_label, metric, plot_fn, x_axis, ylim, title
         )
         labels.update(labels_subplot)
 

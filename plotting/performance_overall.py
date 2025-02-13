@@ -255,7 +255,7 @@ if __name__ == "__main__":
 
     plot_fn = partial(
         plot_performance_grid,
-        x_values=TIME_BUDGET,
+        x_vals=TIME_BUDGET,
         titles=["Classification", "Regression"],
         n_cols=2,
         n_rows=1,

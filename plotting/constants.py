@@ -217,6 +217,7 @@ QM9 = {
         "qm9": {
             "ylim": [0.0, 2.5],
             "metric": "test_mae",
+            "plot_fn": "semilogy",
         },
     },
     "grid": {"n_rows": 1, "n_cols": 1},
@@ -227,18 +228,22 @@ MOLECULES_BIG = {
         "toluene": {
             "ylim": [0.0, 2.0],
             "metric": "test_mae",
+            "plot_fn": "semilogy",
         },
         "ethanol": {
             "ylim": [0.0, 2.0],
             "metric": "test_mae",
+            "plot_fn": "semilogy",
         },
         "benzene": {
             "ylim": [0.0, 2.0],
             "metric": "test_mae",
+            "plot_fn": "semilogy",
         },
         "malonaldehyde": {
             "ylim": [0.0, 2.0],
             "metric": "test_mae",
+            "plot_fn": "semilogy",
         },
     },
     "grid": {"n_rows": 2, "n_cols": 2},
@@ -249,18 +254,22 @@ MOLECULES_SMALL = {
         "uracil": {
             "ylim": [0.0, 2.0],
             "metric": "test_mae",
+            "plot_fn": "semilogy",
         },
         "aspirin": {
             "ylim": [0.0, 2.0],
             "metric": "test_mae",
+            "plot_fn": "semilogy",
         },
         "salicylic": {
             "ylim": [0.0, 2.0],
             "metric": "test_mae",
+            "plot_fn": "semilogy",
         },
         "naphthalene": {
             "ylim": [0.0, 2.0],
             "metric": "test_mae",
+            "plot_fn": "semilogy",
         },
     },
     "grid": {"n_rows": 2, "n_cols": 2},
