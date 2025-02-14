@@ -138,6 +138,7 @@ X_AXIS_LABELS = {
     "datapasses": "Full data passes",
     "iters": "Iterations",
 }
+X_AXIS_TIME_GRACE = 1.02  # grace factor for time axis
 
 # axis labels for performance plots
 PERFORMANCE_AXIS_LABELS = {
@@ -152,6 +153,7 @@ SORT_KEYS = ["opt", "accelerated", "sampling_method", "precond_type", "r", "b", 
 ENTITY_NAME = "sketchy-opts"
 PROJECT_FULL_KRR = "performance_full_krr_v2_"
 PROJECT_INDUCING_KRR = "performance_inducing_krr_"
+PROJECT_LIN_CVG = "lin_cvg_full_krr_"
 
 # dataset-specific plotting parameters
 VISION = {
@@ -319,7 +321,7 @@ TAXI = {
     "name_ext": "taxi",
 }
 
-LIN_CVG = {
+LIN_CVG_SYNTHETIC = {
     "datasets": {
         "synthetic": {
             "ylim": [0.0, 1.0],
@@ -329,3 +331,28 @@ LIN_CVG = {
     "grid": {"n_rows": 1, "n_cols": 1},
     "name_ext": "synthetic",
 }
+LIN_CVG_ACTUAL_DATA = {
+    "datasets": {
+        "uracil": {
+            "ylim": [0.0, 1.0],
+            "metric": "rel_residual",
+        },
+        "comet_mc": {
+            "ylim": [0.0, 1.0],
+            "metric": "rel_residual",
+        },
+        # "acsincome": {
+        #     "ylim": [0.0, 1.0],
+        #     "metric": "rel_residual",
+        # },
+        "click_prediction": {
+            "ylim": [0.0, 1.0],
+            "metric": "rel_residual",
+            "xlim": [0, 15000],
+        },
+    },
+    "grid": {"n_rows": 2, "n_cols": 2},
+    "name_ext": "actual_data",
+}
+# LIN_CVG = [LIN_CVG_SYNTHETIC, LIN_CVG_ACTUAL_DATA]
+LIN_CVG = [LIN_CVG_ACTUAL_DATA]

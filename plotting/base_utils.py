@@ -33,6 +33,7 @@ from constants import (
     SZ_ROW,
     TOT_MARKERS,
     X_AXIS_LABELS,
+    X_AXIS_TIME_GRACE,
 )
 from get_opt import _get_opt
 from sorting import sort_data
@@ -310,6 +311,7 @@ def plot_runs_axis(
     metric,
     plot_fn_str,
     x_axis,
+    xlim,
     ylim,
     title,
 ):
@@ -326,10 +328,14 @@ def plot_runs_axis(
         label, handle = _plot_run(run, metric, x_axis, hparams_to_label, plot_fn)
         labels[run] = {"label": label, "handle": handle}
 
-    # If we are plotting with respect to time, restrict the x-axis to the maximum time
-    if x_axis == "time":
+    # Set the x-axis limits if provided
+    if xlim is not None:
+        ax.set_xlim(xlim)
+    # If no explicit x-axis limits are provided are plotting with
+    # respect to time, restrict the x-axis to the maximum time
+    elif x_axis == "time":
         max_time = run_list[0].config["max_time"]
-        ax.set_xlim(0, max_time * 1.02)
+        ax.set_xlim(0, max_time * X_AXIS_TIME_GRACE)
 
     n_sci = get_n_sci(run_list[0])
     ax.set_ylim(ylim)
@@ -345,6 +351,7 @@ def plot_runs_grid(
     metrics,
     plot_fns,
     x_axis,
+    xlims,
     ylims,
     titles,
     n_cols,
@@ -361,11 +368,19 @@ def plot_runs_grid(
     axes = axes.flatten()
 
     labels = {}
-    for i, (run_list, metric, plot_fn, ylim, title) in enumerate(
-        zip(run_lists, metrics, plot_fns, ylims, titles)
+    for i, (run_list, metric, plot_fn, xlim, ylim, title) in enumerate(
+        zip(run_lists, metrics, plot_fns, xlims, ylims, titles)
     ):
         labels_subplot = plot_runs_axis(
-            axes[i], run_list, hparams_to_label, metric, plot_fn, x_axis, ylim, title
+            axes[i],
+            run_list,
+            hparams_to_label,
+            metric,
+            plot_fn,
+            x_axis,
+            xlim,
+            ylim,
+            title,
         )
         labels.update(labels_subplot)
 

@@ -55,6 +55,7 @@ def plot_runs_dataset_grid(
     run_lists = []
     metrics = []
     plot_fns = []
+    xlims = []
     ylims = []
     titles = []
 
@@ -69,6 +70,7 @@ def plot_runs_dataset_grid(
         run_lists.append(runs_full_krr + runs_inducing_krr)
         metrics.append(config["metric"])
         plot_fns.append(config.get("plot_fn", None))
+        xlims.append(config.get("xlim", None))
         ylims.append(config["ylim"])
         titles.append(ds)
 
@@ -78,6 +80,7 @@ def plot_runs_dataset_grid(
         metrics,
         plot_fns,
         x_axis,
+        xlims,
         ylims,
         titles,
         n_cols,
