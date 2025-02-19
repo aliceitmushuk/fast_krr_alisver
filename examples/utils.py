@@ -8,10 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 import torch
 
-from .configs import (
-    DATA_DIR,
-    REMOVE_LABEL_MEANS,
-)
+DATA_DIR = "./data/"
 
 LOADING_METHODS = {
     "npz": np.load,
@@ -66,14 +63,6 @@ def _np_to_torch_tr_tst(
     return Xtr, Xtst, ytr, ytst
 
 
-def _generate_synthetic_data(n: int, d: int) -> tuple[np.ndarray]:
-    X = np.random.randn(n, d)
-    w = np.random.randn(d)
-    y = np.sign(X @ w)
-
-    return X, y
-
-
 def _map_labels(y: np.ndarray, label_map: dict) -> np.ndarray:
     return np.vectorize(label_map.get)(y)
 
@@ -96,7 +85,11 @@ def _convert_to_numpy(data: Union[csr_matrix, pd.DataFrame, np.ndarray]) -> np.n
 
 
 def load_data(
-    dataset: str, data_config: dict, seed: int, device: torch.device
+    dataset: str,
+    data_config: dict,
+    remove_label_means: bool,
+    seed: int,
+    device: torch.device,
 ) -> tuple[torch.Tensor]:
     ftr = data_config.get("tr", None)
     ftgt = data_config.get("tgt", None)
@@ -104,14 +97,12 @@ def load_data(
 
     X, Xtst, y, ytst = None, None, None, None
 
-    # Load data, accounting for special cases
-    # sgdml datasets
+    # Load data
     if dataset == "uracil":
         data = loading_method(os.path.join(DATA_DIR, ftr))
         X = _process_molecule(data["R"])
         y = np.squeeze(data["E"])
-    else:
-        # openml datasets
+    elif dataset == "comet_mc":
         if ftr is not None and ftgt is not None:
             X = loading_method(os.path.join(DATA_DIR, ftr))
             y = loading_method(os.path.join(DATA_DIR, ftgt))
@@ -141,7 +132,7 @@ def load_data(
 
     # Standardize
     X, Xtst = _standardize(X, Xtst, with_std=True)
-    if dataset in REMOVE_LABEL_MEANS:
+    if remove_label_means:
         y, ytst = _standardize(y, ytst, with_std=False)
 
     # Convert to torch tensors

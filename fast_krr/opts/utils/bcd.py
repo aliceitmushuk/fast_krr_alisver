@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from fast_krr.opts._utils.general import _get_L, _apply_precond
+from fast_krr.opts.utils.general import _get_L, _apply_precond
 from fast_krr.preconditioners import preconditioner_inits as pi
 
 
