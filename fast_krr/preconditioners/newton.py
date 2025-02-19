@@ -1,6 +1,6 @@
 import torch
 
-from .preconditioner import Preconditioner
+from fast_krr.preconditioners.preconditioner import Preconditioner
 
 
 class Newton(Preconditioner):
