@@ -6,11 +6,13 @@ We present both a quickstart guide and detailed instructions for reproducing our
 
 ## Quickstart
 
-We present instructions for installing the repository via `pip` and using `ASkotch` on some example problems.
+TODO: Add distinction between `ASkotch` and `ASkotchV2`.
+
+We present instructions for installing the repository via `pip` and using `ASkotchV2` on some example problems.
 
 > [!NOTE]
 > Currently, our implementation can only handle Laplacian, Matérn 1/2, Matérn 3/2, Matérn 5/2, and RBF kernels.
-However, it is possible to add custom `KeOps`-compatible kernels by extending the `Kernel` class.
+However, it is possible to add custom `KeOps`-compatible kernels by extending the `Kernel` class and modifying `kernel_inits.py`.
 
 > [!TIP]
 > Our implementation is compatible with both CPU and GPU devices.
@@ -35,6 +37,13 @@ We should mention how to download the data for the examples.
 ## Instructions for reproducing our experiments and figures
 Our experiments have a lot of moving parts.
 Below, we provide an overview of the steps needed to reproduce our results.
+
+### Cloning the repository
+Please clone this repository to your local machine:
+
+```bash
+git clone https://github.com/pratikrathore8/fast_krr.git
+```
 
 ### Recreating the Python environment
 
@@ -110,3 +119,6 @@ If you find our work useful, please consider citing our paper:
   year={2024}
 }
 ```
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
