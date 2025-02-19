@@ -2,9 +2,5 @@
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-# ✅ This tells setuptools to use `setup.py` for metadata
-pyproject-backend = "legacy"
-
 [tool.setuptools.packages.find]
 include = ["fast_krr", "fast_krr.*"]  # ✅ Ensures _utils is included
