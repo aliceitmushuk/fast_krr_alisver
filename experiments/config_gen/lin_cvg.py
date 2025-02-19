@@ -1,11 +1,11 @@
-from fast_krr.data_configs import DATA_CONFIGS, SYNTHETIC_NTR
-from fast_krr.experiment_configs import (
+from data_handling.configs import DATA_CONFIGS, SYNTHETIC_NTR
+from experiment_handling.configs import (
     KERNEL_CONFIGS,
     LAMBDA_CONFIGS,
     LOG_TEST_ONLY,
 )
-from fast_krr.generate_configs_utils import save_configs
-from generate_configs_full_krr import generate_combinations as gc_full_krr
+from config_gen.utils import save_configs
+from config_gen.full_krr import generate_combinations as gc_full_krr
 
 SEED = 0
 
@@ -140,7 +140,7 @@ def _get_sap_combos_synthetic(sweep_params_askotchv2_base):
 
 
 if __name__ == "__main__":
-    datasets = ["comet_mc", "click_prediction", "acsincome", "uracil"]
+    datasets = ["comet_mc", "click_prediction", "acsincome"]
 
     # Synthetic (ASkotch + SAP)
     combinations_askotchv2, sweep_params_askotchv2_base = _get_askotch_combos(

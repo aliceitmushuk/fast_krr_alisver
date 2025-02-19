@@ -68,7 +68,7 @@ def run_experiment(config_path, gpu_id, timeout_seconds, progress, progress_file
 
     cmd = [
         "python",
-        "run_experiment_hydra.py",
+        "experiment_handling/run_experiment_hydra.py",
         f"--config-path={config_dir}",
         f"--config-name={config_file}",
         f"hydra.run.dir={config_dir}",
