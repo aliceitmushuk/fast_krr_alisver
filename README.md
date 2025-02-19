@@ -25,14 +25,13 @@ TODO: Add instructions for installing the package via `pip`.
 ### Example usage
 
 ```python
-TODO: Add example usage.
+TODO: Add example imports and usage.
 ```
 TODO: Talk about hyperparameter recommendations in section 3.2 of the paper.
 
 ### Notebook examples
 
-TODO: Create notebooks + add links to notebook examples.
-We should mention how to download the data for the examples.
+We provide two Jupyter notebooks in the `examples` folder which show how to use `ASkotchV2` on an example regression and classification problem.
 
 ## Instructions for reproducing our experiments and figures
 Our experiments have a lot of moving parts.
