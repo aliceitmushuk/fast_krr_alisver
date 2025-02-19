@@ -1,8 +1,8 @@
 from pykeops.torch import LazyTensor
 
-from .l1_laplace import L1Laplace
-from .matern import Matern
-from .rbf import Rbf
+from fast_krr.kernels.l1_laplace import L1Laplace
+from fast_krr.kernels.matern import Matern
+from fast_krr.kernels.rbf import Rbf
 
 KERNEL_CLASSES = {
     "rbf": Rbf,

@@ -1,6 +1,6 @@
 import torch
 
-from .kernel import Kernel
+from fast_krr.kernels.kernel import Kernel
 
 
 class Matern(Kernel):
