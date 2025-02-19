@@ -50,7 +50,7 @@ git clone https://github.com/pratikrathore8/fast_krr.git
 > [!IMPORTANT]
 > Our experiments use `Python 3.10.12` and `CUDA 12.5`. We recommend using these (or higher) Python and CUDA versions.
 
-Please [create a virtual environment](https://docs.python.org/3/library/venv.html) and activate it. After activation, run `pip install -r requirements.txt` to download all required dependencies.
+Please [create a virtual environment](https://docs.python.org/3/library/venv.html) and activate it. After activation, run `pip install -r requirements-dev.txt` to download all required dependencies.
 
 ### Downloading the datasets for experiments
 
