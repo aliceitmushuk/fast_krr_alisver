@@ -2,6 +2,35 @@
 <img src="logo.webp" alt="ASkotch Logo" width="200" height="200" alt="ASkotch Logo">
 
 Companion code for [***"Have ASkotch: A Neat Solution for Large-scale Kernel Ridge Regression"***](https://arxiv.org/abs/2407.10070).
+We present both a quickstart guide and detailed instructions for reproducing our experiments and figures.
+
+## Quickstart
+
+We present instructions for installing our package via `pip` and using it for example problems.
+
+> [!NOTE]
+> Currently, our implementation can only handle Laplacian, Matérn 1/2, Matérn 3/2, Matérn 5/2, and RBF kernels.
+However, it is possible to add custom `KeOps`-compatible kernels by extending the `Kernel` class.
+
+> [!TIP]
+> Our implementation is compatible with both CPU and GPU devices.
+However, we recommend using a GPU for large-scale problems.
+
+### Installation
+
+TODO: Add instructions for installing the package via `pip install -e`.
+
+### Example usage
+
+```python
+TODO: Add example usage.
+```
+TODO: Talk about hyperparameter recommendations in section 3.2 of the paper.
+
+### Notebook examples
+
+TODO: Create notebooks + add links to notebook examples.
+We should mention how to download the data for the examples.
 
 ## Instructions for reproducing our experiments and figures
 Our experiments have a lot of moving parts.
@@ -12,7 +41,7 @@ Below, we provide an overview of the steps needed to reproduce our results.
 > [!IMPORTANT]
 > Our experiments use `Python 3.10.12` and `CUDA 12.5`. We recommend using these (or higher) Python and CUDA versions.
 
-Please [create a virtual environment](https://docs.python.org/3/library/venv.html) and activate it. After activation, please run `pip install -r requirements.txt` to download all required dependencies.
+Please [create a virtual environment](https://docs.python.org/3/library/venv.html) and activate it. After activation, run `pip install -r requirements.txt` to download all required dependencies.
 
 ### Downloading the datasets for experiments
 
