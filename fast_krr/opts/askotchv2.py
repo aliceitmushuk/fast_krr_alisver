@@ -1,8 +1,8 @@
 import torch
 
-from .optimizer import Optimizer
-from .utils.general import _get_leverage_scores
-from .utils.bcd import (
+from fast_krr.opts.optimizer import Optimizer
+from fast_krr.opts._utils.general import _get_leverage_scores
+from fast_krr.opts._utils.bcd import (
     _get_block,
     _get_block_update,
     _get_block_properties,
@@ -14,7 +14,7 @@ class ASkotchV2(Optimizer):
         self,
         model,
         block_sz,
-        sampling_method="rls",
+        sampling_method="uniform",
         precond_params=None,
         mu=None,
         nu=None,

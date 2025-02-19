@@ -1,7 +1,7 @@
 import torch
 from typing import Callable, Tuple
 
-from .preconditioner import Preconditioner
+from fast_krr.preconditioners.preconditioner import Preconditioner
 
 
 class PartialCholesky(Preconditioner):

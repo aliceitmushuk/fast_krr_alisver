@@ -1,7 +1,7 @@
-from .falkon import Falkon
-from .newton import Newton
-from .nystrom import Nystrom
-from .partial_cholesky import PartialCholesky
+from fast_krr.preconditioners.falkon import Falkon
+from fast_krr.preconditioners.newton import Newton
+from fast_krr.preconditioners.nystrom import Nystrom
+from fast_krr.preconditioners.partial_cholesky import PartialCholesky
 
 PRECOND_CLASSES = {
     "falkon": Falkon,

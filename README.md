@@ -79,7 +79,7 @@ Weights & Biases provides some [helpful documentation](https://docs.wandb.ai/qui
 > These experiments are computationally expensive and will likely take > 2 weeks to run on a single GPU.
 
 We run the experiments in this paper by generating a large number of configurations as `.yaml` files.
-To generate these configurations, cd run `make_configs.sh`.
+To generate these configurations, run `make_configs.sh`.
 This script generates the following configuration folders:
 - `performance_full_krr`: Performance comparison configurations for `ASkotch` and PCG.
 - `performance_inducing_krr`: Performance comparison configurations for Falkon.

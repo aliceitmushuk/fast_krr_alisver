@@ -1,9 +1,9 @@
 import torch
 
-from .optimizer import Optimizer
-from .utils.minibatch_generator import MinibatchGenerator
-from .utils.general import _apply_precond
-from .utils.sgd import _get_precond_L, _get_minibatch
+from fast_krr.opts.optimizer import Optimizer
+from fast_krr.opts._utils.minibatch_generator import MinibatchGenerator
+from fast_krr.opts._utils.general import _apply_precond
+from fast_krr.opts._utils.sgd import _get_precond_L, _get_minibatch
 
 
 class Mimosa(Optimizer):
