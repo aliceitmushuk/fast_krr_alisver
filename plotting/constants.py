@@ -333,25 +333,26 @@ LIN_CVG_SYNTHETIC = {
 }
 LIN_CVG_ACTUAL_DATA = {
     "datasets": {
-        "uracil": {
-            "ylim": [0.0, 1.0],
-            "metric": "rel_residual",
-        },
-        "comet_mc": {
-            "ylim": [0.0, 1.0],
-            "metric": "rel_residual",
-        },
-        # "acsincome": {
+        # "uracil": {
         #     "ylim": [0.0, 1.0],
         #     "metric": "rel_residual",
         # },
+        "comet_mc": {
+            "ylim": [0.0, 1.0],
+            "metric": "rel_residual",
+            # "xlim": [0, 200],
+        },
+        "acsincome": {
+            "ylim": [0.0, 1.0],
+            "metric": "rel_residual",
+        },
         "click_prediction": {
             "ylim": [0.0, 1.0],
             "metric": "rel_residual",
-            "xlim": [0, 15000],
+            # "xlim": [0, 150],
         },
     },
-    "grid": {"n_rows": 2, "n_cols": 2},
+    "grid": {"n_rows": 1, "n_cols": 3},
     "name_ext": "actual_data",
 }
 # LIN_CVG = [LIN_CVG_SYNTHETIC, LIN_CVG_ACTUAL_DATA]
