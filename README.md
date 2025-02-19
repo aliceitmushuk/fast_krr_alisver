@@ -6,7 +6,7 @@ We present both a quickstart guide and detailed instructions for reproducing our
 
 ## Quickstart
 
-We present instructions for installing our package via `pip` and using it for example problems.
+We present instructions for installing the repository via `pip` and using `ASkotch` on some example problems.
 
 > [!NOTE]
 > Currently, our implementation can only handle Laplacian, Matérn 1/2, Matérn 3/2, Matérn 5/2, and RBF kernels.
@@ -18,7 +18,7 @@ However, we recommend using a GPU for large-scale problems.
 
 ### Installation
 
-TODO: Add instructions for installing the package via `pip install -e`.
+TODO: Add instructions for installing the package via `pip`.
 
 ### Example usage
 
