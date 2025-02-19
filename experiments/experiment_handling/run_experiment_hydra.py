@@ -1,8 +1,8 @@
 import hydra
 from omegaconf import DictConfig, OmegaConf
 
-from fast_krr.experiment import Experiment
-from fast_krr.experiment_utils import (
+from experiment import Experiment
+from experiment_handling.utils import (
     validate_experiment_args,
     set_precision,
     set_random_seed,
@@ -10,7 +10,6 @@ from fast_krr.experiment_utils import (
 
 
 @hydra.main(version_base=None, config_path=None, config_name=None)
-# @hydra.main(version_base=None, config_path=".", config_name="config")
 def main(cfg: DictConfig):
     """
     Main function to run the experiment using Hydra.

@@ -11,7 +11,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 import torch
 
-from .data_configs import (
+from .configs import (
     DATA_DIR,
     DATA_CONFIGS,
     MOLECULES,

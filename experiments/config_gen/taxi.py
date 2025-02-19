@@ -1,16 +1,16 @@
-from fast_krr.data_configs import DATA_CONFIGS
-from fast_krr.experiment_configs import (
+from data_handling.configs import DATA_CONFIGS
+from experiment_handling.configs import (
     KERNEL_CONFIGS,
     LAMBDA_CONFIGS,
     PERFORMANCE_TIME_CONFIGS,
     LOG_TEST_ONLY,
     FALKON_INDUCING_POINTS_GRID,
 )
-from fast_krr.generate_configs_utils import save_configs
-from generate_configs_full_krr import generate_combinations as gc_full_krr
-from generate_configs_eigenpro2 import generate_combinations as gc_eigenpro2
-from generate_configs_eigenpro3 import generate_combinations as gc_eigenpro3
-from generate_configs_falkon import generate_combinations as gc_falkon
+from config_gen.utils import save_configs
+from config_gen.full_krr import generate_combinations as gc_full_krr
+from config_gen.eigenpro2 import generate_combinations as gc_eigenpro2
+from config_gen.eigenpro3 import generate_combinations as gc_eigenpro3
+from config_gen.falkon import generate_combinations as gc_falkon
 
 SEED = 0
 
@@ -129,6 +129,6 @@ if __name__ == "__main__":
     )
 
     save_configs(combinations_askotchv2 + combinations_pcg, "taxi_full_krr")
-    save_configs(combinations_eigenpro2, "taxi_eigenpro2")
-    save_configs(combinations_eigenpro3, "taxi_eigenpro3")
+    save_configs(combinations_eigenpro2, "taxi_ep2")
+    save_configs(combinations_eigenpro3, "taxi_ep3")
     save_configs(combinations_falkon, "taxi_falkon")

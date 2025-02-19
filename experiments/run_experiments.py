@@ -6,6 +6,9 @@ from concurrent.futures import ThreadPoolExecutor
 from queue import Queue
 import argparse
 
+# Set PYTHONPATH to include experiments/
+os.environ["PYTHONPATH"] = os.path.abspath(os.getcwd())
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run experiments with GPU scheduling.")
@@ -32,7 +35,11 @@ def parse_args():
 
 
 def find_configs(base_dir):
-    return glob(os.path.join(base_dir, "**", "config.yaml"), recursive=True)
+    # Get absolute paths for all config.yaml files
+    return [
+        os.path.abspath(path)
+        for path in glob(os.path.join(base_dir, "**", "config.yaml"), recursive=True)
+    ]
 
 
 def load_progress(progress_file):
@@ -68,7 +75,7 @@ def run_experiment(config_path, gpu_id, timeout_seconds, progress, progress_file
 
     cmd = [
         "python",
-        "run_experiment_hydra.py",
+        "experiment_handling/run_experiment_hydra.py",
         f"--config-path={config_dir}",
         f"--config-name={config_file}",
         f"hydra.run.dir={config_dir}",
