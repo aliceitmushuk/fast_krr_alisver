@@ -1,3 +1,6 @@
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["fast_krr", "fast_krr.*"]  # ✅ Ensures _utils is included

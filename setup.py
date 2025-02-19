@@ -31,14 +31,7 @@ setup(
     keywords=(
         "kernel ridge regression, machine learning, optimization, sketch-and-project"
     ),
-    packages=find_packages(
-        include=[
-            "fast_krr.kernels",
-            "fast_krr.models",
-            "fast_krr.opts",
-            "fast_krr.preconditioners",
-        ]
-    ),
+    packages=find_packages(include=["fast_krr", "fast_krr.*"]),
     package_dir={"fast_krr": "fast_krr"},
     install_requires=parse_requirements("requirements.txt"),
     classifiers=[
