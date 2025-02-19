@@ -5,7 +5,6 @@ from src.experiment_configs import (
     PERFORMANCE_TIME_CONFIGS,
     LOG_TEST_ONLY,
     FALKON_INDUCING_POINTS_GRID,
-    EIGENPRO3_INDUCING_POINTS_GRID,
 )
 from src.generate_configs_utils import save_configs
 from generate_configs_full_krr import generate_combinations as gc_full_krr
@@ -61,7 +60,7 @@ if __name__ == "__main__":
     sweep_params_eigenpro3 = {
         "dataset": ["taxi"],
         "model": ["inducing_krr"],
-        "m": EIGENPRO3_INDUCING_POINTS_GRID,
+        "m": [1_000_000],
         "opt.type": ["eigenpro3"],
         "training.log_freq": [50],
         "training.precision": ["float32"],

@@ -22,12 +22,12 @@ from src.generate_configs_utils import (
 
 SEED = 0
 
-PRECONDITIONERS = ["nystrom", "partial_cholesky"]
+PRECONDITIONERS = ["nystrom", "partial_cholesky", None]
 CHOLESKY_MODES = ["greedy", "rpc"]
 SAMPLING_MODES = ["uniform", "rls"]
 ACC_MODES = [True, False]
 RHO_MODES = ["damped", "regularization"]
-BLK_SZ_FRAC = 0.1
+BLK_SZ_FRAC = 0.01
 
 
 def generate_askotchv2_configs(
@@ -152,7 +152,7 @@ if __name__ == "__main__":
         "model": ["full_krr"],
         "opt.type": ["askotchv2"],
         "precond.r": [100],
-        "training.log_freq": [20],
+        "training.log_freq": [100],
         "training.precision": ["float32"],
         "training.seed": [SEED],
         "training.max_iter": [None],
@@ -202,4 +202,4 @@ if __name__ == "__main__":
         PRECONDITIONERS,
     )
     save_configs(combinations_askotchv2 + combinations_pcg, output_dir)
-    validate_yaml_variations(output_dir)
+    # validate_yaml_variations(output_dir)
