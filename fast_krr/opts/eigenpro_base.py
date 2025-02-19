@@ -1,8 +1,8 @@
 import torch
 
-from .optimizer import Optimizer
-from .utils.bcd import _get_block
-from .utils.minibatch_generator import MinibatchGenerator
+from fast_krr.opts.optimizer import Optimizer
+from fast_krr.opts.utils.bcd import _get_block
+from fast_krr.opts.utils.minibatch_generator import MinibatchGenerator
 
 
 class EigenProBase(Optimizer):

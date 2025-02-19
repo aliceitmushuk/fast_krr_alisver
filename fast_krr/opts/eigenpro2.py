@@ -2,8 +2,8 @@ from typing import Optional
 
 import torch
 
-from .eigenpro_base import EigenProBase
-from .utils.sgd import _get_minibatch
+from fast_krr.opts.eigenpro_base import EigenProBase
+from fast_krr.opts.utils.sgd import _get_minibatch
 
 
 class EigenPro2(EigenProBase):

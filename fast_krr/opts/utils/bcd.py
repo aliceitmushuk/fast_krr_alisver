@@ -1,8 +1,8 @@
 import numpy as np
 import torch
 
-from .general import _get_L, _apply_precond
-from ...preconditioners import preconditioner_inits as pi
+from fast_krr.opts.utils.general import _get_L, _apply_precond
+from fast_krr.preconditioners import preconditioner_inits as pi
 
 
 def _get_blocks(n, B):

@@ -1,5 +1,5 @@
-from .general import _get_L
-from ...preconditioners import preconditioner_inits as pi
+from fast_krr.opts.utils.general import _get_L
+from fast_krr.preconditioners import preconditioner_inits as pi
 
 
 def _get_precond_L(model, precond_params, bH, bH2):
