@@ -1,5 +1,5 @@
 # ASkotch: A Neat Solution for Large-scale KRR
-<img src="logo.webp" alt="ASkotch Logo" width="200" height="200" alt="ASkotch Logo">
+<img src="images/logo.webp" alt="ASkotch Logo" width="200" height="200" alt="ASkotch Logo">
 
 Companion code for [***"Have ASkotch: A Neat Solution for Large-scale Kernel Ridge Regression"***](https://arxiv.org/abs/2407.10070).
 We present both a quickstart guide and detailed instructions for reproducing our experiments and figures.
