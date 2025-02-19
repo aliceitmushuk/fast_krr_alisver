@@ -1,6 +1,6 @@
 *env/
 *.pdf
-data/
+experiments/data/
 wandb/
 __pycache__/
 fast_krr.egg-info/

@@ -14,7 +14,7 @@ class ASkotchV2(Optimizer):
         self,
         model,
         block_sz,
-        sampling_method="rls",
+        sampling_method="uniform",
         precond_params=None,
         mu=None,
         nu=None,
