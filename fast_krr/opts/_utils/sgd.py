@@ -1,4 +1,4 @@
-from fast_krr.opts.utils.general import _get_L
+from fast_krr.opts._utils.general import _get_L
 from fast_krr.preconditioners import preconditioner_inits as pi
 
 
