@@ -129,6 +129,6 @@ if __name__ == "__main__":
     )
 
     save_configs(combinations_askotchv2 + combinations_pcg, "taxi_full_krr")
-    save_configs(combinations_eigenpro2, "taxi_eigenpro2")
-    save_configs(combinations_eigenpro3, "taxi_eigenpro3")
+    save_configs(combinations_eigenpro2, "taxi_ep2")
+    save_configs(combinations_eigenpro3, "taxi_ep3")
     save_configs(combinations_falkon, "taxi_falkon")
