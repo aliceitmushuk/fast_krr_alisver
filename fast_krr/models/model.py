@@ -4,7 +4,7 @@ from typing import Dict, Union
 from pykeops.torch import LazyTensor
 import torch
 
-from ..kernels.kernel_inits import (
+from fast_krr.kernels.kernel_inits import (
     _get_kernel,
     _get_trace,
     _get_row,

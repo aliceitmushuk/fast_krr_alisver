@@ -1,13 +1,13 @@
 import torch
 from pykeops.torch import LazyTensor
 
-from ..kernels.kernel_inits import (
+from fast_krr.kernels.kernel_inits import (
     _get_kernel,
     _get_kernels_start,
     _get_trace,
     _get_diag,
 )
-from .model import Model
+from fast_krr.models.model import Model
 
 
 class FullKRR(Model):
