@@ -30,7 +30,7 @@ ASKOTCH_FILTER = {
     and run.config["precond_params"]["rho"] == "damped",
     "sampling": lambda run: run.config["sampling_method"] == "uniform",
     "precision": lambda run: run.config["precision"] == "float64",
-    # "finished": lambda run: run.state == "finished",
+    "finished": lambda run: run.state == "finished",
 }
 SAP_FILTER = {
     "optimizer": lambda run: run.config["opt"] == "askotchv2",
@@ -41,7 +41,7 @@ SAP_FILTER = {
     and run.config["precond_params"]["rho"] == "regularization",
     "sampling": lambda run: run.config["sampling_method"] == "uniform",
     "precision": lambda run: run.config["precision"] == "float64",
-    # "finished": lambda run: run.state == "finished",
+    "finished": lambda run: run.state == "finished",
 }
 
 

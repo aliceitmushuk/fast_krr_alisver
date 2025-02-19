@@ -4,22 +4,9 @@ SYNTHETIC_D = 10
 
 DATA_DIR = "./data/"
 DATA_CONFIGS = {
-    "a9a": {
-        "tr": "a9a",
-        "tst": "a9a.t",
-        "loading": "libsvm_multiple",
-        "task": "classification",
-    },
     "acsincome": {
         "tr": "acsincome_data.pkl",
         "tgt": "acsincome_target.pkl",
-        "loading": "pkl",
-        "split": 0.8,
-        "task": "regression",
-    },
-    "airlines": {
-        "tr": "airlines_data.pkl",
-        "tgt": "airlines_target.pkl",
         "loading": "pkl",
         "split": 0.8,
         "task": "regression",
@@ -36,7 +23,6 @@ DATA_CONFIGS = {
         "split": 0.8,
         "task": "regression",
     },
-    "cadata": {"tr": "cadata", "loading": "libsvm", "split": 0.8, "task": "regression"},
     "cifar10": {
         "tr": "cifar10_data.pkl",
         "tgt": "cifar10_target.pkl",
@@ -54,12 +40,6 @@ DATA_CONFIGS = {
         "label_map": {"0": -1, "1": 1},
         "task": "classification",
     },
-    "cod_rna": {
-        "tr": "cod-rna",
-        "tst": "cod-rna.t",
-        "loading": "libsvm_multiple",
-        "task": "classification",
-    },
     "comet_mc": {
         "tr": "comet_mc_data.pkl",
         "tgt": "comet_mc_target.pkl",
@@ -68,35 +48,12 @@ DATA_CONFIGS = {
         "label_map": {0: -1, 1: 1},
         "task": "classification",
     },
-    "connect_4": {
-        "tr": "connect-4",
-        "loading": "libsvm",
-        "split": 0.8,
-        "label_map": {-1: -1, 0: 1, 1: 1},
-        "task": "classification",
-    },
     "covtype_binary": {
         "tr": "covtype.libsvm.binary.scale",
         "loading": "libsvm",
         "split": 0.8,
         "label_map": {1: -1, 2: 1},
         "task": "classification",
-    },
-    "creditcard": {
-        "tr": "creditcard_data.pkl",
-        "tgt": "creditcard_target.pkl",
-        "loading": "pkl",
-        "split": 0.8,
-        "label_map": {"0": -1, "1": 1},
-        "task": "classification",
-    },
-    "diamonds": {
-        "tr": "diamonds_data.pkl",
-        "tgt": "diamonds_target.pkl",
-        "loading": "pkl",
-        "split": 0.8,
-        "one_hot_features": ["cut", "color", "clarity"],
-        "task": "regression",
     },
     "ethanol": {
         "tr": "md17_ethanol.npz",
@@ -121,41 +78,11 @@ DATA_CONFIGS = {
         "label_map": {0: -1, 1: 1},
         "task": "classification",
     },
-    "hls4ml": {
-        "tr": "hls4ml_data.pkl",
-        "tgt": "hls4ml_target.pkl",
-        "loading": "pkl",
-        "split": 0.8,
-        "label_map": {"g": -1, "w": 1, "t": 1, "z": 1, "q": 1},
-        "task": "classification",
-    },
-    "ijcnn1": {
-        "tr": "ijcnn1.tr",
-        "tst": "ijcnn1.t",
-        "loading": "libsvm_multiple",
-        "task": "classification",
-    },
-    "jannis": {
-        "tr": "jannis_data.pkl",
-        "tgt": "jannis_target.pkl",
-        "loading": "pkl",
-        "split": 0.8,
-        "label_map": {"0": -1, "1": 1},
-        "task": "classification",
-    },
     "malonaldehyde": {
         "tr": "md17_malonaldehyde.npz",
         "loading": "npz",
         "split": 0.8,
         "task": "regression",
-    },
-    "medical": {
-        "tr": "medical_data.pkl",
-        "tgt": "medical_target.pkl",
-        "loading": "pkl",
-        "split": 0.8,
-        "label_map": {0.0: -1, 1.0: 1},
-        "task": "classification",
     },
     "miniboone": {
         "tr": "miniboone_data.pkl",
@@ -180,13 +107,6 @@ DATA_CONFIGS = {
         "split": 0.8,
         "task": "regression",
     },
-    "phishing": {
-        "tr": "phishing",
-        "loading": "libsvm",
-        "split": 0.8,
-        "label_map": {0: -1, 1: 1},
-        "task": "classification",
-    },
     "qm9": {
         "tr": "qm9.mat",
         "loading": "mat",
@@ -199,35 +119,6 @@ DATA_CONFIGS = {
         "loading": "npz",
         "split": 0.8,
         "task": "regression",
-    },
-    "santander": {
-        "tr": "santander_data.pkl",
-        "tgt": "santander_target.pkl",
-        "loading": "pkl",
-        "split": 0.8,
-        "label_map": {"False": -1, "True": 1},
-        "task": "classification",
-    },
-    "sensit_vehicle": {
-        "tr": "combined_scale",
-        "tst": "combined_scale.t",
-        "loading": "libsvm_multiple",
-        "label_map": {1: -1, 2: 1, 3: 1},
-        "task": "classification",
-    },
-    "sensorless": {
-        "tr": "Sensorless.scale.tr",
-        "tst": "Sensorless.scale.val",
-        "loading": "libsvm_multiple",
-        "label_map": {i: 1 if i != 1 else -1 for i in range(1, 12)},
-        "task": "classification",
-    },
-    "skin_nonskin": {
-        "tr": "skin_nonskin",
-        "loading": "libsvm",
-        "split": 0.8,
-        "label_map": {1: -1, 2: 1},
-        "task": "classification",
     },
     "susy": {
         "tr": "SUSY",
@@ -269,20 +160,6 @@ DATA_CONFIGS = {
         "loading": "npz",
         "split": 0.8,
         "task": "regression",
-    },
-    "volkert": {
-        "tr": "volkert_data.pkl",
-        "tgt": "volkert_target.pkl",
-        "loading": "pkl",
-        "split": 0.8,
-        "label_map": {f"{i}": 1 if i != 0 else -1 for i in range(10)},
-        "task": "classification",
-    },
-    "w8a": {
-        "tr": "w8a",
-        "tst": "w8a.t",
-        "loading": "libsvm_multiple",
-        "task": "classification",
     },
     "yearpredictionmsd": {
         "tr": "YearPredictionMSD",

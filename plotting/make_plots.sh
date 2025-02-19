@@ -7,7 +7,6 @@ scripts=(
     "performance_comparison.py"
     "performance_overall.py"
     "showcase.py"
-    "dims.py"
     "iter_times.py"
 )
 

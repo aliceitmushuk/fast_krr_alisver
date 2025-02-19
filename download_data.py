@@ -143,55 +143,23 @@ def main():
     # From LIBSVM
     url_stem = "https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary"
     datasets = [
-        "cod-rna",
-        "cod-rna.t",
         "covtype.libsvm.binary.scale.bz2",
         "HIGGS.xz",
-        "ijcnn1.tr.bz2",
-        "ijcnn1.t.bz2",
-        "w8a",
-        "w8a.t",
-        "a9a",
-        "a9a.t",
-        "phishing",
-        "skin_nonskin",
         "SUSY.xz",
     ]
     download_libsvm(url_stem, datasets, directory)
 
-    url_stem = "https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/multiclass"
-    datasets = ["connect-4", "Sensorless.scale.tr", "Sensorless.scale.val"]
-    download_libsvm(url_stem, datasets, directory)
-
-    url_stem = (
-        "https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/multiclass/vehicle"
-    )
-    datasets = [
-        "combined_scale.bz2",
-        "combined_scale.t.bz2",  # SENSit Vehicle (combined)
-    ]
-    download_libsvm(url_stem, datasets, directory)
-
     url_stem = "https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/regression"
-    datasets = ["YearPredictionMSD.bz2", "YearPredictionMSD.t.bz2", "cadata"]
+    datasets = ["YearPredictionMSD.bz2", "YearPredictionMSD.t.bz2"]
     download_libsvm(url_stem, datasets, directory)
 
     # From OpenML
     datasets = [
         ("acsincome", 43141),
-        ("airlines", 45047),
         ("comet_mc", 23397),
-        ("creditcard", 1597),
-        ("diamonds", 42225),
-        ("hls4ml", 42468),
-        ("jannis", 45021),
-        ("medical", 43617),
-        ("mnist", 554),
-        ("volkert", 41166),
         ("yolanda", 42705),
         ("click_prediction", 1218),
         ("miniboone", 41150),
-        ("santander", 45566),
     ]
     download_openml(datasets, directory)
 
