@@ -1,8 +1,8 @@
 import torch
 
 from fast_krr.opts.optimizer import Optimizer
-from fast_krr.opts.utils.general import _apply_precond
-from fast_krr.opts.utils.pcg import _get_precond
+from fast_krr.opts._utils.general import _apply_precond
+from fast_krr.opts._utils.pcg import _get_precond
 
 
 class PCG(Optimizer):

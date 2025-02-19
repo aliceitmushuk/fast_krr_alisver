@@ -5,7 +5,7 @@ import torch
 from fast_krr.opts.eigenpro_base import EigenProBase
 from fast_krr.opts.eigenpro2 import EigenPro2
 from fast_krr.models import FullKRR
-from fast_krr.opts.utils.sgd import _get_minibatch
+from fast_krr.opts._utils.sgd import _get_minibatch
 
 
 class EigenPro4(EigenProBase):
