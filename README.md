@@ -1,15 +1,20 @@
-# Fast KRR
-
-<img src="logo.webp" width="200" height="200" alt="ASkotch Logo">
+<div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+  <span style="font-size: 2em; font-weight: bold;">Fast KRR</span>
+  <img src="logo.webp" width="100" height="100" alt="ASkotch Logo">
+</div>
 
 Companion code for "Have ASkotch: A Neat Solution for Large-scale Kernel Ridge Regression".
 
-## Recreating the Python environment
-
-Please create a Python virtual environment (our experiments use Python 3.10.12) and activate it. After activation, please run `pip install -r requirements.txt`
-to download all required dependencies.
-
 ## Instructions for reproducing our experiments and figures
+Our experiments have a lot of moving parts.
+Below, we provide an overview of the steps needed to reproduce our results.
+
+### Recreating the Python environment
+
+> [!IMPORTANT]
+> Our experiments use `Python 3.10.12` and `CUDA 12.5`. We recommend using these (or higher) Python and CUDA versions.
+
+Please [create a virtual environment](https://docs.python.org/3/library/venv.html) and activate it. After activation, please run `pip install -r requirements.txt` to download all required dependencies.
 
 ### Downloading the datasets for experiments
 
@@ -27,11 +32,12 @@ This shell script will generate a `.h5py` file for each month from January 2009 
 > [!IMPORTANT]
 > We log the results of our experiments using Weights & Biases.
 To properly run the experiments, please create a Weights & Biases account and set up the API key.
-
-#### Sections 6.1 and 6.4
+Weights & Biases provides some [helpful documentation](https://docs.wandb.ai/quickstart/) on how to do this.
 
 > [!WARNING]
-> These experiments are computationally expensive and will probably take > 1 week to run on a single GPU.
+> These experiments are computationally expensive and will likely take > 2 weeks to run on a single GPU.
+
+#### Sections 6.1 and 6.4
 
 To run the experiments in Sections 6.1 and 6.4, run `generate_configs_full_krr.py`, `generate_configs_eigenpro2.py`, `generate_configs_eigenpro3.py`, and `generate_configs_falkon.py`.
 These scripts will generate configuration `.yaml` files in folders called `performance_full_krr`, `performance_full_krr_ep2`, `performance_inducing_krr_ep3`, and `performance_inducing_krr`.
@@ -42,11 +48,9 @@ To run each set of experiments, run `run_experiments.py` with the appropriate co
 python run_experiments.py --base-dir performance_full_krr --devices 0 1 --grace-period-factor 0.4
 ```
 
-The argument `--devices` specifies the GPU devices to use, and `--grace-period-factor` specifies the amount of extra time to run the method (since `run_experiments.py` does not account for time taken to perform inference on the test set during experiments).
+The argument `--devices` specifies the GPU devices to use, and `--grace-period-factor` specifies the amount of extra time to run a given experiment (since `run_experiments.py` does not account for time taken to perform inference on the test set during experiments).
 Specifying multiple GPUs will run multiple experiments at the same time.
 For example, `--devices 0 1` will run two experiments at the same time, one on GPU 0 and the other on GPU 1.
-
-TODO: Add warning about the time taken to run the experiments.
 
 #### Section 6.2
 
