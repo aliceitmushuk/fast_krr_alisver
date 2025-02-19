@@ -6,7 +6,6 @@ from src.experiment_configs import (
 )
 from src.generate_configs_utils import save_configs
 from generate_configs_full_krr import generate_combinations as gc_full_krr
-from generate_configs_mimosa import generate_combinations as gc_mimosa
 
 SEED = 0
 
@@ -14,9 +13,7 @@ PRECONDITIONERS = ["nystrom"]
 CHOLESKY_MODES = [None]
 SAMPLING_MODES = ["uniform"]
 ACC_MODES = [True]
-BG_MODES = [256]
 RHO_MODES = ["damped"]
-RHO_MODES_MIMOSA = [1e0, 3e0, 1e1, 3e1, 1e2]
 BLK_SZ_FRAC = 0.01
 FAKE_TIME_CONFIG = {
     "comet_mc": 180000,
@@ -142,52 +139,6 @@ def _get_sap_combos_synthetic(sweep_params_askotchv2_base):
     )
 
 
-def _get_mimosa_combos(dataset, max_iter):
-    sweep_params_mimosa_base = {
-        "dataset": dataset,
-        "model": ["inducing_krr"],
-        "m": [10_000],
-        "opt.type": ["mimosa"],
-        "precond.use_cpu": [False],
-        "training.log_freq": [200],
-        "training.precision": ["float64"],
-        "training.seed": [SEED],
-        "training.max_iter": max_iter,
-        "wandb.project": ["lin_cvg_inducing_krr"],
-    }
-    sweep_params_mimosa = {
-        **sweep_params_mimosa_base,
-        "precond.r": [10, 20, 50, 100],
-    }
-    sweep_params_saga = {
-        **sweep_params_mimosa_base,
-        "precond.r": [None],
-    }
-
-    combinations_mimosa = gc_mimosa(
-        sweep_params_mimosa,
-        KERNEL_CONFIGS,
-        DATA_CONFIGS,
-        LAMBDA_CONFIGS,
-        FAKE_TIME_CONFIG,
-        LOG_TEST_ONLY,
-        RHO_MODES_MIMOSA,
-        BG_MODES,
-    )
-    combinations_saga = gc_mimosa(
-        sweep_params_saga,
-        KERNEL_CONFIGS,
-        DATA_CONFIGS,
-        LAMBDA_CONFIGS,
-        FAKE_TIME_CONFIG,
-        LOG_TEST_ONLY,
-        RHO_MODES_MIMOSA,
-        BG_MODES,
-        [None],
-    )
-    return combinations_mimosa + combinations_saga
-
-
 if __name__ == "__main__":
     datasets = ["comet_mc", "click_prediction", "acsincome", "uracil"]
 
@@ -198,14 +149,12 @@ if __name__ == "__main__":
     combinations_sap = _get_sap_combos_synthetic(sweep_params_askotchv2_base)
     combinations_synthetic = combinations_askotchv2 + combinations_sap
 
-    # All other datasets (ASkotch + Mimosa)
+    # All other datasets (ASkotch)
     combinations_datasets_askotchv2, _ = _get_askotch_combos(
         datasets, [20_000], BLK_SZ_FRAC
     )
-    combinations_datasets_mimosa = _get_mimosa_combos(datasets, [100_000])
 
     save_configs(
         combinations_synthetic + combinations_datasets_askotchv2,
         "lin_cvg_full_krr",
     )
-    save_configs(combinations_datasets_mimosa, "lin_cvg_inducing_krr")

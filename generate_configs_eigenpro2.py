@@ -66,7 +66,7 @@ if __name__ == "__main__":
         "wandb.project": ["performance_full_krr_v2"],
     }
 
-    output_dir = "performance_full_krr_v2_eigenpro2"
+    output_dir = "performance_full_krr_ep2"
 
     combinations_eigenpro2 = generate_combinations(
         sweep_params_performance_eigenpro2,

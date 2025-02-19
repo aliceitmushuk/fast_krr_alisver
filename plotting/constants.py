@@ -3,6 +3,12 @@ import numpy as np
 
 from compressed_root_norm import CompressedRootNorm
 
+# wandb project names
+ENTITY_NAME = "sketchy-opts"
+PROJECT_FULL_KRR = "performance_full_krr_v2_"
+PROJECT_INDUCING_KRR = "performance_inducing_krr_"
+PROJECT_LIN_CVG = "lin_cvg_full_krr_"
+
 # high-level plotting parameters
 USE_LATEX = True
 FONTSIZE = 20
@@ -148,12 +154,6 @@ PERFORMANCE_AXIS_LABELS = {
 
 # sorting keys for hyperparameters
 SORT_KEYS = ["opt", "accelerated", "sampling_method", "precond_type", "r", "b", "m"]
-
-# wandb project names
-ENTITY_NAME = "sketchy-opts"
-PROJECT_FULL_KRR = "performance_full_krr_v2_"
-PROJECT_INDUCING_KRR = "performance_inducing_krr_"
-PROJECT_LIN_CVG = "lin_cvg_full_krr_"
 
 # dataset-specific plotting parameters
 VISION = {

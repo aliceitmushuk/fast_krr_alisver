@@ -171,7 +171,7 @@ if __name__ == "__main__":
         "wandb.project": ["performance_full_krr_v2"],
     }
 
-    output_dir = "performance_full_krr_v2"
+    output_dir = "performance_full_krr"
 
     combinations_askotchv2 = generate_combinations(
         sweep_params_performance_full_krr_askotchv2,
