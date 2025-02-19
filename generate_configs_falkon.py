@@ -1,15 +1,15 @@
 import itertools
 from pprint import pprint
 
-from src.data_configs import DATA_CONFIGS, PERFORMANCE_DATASETS
-from src.experiment_configs import (
+from fast_krr.data_configs import DATA_CONFIGS, PERFORMANCE_DATASETS
+from fast_krr.experiment_configs import (
     KERNEL_CONFIGS,
     LAMBDA_CONFIGS,
     PERFORMANCE_TIME_CONFIGS,
     LOG_TEST_ONLY,
     FALKON_INDUCING_POINTS_GRID,
 )
-from src.generate_configs_utils import (
+from fast_krr.generate_configs_utils import (
     add_kernel_params,
     generate_falkon_configs,
     get_nested_config,

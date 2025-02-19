@@ -12,7 +12,7 @@ import torch
 import qml
 from scipy.io import savemat
 
-from src.data_vision import process_all_datasets
+from fast_krr.data_vision import process_all_datasets
 
 
 def decompress_bz2(dataset, directory, file_path):

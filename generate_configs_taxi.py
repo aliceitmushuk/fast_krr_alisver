@@ -1,12 +1,12 @@
-from src.data_configs import DATA_CONFIGS
-from src.experiment_configs import (
+from fast_krr.data_configs import DATA_CONFIGS
+from fast_krr.experiment_configs import (
     KERNEL_CONFIGS,
     LAMBDA_CONFIGS,
     PERFORMANCE_TIME_CONFIGS,
     LOG_TEST_ONLY,
     FALKON_INDUCING_POINTS_GRID,
 )
-from src.generate_configs_utils import save_configs
+from fast_krr.generate_configs_utils import save_configs
 from generate_configs_full_krr import generate_combinations as gc_full_krr
 from generate_configs_eigenpro2 import generate_combinations as gc_eigenpro2
 from generate_configs_eigenpro3 import generate_combinations as gc_eigenpro3

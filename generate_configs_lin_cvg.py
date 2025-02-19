@@ -1,10 +1,10 @@
-from src.data_configs import DATA_CONFIGS, SYNTHETIC_NTR
-from src.experiment_configs import (
+from fast_krr.data_configs import DATA_CONFIGS, SYNTHETIC_NTR
+from fast_krr.experiment_configs import (
     KERNEL_CONFIGS,
     LAMBDA_CONFIGS,
     LOG_TEST_ONLY,
 )
-from src.generate_configs_utils import save_configs
+from fast_krr.generate_configs_utils import save_configs
 from generate_configs_full_krr import generate_combinations as gc_full_krr
 
 SEED = 0
