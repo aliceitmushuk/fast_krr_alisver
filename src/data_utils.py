@@ -91,13 +91,6 @@ def _map_labels(y: np.ndarray, label_map: dict) -> np.ndarray:
     return np.vectorize(label_map.get)(y)
 
 
-def _one_hot_encode(X: pd.DataFrame, one_hot_features: list[str]) -> pd.DataFrame:
-    X_encoded = pd.get_dummies(X, columns=one_hot_features)
-    encoded_cols = X_encoded.columns.difference(X.columns)
-    X_encoded[encoded_cols] = X_encoded[encoded_cols].astype(int)
-    return X_encoded
-
-
 def _process_molecule(R: np.ndarray) -> np.ndarray:
     n_atoms = R.shape[1]
     X = np.sum((R[:, :, np.newaxis, :] - R[:, np.newaxis, :, :]) ** 2, axis=-1) ** 0.5
@@ -163,14 +156,6 @@ def load_data(dataset: str, seed: int, device: torch.device) -> tuple[torch.Tens
         y = _map_labels(y, label_map)
         if ytst is not None:
             ytst = _map_labels(ytst, label_map)
-
-    # One-hot encoding
-    # only works for pandas DataFrames (basically just openml datasets)
-    one_hot_features = data_config.get("one_hot_features", None)
-    if one_hot_features is not None:
-        X = _one_hot_encode(X, one_hot_features)
-        if Xtst is not None:
-            Xtst = _one_hot_encode(Xtst, one_hot_features)
 
     # Turn sparse matrices and pandas DataFrames into numpy arrays
     X = _convert_to_numpy(X)
