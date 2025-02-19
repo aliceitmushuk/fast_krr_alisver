@@ -1,3 +1,9 @@
+"""
+Implementation of BLESS algorithm for approximate ridge leverage score sampling.
+Adapted from the original implementation at
+https://github.com/guilgautier/DPPy/blob/master/dppy/bless.py.
+"""
+
 from collections import namedtuple
 
 import torch

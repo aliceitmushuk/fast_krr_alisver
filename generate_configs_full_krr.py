@@ -2,14 +2,14 @@ import itertools
 import glob
 import yaml
 
-from src.data_configs import DATA_CONFIGS, PERFORMANCE_DATASETS
-from src.experiment_configs import (
+from fast_krr.data_configs import DATA_CONFIGS, PERFORMANCE_DATASETS
+from fast_krr.experiment_configs import (
     KERNEL_CONFIGS,
     LAMBDA_CONFIGS,
     PERFORMANCE_TIME_CONFIGS,
     LOG_TEST_ONLY,
 )
-from src.generate_configs_utils import (
+from fast_krr.generate_configs_utils import (
     add_kernel_params,
     generate_newton_configs,
     generate_nystrom_configs,
@@ -171,7 +171,7 @@ if __name__ == "__main__":
         "wandb.project": ["performance_full_krr_v2"],
     }
 
-    output_dir = "performance_full_krr_v2"
+    output_dir = "performance_full_krr"
 
     combinations_askotchv2 = generate_combinations(
         sweep_params_performance_full_krr_askotchv2,

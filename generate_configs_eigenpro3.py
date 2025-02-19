@@ -1,13 +1,13 @@
 import itertools
 
-from src.data_configs import DATA_CONFIGS, PERFORMANCE_DATASETS
-from src.experiment_configs import (
+from fast_krr.data_configs import DATA_CONFIGS, PERFORMANCE_DATASETS
+from fast_krr.experiment_configs import (
     KERNEL_CONFIGS,
     PERFORMANCE_TIME_CONFIGS,
     LOG_TEST_ONLY,
     EIGENPRO3_INDUCING_POINTS_GRID,
 )
-from src.generate_configs_utils import (
+from fast_krr.generate_configs_utils import (
     add_kernel_params,
     get_nested_config,
     save_configs,
@@ -68,7 +68,7 @@ if __name__ == "__main__":
         "wandb.project": ["performance_inducing_krr"],
     }
 
-    output_dir = "performance_inducing_krr_eigenpro3"
+    output_dir = "performance_inducing_krr_ep3"
 
     combinations_eigenpro3 = generate_combinations(
         sweep_params_performance_eigenpro3,

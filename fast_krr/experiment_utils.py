@@ -5,8 +5,8 @@ import warnings
 import numpy as np
 import torch
 
-from src.models import FullKRR, InducingKRR
-from src.opts import ASkotch, ASkotchV2, EigenPro2, EigenPro3, Mimosa, PCG
+from fast_krr.models import FullKRR, InducingKRR
+from fast_krr.opts import ASkotch, ASkotchV2, EigenPro2, EigenPro3, Mimosa, PCG
 
 OPT_CLASSES = {
     "askotch": ASkotch,

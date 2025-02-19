@@ -26,12 +26,7 @@ class ASkotchV2(Optimizer):
         self.nu = nu if nu is not None else self.model.n / self.block_sz
         self.accelerated = accelerated
 
-        # TODO(pratik): check that nu > mu
-
-        # TODO(pratik): try automatically setting eta
-        # Idea: take a bunch of randomly sampled blocks (according to leverage scores),
-        # and compute eta via powering
-        # Then take the geometric mean of these etas to set the stepsize
+        # TODO(pratik): check that nu > mu and mu * nu <= 1
 
         # Compute sampling probabilities
         if sampling_method == "rls":
