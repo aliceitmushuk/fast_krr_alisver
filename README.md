@@ -1,9 +1,7 @@
-<div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
-  <span style="font-size: 2em; font-weight: bold;">Fast KRR</span>
-  <img src="logo.webp" width="100" height="100" alt="ASkotch Logo">
-</div>
+# ASkotch: A Neat Solution for Large-scale KRR
+<img src="logo.webp" alt="ASkotch Logo" width="200" height="200" alt="ASkotch Logo">
 
-Companion code for "Have ASkotch: A Neat Solution for Large-scale Kernel Ridge Regression".
+Companion code for [***"Have ASkotch: A Neat Solution for Large-scale Kernel Ridge Regression"***](https://arxiv.org/abs/2407.10070).
 
 ## Instructions for reproducing our experiments and figures
 Our experiments have a lot of moving parts.
@@ -31,7 +29,7 @@ This shell script will generate a `.h5py` file for each month from January 2009 
 
 > [!IMPORTANT]
 > We log the results of our experiments using Weights & Biases.
-To properly run the experiments, please create a Weights & Biases account and set up the API key.
+To properly run the experiments, please create a Weights & Biases account and set up an API key.
 Weights & Biases provides some [helpful documentation](https://docs.wandb.ai/quickstart/) on how to do this.
 
 > [!WARNING]
