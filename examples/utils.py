@@ -1,33 +1,21 @@
 import os
 from typing import Optional, Union
 
-import h5py
 import numpy as np
 import pandas as pd
-from scipy.io import loadmat
 from scipy.sparse import issparse, csr_matrix
-from sklearn.datasets import load_svmlight_file, load_svmlight_files
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 import torch
 
 from .configs import (
     DATA_DIR,
-    DATA_CONFIGS,
-    MOLECULES,
     REMOVE_LABEL_MEANS,
-    SYNTHETIC_NTR,
-    SYNTHETIC_NTST,
-    SYNTHETIC_D,
 )
 
 LOADING_METHODS = {
-    "libsvm": load_svmlight_file,
-    "libsvm_multiple": load_svmlight_files,
-    "h5py": h5py.File,
     "npz": np.load,
     "pkl": pd.read_pickle,
-    "mat": loadmat,
 }
 
 
@@ -58,7 +46,6 @@ def _np_to_torch(
 ) -> tuple[torch.Tensor]:
     X = torch.from_numpy(X)
     X = X.to(dtype=torch.get_default_dtype(), device=device)
-    # X.requires_grad = True
     X.requires_grad = False
     y = torch.from_numpy(y)
     y = y.to(dtype=torch.get_default_dtype(), device=device)
@@ -108,31 +95,18 @@ def _convert_to_numpy(data: Union[csr_matrix, pd.DataFrame, np.ndarray]) -> np.n
         return data
 
 
-def load_data(dataset: str, seed: int, device: torch.device) -> tuple[torch.Tensor]:
-    if dataset not in DATA_CONFIGS:
-        raise ValueError(f"We do not currently support dataset {dataset}")
-
-    data_config = DATA_CONFIGS[dataset]
+def load_data(
+    dataset: str, data_config: dict, seed: int, device: torch.device
+) -> tuple[torch.Tensor]:
     ftr = data_config.get("tr", None)
-    ftst = data_config.get("tst", None)
     ftgt = data_config.get("tgt", None)
     loading_method = LOADING_METHODS.get(data_config.get("loading", None), None)
 
     X, Xtst, y, ytst = None, None, None, None
 
     # Load data, accounting for special cases
-    if dataset == "synthetic":
-        X, y = _generate_synthetic_data(SYNTHETIC_NTR + SYNTHETIC_NTST, SYNTHETIC_D)
-    elif dataset == "qm9":
-        data = loading_method(os.path.join(DATA_DIR, ftr))
-        X, y = data["X"], data["Y"]
-        y = np.squeeze(y)  # Remove singleton dimension due to .mat format
-    elif dataset == "taxi":
-        with loading_method(os.path.join(DATA_DIR, ftr), "r") as f:
-            X, y = f["X"][()], f["Y"][()]
-        y = np.squeeze(y)
     # sgdml datasets
-    elif dataset in MOLECULES:
+    if dataset == "uracil":
         data = loading_method(os.path.join(DATA_DIR, ftr))
         X = _process_molecule(data["R"])
         y = np.squeeze(data["E"])
@@ -141,14 +115,6 @@ def load_data(dataset: str, seed: int, device: torch.device) -> tuple[torch.Tens
         if ftr is not None and ftgt is not None:
             X = loading_method(os.path.join(DATA_DIR, ftr))
             y = loading_method(os.path.join(DATA_DIR, ftgt))
-        # libsvm datasets with train-test split
-        elif ftr is not None and ftst is not None:
-            X, y, Xtst, ytst = loading_method(
-                [os.path.join(DATA_DIR, ftr), os.path.join(DATA_DIR, ftst)]
-            )
-        # libsvm datasets without train-test split
-        elif ftr is not None:
-            X, y = loading_method(os.path.join(DATA_DIR, ftr))
 
     # Label processing
     label_map = data_config.get("label_map", None)
