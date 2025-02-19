@@ -21,14 +21,16 @@ setup(
     version=get_version(),  # Dynamically fetch from __init__.py
     author="Pratik Rathore, Zachary Frangella",
     author_email="pratikr@stanford.edu, zfran@stanford.edu",
-    description="Fast kernel ridge regression using approximate \
-        sketch-and-project methods",
+    description=(
+        "Fast kernel ridge regression using approximate sketch-and-project methods"
+    ),
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/pratikrathore8/fast_krr",
     license="MIT",
-    keywords="kernel ridge regression, machine learning, optimization, \
-        sketch-and-project",
+    keywords=(
+        "kernel ridge regression, machine learning, optimization, sketch-and-project"
+    ),
     packages=find_packages(
         include=[
             "fast_krr.kernels",
