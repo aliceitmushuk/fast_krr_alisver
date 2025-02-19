@@ -1,9 +1,14 @@
 import torch
 import wandb
 
-from .utils import get_full_krr, get_inducing_krr, get_opt, get_bandwidth
-from ..data_handling.utils import load_data
-from .logger import Logger
+from experiment_handling.utils import (
+    get_full_krr,
+    get_inducing_krr,
+    get_opt,
+    get_bandwidth,
+)
+from data_handling.utils import load_data
+from logger import Logger
 
 N_PAIRS = 1000  # Number of samples for median heuristic in kernel bandwidth computation
 

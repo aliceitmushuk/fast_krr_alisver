@@ -1,8 +1,8 @@
 import hydra
 from omegaconf import DictConfig, OmegaConf
 
-from .experiment import Experiment
-from .utils import (
+from experiment import Experiment
+from experiment_handling.utils import (
     validate_experiment_args,
     set_precision,
     set_random_seed,
