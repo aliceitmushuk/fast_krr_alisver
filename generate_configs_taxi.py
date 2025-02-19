@@ -8,6 +8,8 @@ from src.experiment_configs import (
 )
 from src.generate_configs_utils import save_configs
 from generate_configs_full_krr import generate_combinations as gc_full_krr
+from generate_configs_eigenpro2 import generate_combinations as gc_eigenpro2
+from generate_configs_eigenpro3 import generate_combinations as gc_eigenpro3
 from generate_configs_falkon import generate_combinations as gc_falkon
 from generate_configs_mimosa import generate_combinations as gc_mimosa
 
@@ -44,6 +46,27 @@ if __name__ == "__main__":
         "training.seed": [SEED],
         "training.max_iter": [None],
         "wandb.project": ["performance_full_krr"],
+    }
+    sweep_params_eigenpro2 = {
+        "dataset": ["taxi"],
+        "model": ["full_krr"],
+        "opt.type": ["eigenpro2"],
+        "training.log_freq": [200],
+        "training.precision": ["float32"],
+        "training.seed": [SEED],
+        "training.max_iter": [None],
+        "wandb.project": ["performance_full_krr"],
+    }
+    sweep_params_eigenpro3 = {
+        "dataset": ["taxi"],
+        "model": ["inducing_krr"],
+        "m": [1_000_000],
+        "opt.type": ["eigenpro3"],
+        "training.log_freq": [50],
+        "training.precision": ["float32"],
+        "training.seed": [SEED],
+        "training.max_iter": [None],
+        "wandb.project": ["performance_inducing_krr"],
     }
     sweep_params_falkon = {
         "dataset": ["taxi"],
@@ -98,6 +121,20 @@ if __name__ == "__main__":
         BLK_SZ_FRAC,
         PRECONDITIONERS,
     )
+    combinations_eigenpro2 = gc_eigenpro2(
+        sweep_params_eigenpro2,
+        KERNEL_CONFIGS,
+        DATA_CONFIGS,
+        PERFORMANCE_TIME_CONFIGS,
+        LOG_TEST_ONLY,
+    )
+    combinations_eigenpro3 = gc_eigenpro3(
+        sweep_params_eigenpro3,
+        KERNEL_CONFIGS,
+        DATA_CONFIGS,
+        PERFORMANCE_TIME_CONFIGS,
+        LOG_TEST_ONLY,
+    )
     combinations_falkon = gc_falkon(
         sweep_params_falkon,
         KERNEL_CONFIGS,
@@ -118,5 +155,7 @@ if __name__ == "__main__":
     )
 
     save_configs(combinations_askotchv2 + combinations_pcg, "taxi_full_krr")
+    save_configs(combinations_eigenpro2, "taxi_eigenpro2")
+    save_configs(combinations_eigenpro3, "taxi_eigenpro3")
     save_configs(combinations_falkon, "taxi_falkon")
     save_configs(combinations_mimosa, "taxi_mimosa")

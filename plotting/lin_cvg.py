@@ -9,17 +9,13 @@ from constants import (
     BASE_SAVE_DIR,
     EXTENSION,
 )
-from constants import ENTITY_NAME
+from constants import ENTITY_NAME, PROJECT_LIN_CVG
 from constants import LIN_CVG
 from base_utils import set_fontsize, render_in_latex
 from cfg_utils import get_save_dir, create_krr_config, plot_runs_dataset_grid
 
-# wandb project names
-PROJECT_FULL_KRR = "performance_full_krr_v2_"
-PROJECT_INDUCING_KRR = "performance_inducing_krr_"
-
 # use a different x-axis for linear convergence
-X_AXIS = "iters"
+X_AXIS = "datapasses"
 
 # save directory
 SAVE_DIR = "lin_cvg"
@@ -34,7 +30,7 @@ ASKOTCH_FILTER = {
     and run.config["precond_params"]["rho"] == "damped",
     "sampling": lambda run: run.config["sampling_method"] == "uniform",
     "precision": lambda run: run.config["precision"] == "float64",
-    "finished": lambda run: run.state == "finished",
+    # "finished": lambda run: run.state == "finished",
 }
 SAP_FILTER = {
     "optimizer": lambda run: run.config["opt"] == "askotchv2",
@@ -45,20 +41,7 @@ SAP_FILTER = {
     and run.config["precond_params"]["rho"] == "regularization",
     "sampling": lambda run: run.config["sampling_method"] == "uniform",
     "precision": lambda run: run.config["precision"] == "float64",
-    "finished": lambda run: run.state == "finished",
-}
-MIMOSA_FILTER = {
-    "optimizer": lambda run: run.config["opt"] == "mimosa",
-    "rho": lambda run: run.config["precond_params"] is not None
-    and run.config["precond_params"]["rho"] == 3e1,
-    "precision": lambda run: run.config["precision"] == "float64",
-    "finished": lambda run: run.state == "finished",
-}
-SAGA_FILTER = {
-    "optimizer": lambda run: run.config["opt"] == "mimosa",
-    "no_precond": lambda run: run.config["precond_params"] is None,
-    "precision": lambda run: run.config["precision"] == "float64",
-    "finished": lambda run: run.state == "finished",
+    # "finished": lambda run: run.state == "finished",
 }
 
 
@@ -74,27 +57,19 @@ if __name__ == "__main__":
         x_axis=X_AXIS,
         save_dir=get_save_dir(BASE_SAVE_DIR, SAVE_DIR),
         extension=EXTENSION,
+        keep_largest_m_runs=False,
     )
 
     full_krr_cfg_float64 = create_krr_config(
-        PROJECT_FULL_KRR, [ASKOTCH_FILTER, SAP_FILTER]
-    )
-    inducing_krr_cfg_float64 = create_krr_config(
-        PROJECT_INDUCING_KRR, [MIMOSA_FILTER, SAGA_FILTER]
+        PROJECT_LIN_CVG, [ASKOTCH_FILTER, SAP_FILTER]
     )
 
-    with tqdm(total=2, desc="Linear convergence") as pbar:
-        plot_fn(
-            full_krr_cfg=full_krr_cfg_float64,
-            inducing_krr_cfg=None,
-            datasets_cfg=LIN_CVG,
-            name_stem="full_",
-        )
-        pbar.update(1)
-        plot_fn(
-            full_krr_cfg=None,
-            inducing_krr_cfg=inducing_krr_cfg_float64,
-            datasets_cfg=LIN_CVG,
-            name_stem="inducing_",
-        )
-        pbar.update(1)
+    with tqdm(total=len(LIN_CVG), desc="Linear convergence") as pbar:
+        for datasets_cfg in LIN_CVG:
+            plot_fn(
+                full_krr_cfg=full_krr_cfg_float64,
+                inducing_krr_cfg=None,
+                datasets_cfg=datasets_cfg,
+                name_stem="full_",
+            )
+            pbar.update(1)

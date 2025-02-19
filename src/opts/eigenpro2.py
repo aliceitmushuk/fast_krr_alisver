@@ -19,7 +19,6 @@ class EigenPro2(EigenProBase):
         super().__init__(model, bg, block_sz, r)
         self.gamma = gamma
         self._apply_precond, self.eta, self.block = self._setup()
-        # print(f"EigenPro2: eta={self.eta}")
 
     def _setup(self):
         eigvals, eigvecs, beta, tail_eigval, block = self._get_top_eigensys()

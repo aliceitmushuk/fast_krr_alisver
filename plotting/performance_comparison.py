@@ -26,16 +26,33 @@ ASKOTCH_FILTER = {
     "rho_damped": lambda run: run.config.get("precond_params", {}).get("rho", None)
     == "damped",
     "sampling": lambda run: run.config["sampling_method"] == "uniform",
+    "block_sz_frac": lambda run: run.config["block_sz_frac"] == 0.01,
+    "finished": lambda run: run.state == "finished",
+}
+EIGENPRO2_FILTER = {
+    "optimizer": lambda run: run.config["opt"] == "eigenpro2",
+    "finished": lambda run: run.state == "finished",
+}
+EIGENPRO3_FILTER = {
+    "optimizer": lambda run: run.config["opt"] == "eigenpro3",
     "finished": lambda run: run.state == "finished",
 }
 PCG_FLOAT32_FILTER = {
     "optimizer": lambda run: run.config["opt"] == "pcg",
     "precision": lambda run: run.config["precision"] == "float32",
+    "not_greedy_cholesky": lambda run: not (
+        run.config["precond_params"]["type"] == "partial_cholesky"
+        and run.config["precond_params"]["mode"] == "greedy"
+    ),
     "finished": lambda run: run.state == "finished",
 }
 PCG_FLOAT64_FILTER = {
     "optimizer": lambda run: run.config["opt"] == "pcg",
     "precision": lambda run: run.config["precision"] == "float64",
+    "not_greedy_cholesky": lambda run: not (
+        run.config["precond_params"]["type"] == "partial_cholesky"
+        and run.config["precond_params"]["mode"] == "greedy"
+    ),
     "finished": lambda run: run.state == "finished",
 }
 
@@ -61,10 +78,10 @@ if __name__ == "__main__":
         PROJECT_INDUCING_KRR, [PCG_FLOAT32_FILTER]
     )
     full_krr_cfg_float64 = create_krr_config(
-        PROJECT_FULL_KRR, [ASKOTCH_FILTER, PCG_FLOAT64_FILTER]
+        PROJECT_FULL_KRR, [ASKOTCH_FILTER, EIGENPRO2_FILTER, PCG_FLOAT64_FILTER]
     )
     inducing_krr_cfg_float64 = create_krr_config(
-        PROJECT_INDUCING_KRR, [PCG_FLOAT64_FILTER]
+        PROJECT_INDUCING_KRR, [EIGENPRO3_FILTER, PCG_FLOAT64_FILTER]
     )
 
     with tqdm(
@@ -76,6 +93,7 @@ if __name__ == "__main__":
                 inducing_krr_cfg=inducing_krr_cfg_float32,
                 datasets_cfg=datasets_cfg,
                 name_stem="float32_",
+                keep_largest_m_runs=False,
             )
             pbar.update(1)
             plot_fn(

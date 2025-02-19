@@ -1,6 +1,11 @@
 import os
 
-from base_utils import get_project_runs, filter_runs_union, plot_runs_grid
+from base_utils import (
+    get_project_runs,
+    filter_runs_union,
+    plot_runs_grid,
+    keep_largest_m,
+)
 
 
 def _get_grid_shape(datasets_cfg):
@@ -45,9 +50,12 @@ def plot_runs_dataset_grid(
     name_stem,
     save_dir,
     extension,
+    keep_largest_m_runs=True,
 ):
     run_lists = []
     metrics = []
+    plot_fns = []
+    xlims = []
     ylims = []
     titles = []
 
@@ -57,8 +65,12 @@ def plot_runs_dataset_grid(
     for ds, config in datasets_cfg["datasets"].items():
         runs_full_krr = _get_filtered_runs(full_krr_cfg, ds, entity_name)
         runs_inducing_krr = _get_filtered_runs(inducing_krr_cfg, ds, entity_name)
+        if keep_largest_m_runs:
+            runs_inducing_krr = keep_largest_m(runs_inducing_krr, config["metric"])
         run_lists.append(runs_full_krr + runs_inducing_krr)
         metrics.append(config["metric"])
+        plot_fns.append(config.get("plot_fn", None))
+        xlims.append(config.get("xlim", None))
         ylims.append(config["ylim"])
         titles.append(ds)
 
@@ -66,7 +78,9 @@ def plot_runs_dataset_grid(
         run_lists,
         hparams_to_label,
         metrics,
+        plot_fns,
         x_axis,
+        xlims,
         ylims,
         titles,
         n_cols,

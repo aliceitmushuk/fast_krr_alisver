@@ -32,6 +32,14 @@ ASKOTCH_FILTER = {
     "sampling": lambda run: run.config["sampling_method"] == "uniform",
     "finished": lambda run: run.state == "finished",
 }
+EIGENPRO2_FILTER = {
+    "optimizer": lambda run: run.config["opt"] == "eigenpro2",
+    "finished": lambda run: run.state == "finished",
+}
+EIGENPRO3_FILTER = {
+    "optimizer": lambda run: run.config["opt"] == "eigenpro3",
+    "finished": lambda run: run.state == "finished",
+}
 PCG_FLOAT32_FILTER = {
     "optimizer": lambda run: run.config["opt"] == "pcg",
     "precision": lambda run: run.config["precision"] == "float32",
@@ -40,11 +48,6 @@ PCG_FLOAT32_FILTER = {
 PCG_FLOAT64_FILTER = {
     "optimizer": lambda run: run.config["opt"] == "pcg",
     "precision": lambda run: run.config["precision"] == "float64",
-    "finished": lambda run: run.state == "finished",
-}
-MIMOSA_FILTER = {
-    "optimizer": lambda run: run.config["opt"] == "mimosa",
-    "rho": lambda run: run.config.get("precond_params", {}).get("rho", None) == 1e6,
     "finished": lambda run: run.state == "finished",
 }
 
@@ -71,10 +74,10 @@ if __name__ == "__main__":
     )
 
     full_krr_cfg_float64 = create_krr_config(
-        PROJECT_FULL_KRR, [ASKOTCH_FILTER, PCG_FLOAT64_FILTER]
+        PROJECT_FULL_KRR, [ASKOTCH_FILTER, EIGENPRO2_FILTER, PCG_FLOAT64_FILTER]
     )
     inducing_krr_cfg_float64 = create_krr_config(
-        PROJECT_INDUCING_KRR, [PCG_FLOAT64_FILTER, MIMOSA_FILTER]
+        PROJECT_INDUCING_KRR, [PCG_FLOAT64_FILTER, EIGENPRO3_FILTER]
     )
 
     with tqdm(total=2, desc="Showcase") as pbar:

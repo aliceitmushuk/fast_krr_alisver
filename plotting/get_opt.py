@@ -9,4 +9,6 @@ def _get_opt(run):
         return "sap"
     if run.config["opt"] == "askotchv2" and not run.config["accelerated"]:
         return "skotchv2"
+    if run.config["opt"] == "pcg" and run.config["precond_params"]["type"] == "falkon":
+        return "falkon"
     return run.config["opt"]

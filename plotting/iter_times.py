@@ -25,16 +25,25 @@ ASKOTCH_FILTER = {
     "rho_damped": lambda run: run.config.get("precond_params", {}).get("rho", None)
     == "damped",
     "sampling": lambda run: run.config["sampling_method"] == "uniform",
+    "block_sz_frac": lambda run: run.config["block_sz_frac"] == 0.01,
     "finished": lambda run: run.state == "finished",
 }
 PCG_FLOAT32_FILTER = {
     "optimizer": lambda run: run.config["opt"] == "pcg",
     "precision": lambda run: run.config["precision"] == "float32",
+    "not_greedy_cholesky": lambda run: not (
+        run.config["precond_params"]["type"] == "partial_cholesky"
+        and run.config["precond_params"]["mode"] == "greedy"
+    ),
     "finished": lambda run: run.state == "finished",
 }
 PCG_FLOAT64_FILTER = {
     "optimizer": lambda run: run.config["opt"] == "pcg",
     "precision": lambda run: run.config["precision"] == "float64",
+    "not_greedy_cholesky": lambda run: not (
+        run.config["precond_params"]["type"] == "partial_cholesky"
+        and run.config["precond_params"]["mode"] == "greedy"
+    ),
     "finished": lambda run: run.state == "finished",
 }
 

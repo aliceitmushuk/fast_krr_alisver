@@ -35,7 +35,7 @@ def main(cfg: DictConfig):
         "lambd_unscaled": cfg.lambd_unscaled,
         "opt": cfg.opt.type,
         "precond_params": precond_params
-        if precond_params["type"] is not None
+        if precond_params.get("type", None) is not None
         else None,
         "log_freq": cfg.training.log_freq,
         "log_test_only": cfg.training.log_test_only,
@@ -62,6 +62,14 @@ def main(cfg: DictConfig):
         experiment_args["mu"] = cfg.opt.mu
         experiment_args["nu"] = cfg.opt.nu
         experiment_args["accelerated"] = cfg.opt.accelerated
+    if cfg.opt.type in ["eigenpro2", "eigenpro3"]:
+        experiment_args["block_sz"] = cfg.opt.block_sz
+        experiment_args["r"] = cfg.opt.r
+        experiment_args["bg"] = cfg.opt.bg
+        if cfg.opt.type == "eigenpro2":
+            experiment_args["gamma"] = cfg.opt.gamma
+        if cfg.opt.type == "eigenpro3":
+            experiment_args["proj_inner_iters"] = cfg.opt.proj_inner_iters
     if cfg.opt.type == "mimosa":
         experiment_args["bg"] = cfg.opt.bg
         experiment_args["bH"] = cfg.opt.bH

@@ -2,7 +2,7 @@ import itertools
 import glob
 import yaml
 
-from src.data_configs import DATA_CONFIGS
+from src.data_configs import DATA_CONFIGS, PERFORMANCE_DATASETS
 from src.experiment_configs import (
     KERNEL_CONFIGS,
     LAMBDA_CONFIGS,
@@ -22,12 +22,12 @@ from src.generate_configs_utils import (
 
 SEED = 0
 
-PRECONDITIONERS = ["nystrom", "partial_cholesky"]
+PRECONDITIONERS = ["nystrom", "partial_cholesky", None]
 CHOLESKY_MODES = ["greedy", "rpc"]
 SAMPLING_MODES = ["uniform", "rls"]
 ACC_MODES = [True, False]
 RHO_MODES = ["damped", "regularization"]
-BLK_SZ_FRAC = 0.1
+BLK_SZ_FRAC = 0.01
 
 
 def generate_askotchv2_configs(
@@ -147,40 +147,12 @@ def validate_yaml_variations(output_dir):
 
 
 if __name__ == "__main__":
-    datasets_classification = [
-        "mnist",
-        "fashion_mnist",
-        "cifar10",
-        "svhn",
-        "miniboone",
-        "susy",
-        "higgs",
-        "covtype_binary",
-        "comet_mc",
-        "click_prediction",
-    ]
-    datasets_regression = [
-        "qm9",
-        "uracil",
-        "aspirin",
-        "salicylic",
-        "naphthalene",
-        "toluene",
-        "ethanol",
-        "benzene",
-        "malonaldehyde",
-        "yearpredictionmsd",
-        "acsincome",
-        "yolanda",
-    ]
-    datasets_performance = datasets_classification + datasets_regression
-
     sweep_params_performance_full_krr_askotchv2 = {
-        "dataset": datasets_performance,
+        "dataset": PERFORMANCE_DATASETS,
         "model": ["full_krr"],
         "opt.type": ["askotchv2"],
         "precond.r": [100],
-        "training.log_freq": [20],
+        "training.log_freq": [100],
         "training.precision": ["float32"],
         "training.seed": [SEED],
         "training.max_iter": [None],
@@ -188,7 +160,7 @@ if __name__ == "__main__":
     }
 
     sweep_params_performance_full_krr_pcg = {
-        "dataset": datasets_performance,
+        "dataset": PERFORMANCE_DATASETS,
         "model": ["full_krr"],
         "opt.type": ["pcg"],
         "precond.r": [100],
@@ -230,4 +202,4 @@ if __name__ == "__main__":
         PRECONDITIONERS,
     )
     save_configs(combinations_askotchv2 + combinations_pcg, output_dir)
-    validate_yaml_variations(output_dir)
+    # validate_yaml_variations(output_dir)

@@ -5,6 +5,7 @@ scripts=(
     "askotch_ablation.py"
     "lin_cvg.py"
     "performance_comparison.py"
+    "performance_overall.py"
     "showcase.py"
     "dims.py"
     "iter_times.py"

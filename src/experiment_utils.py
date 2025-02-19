@@ -6,11 +6,13 @@ import numpy as np
 import torch
 
 from src.models import FullKRR, InducingKRR
-from src.opts import ASkotch, ASkotchV2, Mimosa, PCG
+from src.opts import ASkotch, ASkotchV2, EigenPro2, EigenPro3, Mimosa, PCG
 
 OPT_CLASSES = {
     "askotch": ASkotch,
     "askotchv2": ASkotchV2,
+    "eigenpro2": EigenPro2,
+    "eigenpro3": EigenPro3,
     "mimosa": Mimosa,
     "pcg": PCG,
 }
@@ -25,6 +27,14 @@ VALIDATION_RULES = {
     "askotchv2": {
         "required": ["block_sz_frac", "sampling_method", "accelerated"],
         "optional": [],
+    },
+    "eigenpro2": {
+        "required": ["block_sz", "r"],
+        "optional": ["bg", "gamma"],
+    },
+    "eigenpro3": {
+        "required": ["block_sz", "r"],
+        "optional": ["bg", "proj_inner_iters"],
     },
     "mimosa": {
         "required": ["m", "bg"],
@@ -173,6 +183,22 @@ def build_opt_params(model, config):
             "mu": config.mu,
             "nu": config.nu,
             "accelerated": config.accelerated,
+        }
+    elif config.opt == "eigenpro2":
+        return {
+            "model": model,
+            "block_sz": config.block_sz,
+            "r": config.r,
+            "bg": config.bg,
+            "gamma": config.gamma,
+        }
+    elif config.opt == "eigenpro3":
+        return {
+            "model": model,
+            "block_sz": config.block_sz,
+            "r": config.r,
+            "bg": config.bg,
+            "proj_inner_iters": config.proj_inner_iters,
         }
     elif config.opt == "mimosa":
         return {

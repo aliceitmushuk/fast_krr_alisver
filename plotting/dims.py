@@ -86,7 +86,7 @@ if __name__ == "__main__":
         render_in_latex()
     set_fontsize(FONTSIZE)
     set_random_seed(SEED)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
     figsize = (2 * SZ_COL, SZ_ROW)
     save_dir = os.path.join(BASE_SAVE_DIR, SAVE_DIR)
 

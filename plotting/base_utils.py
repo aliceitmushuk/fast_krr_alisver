@@ -6,18 +6,21 @@ import warnings
 import numpy as np
 import wandb
 import matplotlib.pyplot as plt
+from matplotlib.colors import Colormap
 
 from constants import (
     BLKSZ_LABEL,
-    FALKON_PLOTTING_RANK,
+    DUMMY_PLOTTING_RANK,
     LEGEND_SPECS,
     MARKERSIZE,
     METRIC_AX_PLOT_FNS,
     METRIC_LABELS,
     MODE_LABELS,
+    NAN_REPLACEMENT,
     NORM,
-    OPT_CMAPS,
+    OPT_COLORS,
     OPT_LABELS,
+    PERFORMANCE_AXIS_LABELS,
     PRECOND_LABELS,
     PRECOND_MARKERS,
     RANK_LABEL,
@@ -30,6 +33,7 @@ from constants import (
     SZ_ROW,
     TOT_MARKERS,
     X_AXIS_LABELS,
+    X_AXIS_TIME_GRACE,
 )
 from get_opt import _get_opt
 from sorting import sort_data
@@ -84,6 +88,7 @@ def _get_datapasses(run, steps):
             scaling_factor = 1
     elif opt == "mimosa":
         scaling_factor = 2 * m * bg / (n**2)
+    # TODO(pratik): add scaling factors for other optimizers
 
     return scaling_factor * steps
 
@@ -170,10 +175,7 @@ LABEL_FNS = {
 
 def get_label(run, hparams_to_label):
     opt = _get_opt(run)
-    if opt == "pcg" and run.config["precond_params"]["type"] == "falkon":
-        hparam_labels = []
-    else:
-        hparam_labels = [OPT_LABELS[opt]]
+    hparam_labels = [OPT_LABELS[opt]]
     for hparam in hparams_to_label:
         hparam_label = LABEL_FNS[hparam](run)
         if hparam_label is not None:
@@ -182,7 +184,10 @@ def get_label(run, hparams_to_label):
 
 
 def get_color(opt, rank):
-    return OPT_CMAPS[opt](NORM(rank))
+    if isinstance(OPT_COLORS[opt], Colormap):
+        return OPT_COLORS[opt](NORM(rank))
+    else:
+        return OPT_COLORS[opt]
 
 
 def get_style(run, n_points):
@@ -207,7 +212,10 @@ def get_style(run, n_points):
             ]
         elif precond_type == "falkon":
             style["marker"] = PRECOND_MARKERS[precond_type][run.config["m"]]
-            r_adj = FALKON_PLOTTING_RANK + 1
+            r_adj = DUMMY_PLOTTING_RANK + 1
+    if opt == "eigenpro3":
+        style["marker"] = PRECOND_MARKERS["falkon"][run.config["m"]]
+        r_adj = DUMMY_PLOTTING_RANK + 1
 
     style["color"] = get_color(opt, r_adj)
 
@@ -221,6 +229,60 @@ def get_n_sci(run):
     n_sci = re.sub(r"e\+?0*(\d+)", r" \\cdot 10^{\1}", f"{n:.2e}")
     n_sci = re.sub(r"e-0*(\d+)", r" \\cdot 10^{-\1}", n_sci)
     return n_sci
+
+
+def _detect_nans(y):
+    nan_index = np.where(np.isnan(y))[0]
+    if nan_index.size > 0:
+        first_nan_index = nan_index[0]
+        return first_nan_index
+    return None
+
+
+def _clean_data(y):
+    # If there are NaNs in y, set all elements from the first NaN onwards to infinity
+    first_nan_index = _detect_nans(y)
+    if first_nan_index is not None:
+        y[first_nan_index:] = NAN_REPLACEMENT
+    return y
+
+
+def _get_clean_data(run, metric):
+    y_hist = run.scan_history(keys=[metric, "_step"])
+    y = np.array([hist[metric] for hist in y_hist], dtype=np.float64)
+    steps = np.array([hist["_step"] for hist in y_hist])
+    return _clean_data(y), steps
+
+
+def _plot_run(run, metric, x_axis, hparams_to_label, plot_fn):
+    y, steps = _get_clean_data(run, metric)
+    x = get_x(run, steps, x_axis)
+    label = get_label(run, hparams_to_label[_get_opt(run)])
+    style = get_style(run, y.shape[0])
+
+    (handle,) = plot_fn(x, y, label=label, **style)
+    return label, handle
+
+
+def keep_largest_m(runs_ds, metric):
+    best_runs = {}
+
+    for run in runs_ds:
+        opt = _get_opt(run)
+        m_value = run.config.get("m", None)
+        if m_value is None:
+            continue
+
+        # for eigenpro3, only keep runs that have no NaNs in the metric
+        if opt == "eigenpro3":
+            y, _ = _get_clean_data(run, metric)
+            if np.any(y == NAN_REPLACEMENT):
+                continue
+
+        if opt not in best_runs or m_value > best_runs[opt].config["m"]:
+            best_runs[opt] = run
+
+    return list(best_runs.values())
 
 
 def get_save_path(save_dir, save_name):
@@ -242,54 +304,54 @@ def get_save_path(save_dir, save_name):
         return None
 
 
-def _clean_data(y):
-    # If there are NaNs in y, set all elements from the first NaN onwards to infinity
-    nan_index = np.where(np.isnan(y))[0]
-    if nan_index.size > 0:  # Check if there is at least one NaN
-        first_nan_index = nan_index[0]
-        y[first_nan_index:] = np.inf
-    return y
-
-
-def _plot_run(run, metric, x_axis, hparams_to_label, plot_fn):
-    y_hist = run.scan_history(keys=[metric, "_step"])
-    y = _clean_data(np.array([hist[metric] for hist in y_hist], dtype=np.float64))
-    steps = np.array([hist["_step"] for hist in y_hist])
-
-    x = get_x(run, steps, x_axis)
-    label = get_label(run, hparams_to_label[_get_opt(run)])
-    style = get_style(run, y.shape[0])
-
-    plot_fn(x, y, label=label, **style)
-
-
 def plot_runs_axis(
     ax,
     run_list,
     hparams_to_label,
     metric,
+    plot_fn_str,
     x_axis,
+    xlim,
     ylim,
     title,
 ):
-    plot_fn = getattr(ax, METRIC_AX_PLOT_FNS[metric])
+    # Allow overriding the default plot function for the metric
+    if plot_fn_str is not None:
+        plot_fn = getattr(ax, plot_fn_str)
+    else:
+        plot_fn = getattr(ax, METRIC_AX_PLOT_FNS[metric])
+    # Sort the data so runs appear on top of each other in a consistent order
     run_list = sort_data(run_list, sort_keys=SORT_KEYS)
+    labels = {}
 
     for run in run_list:
-        _plot_run(run, metric, x_axis, hparams_to_label, plot_fn)
+        label, handle = _plot_run(run, metric, x_axis, hparams_to_label, plot_fn)
+        labels[run] = {"label": label, "handle": handle}
+
+    # Set the x-axis limits if provided
+    if xlim is not None:
+        ax.set_xlim(xlim)
+    # If no explicit x-axis limits are provided are plotting with
+    # respect to time, restrict the x-axis to the maximum time
+    elif x_axis == "time":
+        max_time = run_list[0].config["max_time"]
+        ax.set_xlim(0, max_time * X_AXIS_TIME_GRACE)
 
     n_sci = get_n_sci(run_list[0])
     ax.set_ylim(ylim)
     ax.set_title(f"{title} ($n = {n_sci}$)")
     ax.set_xlabel(X_AXIS_LABELS[x_axis])
     ax.set_ylabel(METRIC_LABELS[metric])
+    return labels
 
 
 def plot_runs_grid(
     run_lists,
     hparams_to_label,
     metrics,
+    plot_fns,
     x_axis,
+    xlims,
     ylims,
     titles,
     n_cols,
@@ -305,32 +367,85 @@ def plot_runs_grid(
     )
     axes = axes.flatten()
 
-    for i, (run_list, metric, ylim, title) in enumerate(
-        zip(run_lists, metrics, ylims, titles)
+    labels = {}
+    for i, (run_list, metric, plot_fn, xlim, ylim, title) in enumerate(
+        zip(run_lists, metrics, plot_fns, xlims, ylims, titles)
     ):
-        plot_runs_axis(axes[i], run_list, hparams_to_label, metric, x_axis, ylim, title)
+        labels_subplot = plot_runs_axis(
+            axes[i],
+            run_list,
+            hparams_to_label,
+            metric,
+            plot_fn,
+            x_axis,
+            xlim,
+            ylim,
+            title,
+        )
+        labels.update(labels_subplot)
 
-    # Collect all handles and labels from all axes
-    all_handles = []
-    all_labels = []
-    for ax in axes:
-        handles, labels = ax.get_legend_handles_labels()
-        all_handles.extend(handles)
-        all_labels.extend(labels)
+    # Get sorting for all runs -- this is essential for sorting the legend
+    all_runs = [run for run_list in run_lists for run in run_list]
+    all_runs = sort_data(all_runs, sort_keys=SORT_KEYS)
 
-    # Deduplicate legend elements
+    # Go through all runs and get the labels in the same order as the sorted runs
     unique_labels = {}
-    for h, l in zip(all_handles, all_labels):
-        if l not in unique_labels:
-            unique_labels[l] = h  # Keep the first occurrence of each label
+    for run in all_runs:
+        if run in labels:
+            label = labels[run]["label"]
+            handle = labels[run]["handle"]
+            if label not in unique_labels:
+                unique_labels[label] = handle
 
     # Set the global legend
-    fig.legend(
-        unique_labels.values(),
-        unique_labels.keys(),
-        **LEGEND_SPECS,
-    )
+    fig.legend(unique_labels.values(), unique_labels.keys(), **LEGEND_SPECS)
     plt.tight_layout()
+
+    if save_path is not None:
+        plt.savefig(save_path, bbox_inches="tight")
+
+    plt.close(fig)
+
+
+def plot_performance_grid(
+    performance_dicts,
+    x_vals,
+    titles,
+    n_cols,
+    n_rows,
+    save_dir=None,
+    save_name=None,
+):
+    save_path = get_save_path(save_dir, save_name)
+    fig, axes = plt.subplots(
+        n_rows, n_cols, squeeze=False, figsize=(SZ_COL * n_cols, SZ_ROW * n_rows)
+    )
+    axes = axes.flatten()
+
+    for i, (performance_dict, title) in enumerate(zip(performance_dicts, titles)):
+        ax = axes[i]
+        for opt, performance in performance_dict.items():
+            ax.plot(
+                x_vals,
+                performance,
+                label=OPT_LABELS[opt],
+                color=get_color(opt, DUMMY_PLOTTING_RANK),
+            )
+        ax.set_title(title)
+        ax.set_xlabel(PERFORMANCE_AXIS_LABELS["x"])
+        ax.set_ylabel(PERFORMANCE_AXIS_LABELS["y"])
+
+    # Collect all handles and labels
+    handles, labels = [], []
+    for ax in axes:
+        h_ax, l_ax = ax.get_legend_handles_labels()
+        for handle, label in zip(h_ax, l_ax):
+            if label not in labels:  # Avoid duplicate labels
+                labels.append(label)
+                handles.append(handle)
+
+    # Set the global legend
+    fig.legend(handles, labels, **LEGEND_SPECS)
 
     if save_path is not None:
         plt.savefig(save_path, bbox_inches="tight")
