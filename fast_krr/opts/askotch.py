@@ -1,7 +1,7 @@
 import torch
 
 from fast_krr.opts.optimizer import Optimizer
-from fast_krr.opts._utils.bcd import (
+from fast_krr.opts.utils.bcd import (
     _get_blocks,
     _get_block_precond,
     _get_block_properties,

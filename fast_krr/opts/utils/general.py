@@ -1,6 +1,6 @@
 import torch
 
-from fast_krr.opts._utils.bless import _bless_size, _estimate_rls_bless
+from fast_krr.opts.utils.bless import _bless_size, _estimate_rls_bless
 
 
 def _apply_precond(v, precond):
