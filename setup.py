@@ -27,7 +27,7 @@ setup(
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/pratikrathore8/fast_krr",
-    license="MIT",
+    license="Apache-2.0",
     keywords=(
         "kernel ridge regression, machine learning, optimization, sketch-and-project"
     ),
@@ -36,7 +36,7 @@ setup(
     install_requires=parse_requirements("requirements.txt"),
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
     project_urls={
