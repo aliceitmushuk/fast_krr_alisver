@@ -225,33 +225,7 @@ QM9 = {
     "grid": {"n_rows": 1, "n_cols": 1},
     "name_ext": "qm9",
 }
-MOLECULES_BIG = {
-    "datasets": {
-        "toluene": {
-            "ylim": [0.0, 2.0],
-            "metric": "test_mae",
-            "plot_fn": "semilogy",
-        },
-        "ethanol": {
-            "ylim": [0.0, 2.0],
-            "metric": "test_mae",
-            "plot_fn": "semilogy",
-        },
-        "benzene": {
-            "ylim": [0.0, 2.0],
-            "metric": "test_mae",
-            "plot_fn": "semilogy",
-        },
-        "malonaldehyde": {
-            "ylim": [0.0, 2.0],
-            "metric": "test_mae",
-            "plot_fn": "semilogy",
-        },
-    },
-    "grid": {"n_rows": 2, "n_cols": 2},
-    "name_ext": "molecules_big",
-}
-MOLECULES_SMALL = {
+MOLECULES = {
     "datasets": {
         "uracil": {
             "ylim": [0.0, 2.0],
@@ -273,9 +247,29 @@ MOLECULES_SMALL = {
             "metric": "test_mae",
             "plot_fn": "semilogy",
         },
+        "toluene": {
+            "ylim": [0.0, 2.0],
+            "metric": "test_mae",
+            "plot_fn": "semilogy",
+        },
+        "ethanol": {
+            "ylim": [0.0, 2.0],
+            "metric": "test_mae",
+            "plot_fn": "semilogy",
+        },
+        "benzene": {
+            "ylim": [0.0, 2.0],
+            "metric": "test_mae",
+            "plot_fn": "semilogy",
+        },
+        "malonaldehyde": {
+            "ylim": [0.0, 2.0],
+            "metric": "test_mae",
+            "plot_fn": "semilogy",
+        },
     },
-    "grid": {"n_rows": 2, "n_cols": 2},
-    "name_ext": "molecules_small",
+    "grid": {"n_rows": 4, "n_cols": 2},
+    "name_ext": "molecules",
 }
 TABULAR_REGRESSION = {
     "datasets": {
@@ -302,8 +296,7 @@ PERFORMANCE_DATASETS_CLASSIFICATION_CFG = [
 ]
 PERFORMANCE_DATASETS_REGRESSION_CFG = [
     QM9,
-    MOLECULES_BIG,
-    MOLECULES_SMALL,
+    MOLECULES,
     TABULAR_REGRESSION,
 ]
 PERFORMANCE_DATASETS_CFG = (
