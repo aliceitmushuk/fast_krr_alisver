@@ -5,10 +5,7 @@ Companion code for [***"Have ASkotch: A Neat Solution for Large-scale Kernel Rid
 We present both a quickstart guide and detailed instructions for reproducing our experiments and figures.
 
 ## Quickstart
-
-TODO: Add distinction between `ASkotch` and `ASkotchV2`.
-
-We present instructions for installing the repository via `pip` and using `ASkotchV2` on some example problems.
+We present instructions for installing the repository via `pip` and using our method, `ASkotchV2`, on some example problems.
 
 > [!NOTE]
 > Currently, our implementation can only handle Laplacian, Matérn 1/2, Matérn 3/2, Matérn 5/2, and RBF kernels.
@@ -20,25 +17,72 @@ However, we recommend using a GPU for large-scale problems.
 
 ### Installation
 
-TODO: Add instructions for installing the package via `pip`.
+You can `pip` install the package using the following command:
+
+```bash
+pip install git+https://github.com/pratikrathore8/fast_krr.git
+```
 
 ### Example usage
 
 ```python
-TODO: Add example imports and usage.
+from fast_krr.models import FullKRR
+from fast_krr.opts import ASkotchV2
+
+# Load data as PyTorch tensors
+X, Xtst, y, ytst = ... # Load your data here
+
+# Initialize the model
+n = X.shape[0]
+task = "classification" # Can also use "regression"
+kernel_params = {"type": "rbf", "sigma": 1.0} # Can also handle Laplacian and Matérn kernels
+w0 = torch.zeros(n, device=device)
+lambd = 1e-6 * n
+
+model = FullKRR(X, y, Xtst, ytst, kernel_params=kernel_params,
+                 Ktr_needed=True, lambd=lambd, task=task, w0=w0, device=device)
+
+# Initialize the optimizer
+block_sz = n // 100 # Any positive integer between 1 and n
+precond_type = "nystrom" # Recommended for general use
+r = 100 # Any positive integer between 1 and block_sz
+rho = "damped" # Recommended for general use
+precond_params = {"type": precond_type, "r": r, "rho": rho}
+
+opt = ASkotchV2(model=model, block_sz=block_sz, precond_params=precond_params)
+
+# Train the model
+max_iters = 1000
+
+for i in range(max_iters):
+    opt.step()
 ```
-TODO: Talk about hyperparameter recommendations in section 3.2 of the paper.
+
+> [!NOTE]
+> There is another optimizer in the package called `ASkotch`. This is an algorithm from a [previous version of our paper](https://arxiv.org/abs/2407.10070v1). We do not recommend using it over `ASkotchV2`.
+
+### Hyperparameter recommendations
+`ASkotchV2` has several hyperparameters that can be tuned to improve performance.
+We describe these hyperparameters and provide suggested defaults below:
+- `block_sz`: The block size. We recommend setting this to `n // 100`, where `n` is the number of training points.
+- `sampling_method`: The sampling method used to select the block. The `uniform` setting is recommended for general use. The `rls` setting uses approximate leverage scores to sample the block, but it does not typically give an improvement over `uniform`.
+- `precond_params`: A dictionary containing the preconditioner type and its parameters. We recommend using the Nyström preconditioner with `r = 100` and `rho = "damped"`.
+- `mu`: An acceleration parameter. We recommend setting this to the regularization parameter in the `FullKRR` model that you are optimizing.
+If left unspecified, `mu` will be set to the regularization parameter in the `FullKRR` model.
+- `nu`: An acceleration parameter. We recommend setting this to `n`/`block_sz`.
+If left unspecified, `nu` will be set to `n`/`block_sz`.
+- `accelerated`: A boolean flag to enable/disable acceleration. We recommend setting this to `True`. If set to `False`, `mu` and `nu` will be ignored.
 
 ### Notebook examples
 
-We provide two Jupyter notebooks in the `examples` folder which show how to use `ASkotchV2` on an example regression and classification problem.
+We provide two Jupyter notebooks in the `examples` folder which show how to run `ASkotchV2` for regression and classification problems.
 
 ## Instructions for reproducing our experiments and figures
 Our experiments have a lot of moving parts.
 Below, we provide an overview of the steps needed to reproduce our results.
 
 ### Cloning the repository
-Please clone this repository to your local machine:
+Please clone this repository using the following command:
 
 ```bash
 git clone https://github.com/pratikrathore8/fast_krr.git
