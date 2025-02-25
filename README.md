@@ -20,12 +20,46 @@ However, we recommend using a GPU for large-scale problems.
 
 ### Installation
 
-TODO: Add instructions for installing the package via `pip`.
+You can `pip` install the package using the following command:
+
+```bash
+pip install git+https://github.com/pratikrathore8/fast_krr.git
+```
 
 ### Example usage
 
 ```python
-TODO: Add example imports and usage.
+from fast_krr.models import FullKRR
+from fast_krr.opts import ASkotchV2
+
+# Load data as PyTorch tensors
+X, Xtst, y, ytst = ... # Load your data here
+
+# Initialize the model
+n = X.shape[0]
+task = "classification" # Can also use "regression"
+kernel_params = {"type": "rbf", "sigma": 1.0} # Can also handle Laplacian and Matérn kernels
+w0 = torch.zeros(n, device=device)
+lambd = 1e-6 * n
+
+model = FullKRR(X, y, Xtst, ytst, kernel_params=kernel_params,
+                 Ktr_needed=True, lambd=lambd, task=task, w0=w0, device=device)
+
+# Initialize the optimizer
+block_sz = n // 100 # Any positive integer between 1 and n
+precond_type = "nystrom" # Recommended for general use
+r = 100 # Any positive integer between 1 and block_sz
+rho = "damped" # Recommended for general use
+precond_params = {"type": precond_type, "r": r, "rho": rho}
+
+opt = ASkotchV2(model=model, block_sz=block_sz, precond_params=precond_params)
+
+# Train the model
+max_iters = 1000
+
+for i in range(max_iters):
+    opt.step()
+
 ```
 TODO: Talk about hyperparameter recommendations in section 3.2 of the paper.
 
@@ -38,7 +72,7 @@ Our experiments have a lot of moving parts.
 Below, we provide an overview of the steps needed to reproduce our results.
 
 ### Cloning the repository
-Please clone this repository to your local machine:
+Please clone this repository using the following command:
 
 ```bash
 git clone https://github.com/pratikrathore8/fast_krr.git
