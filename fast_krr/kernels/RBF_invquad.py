@@ -14,14 +14,14 @@ class Rbf_invquad(Kernel):
         Rbf._check_kernel_params(kernel_params)
 
         D = ((x1_lazy - x2_lazy) ** 2).sum(dim=2)
-        K = (-D / (2 * kernel_params["sigma"] ** 2)).exp()
+        K = 1/((1+(D*kernel_params["sigma"])**2).sqrt())
 
         return K
 
     @staticmethod
     def _get_row(x_i, x, kernel_params):
         D = ((x_i - x) ** 2).sum(dim=1)
-        return (-D / (2 * kernel_params["sigma"] ** 2)).exp()
+        return 1/((1+(D*kernel_params["sigma"])**2).sqrt())
 
     @staticmethod
     def _get_diag(n):
@@ -29,4 +29,4 @@ class Rbf_invquad(Kernel):
 
     @staticmethod
     def _get_trace(n):
-        return Rbf._get_diag(n).sum().item()
+        return Rbf_invquad._get_diag(n).sum().item()
