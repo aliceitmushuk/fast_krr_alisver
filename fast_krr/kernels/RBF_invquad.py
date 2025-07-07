@@ -3,7 +3,7 @@ import torch
 from fast_krr.kernels.kernel import Kernel
 
 
-class Rbf(Kernel):
+class Rbf_invquad(Kernel):
     @staticmethod
     def _check_kernel_params(kernel_params):
         if "sigma" not in kernel_params:
