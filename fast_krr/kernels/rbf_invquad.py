@@ -14,14 +14,14 @@ class Rbf_invquad(Kernel):
         Rbf_invquad._check_kernel_params(kernel_params)
 
         D = ((x1_lazy - x2_lazy) ** 2).sum(dim=2)
-        K = 1/((1+(D*kernel_params["gamma"])**2).sqrt())
+        K = 1/((1+D*kernel_params["gamma"]**2).sqrt())
 
         return K
 
     @staticmethod
     def _get_row(x_i, x, kernel_params):
         D = ((x_i - x) ** 2).sum(dim=1)
-        return 1/((1+(D*kernel_params["gamma"])**2).sqrt())
+        return 1/((1+D*kernel_params["gamma"]**2).sqrt())
 
     @staticmethod
     def _get_diag(n):
