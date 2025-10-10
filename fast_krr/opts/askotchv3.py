@@ -4,12 +4,21 @@ from fast_krr.opts.optimizer import Optimizer
 from fast_krr.opts.utils.general import _get_leverage_scores
 from fast_krr.opts.utils.bcd import (
     _get_block,
-    _get_block_update,
     _get_block_properties,
 )
 
+#also returns a sum of the squared error
+def _get_block_update_w_err(model, w, block, precond):
+    
+    # Compute the block gradient
+    gb = model._get_block_grad(w, block)
+    resids=gb-model.lambd * model.w[block]
+    
+    # Apply the preconditioner
+    dir = _apply_precond(gb, precond)
+    return dir, (resids**2).sum()
 
-class ASkotchV2(Optimizer):
+class ASkotchV3(Optimizer):
     def __init__(
         self,
         model,
@@ -63,7 +72,7 @@ class ASkotchV2(Optimizer):
         # Get the update direction
         # Update direction is computed at self.y if accelerated, else at self.model.w
         eval_loc = self.y if self.accelerated else self.model.w
-        dir = _get_block_update(self.model, eval_loc, block, block_precond)
+        dir,sum_o_sqrerr = _get_block_update_w_err(self.model, eval_loc, block, block_precond)
 
         if self.accelerated:
             self.model.w = self.y.clone()
