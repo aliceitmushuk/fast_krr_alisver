@@ -25,14 +25,14 @@ class ASkotchV3(Optimizer):
         block_sz,
         sampling_method="uniform",
         precond_params=None,
-        mu=None,
-        nu=None,
+        eta=None
+        p=None
         accelerated=True,
     ):
         super().__init__(model, precond_params)
         self.block_sz = block_sz
-        self.mu = mu if mu is not None else self.model.lambd
-        self.nu = nu if nu is not None else self.model.n / self.block_sz
+        self.eta = eta if eta is not None else self.block_sz / (2*self.model.n)
+        self.p = p if p is not None else 100
         self.accelerated = accelerated
 
         # TODO(pratik): check that nu > mu and mu * nu <= 1
@@ -49,12 +49,11 @@ class ASkotchV3(Optimizer):
         elif sampling_method == "uniform":
             self.probs = torch.ones(self.model.n) / self.model.n
         self.probs_cpu = self.probs.cpu().numpy()
+        self.i = 0
 
         if self.accelerated:
-            self.beta = 1 - (self.mu / self.nu) ** 0.5
-            self.gamma = 1 / (self.mu * self.nu) ** 0.5
-            self.alpha = 1 / (1 + self.gamma * self.nu)
-
+            self.dist_new = 0.0
+            self.dist_old = 0.0
             self.v = self.model.w.clone()
             self.y = self.model.w.clone()
 
