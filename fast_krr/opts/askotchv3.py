@@ -72,15 +72,14 @@ class ASkotchV3(Optimizer):
         block_eta = block_eta[0]
 
         # Get the update direction
-        # Update direction is computed at self.y if accelerated, else at self.model.w
-        eval_loc = self.y if self.accelerated else self.model.w
-        dir,sum_o_sqrerr = _get_block_update_w_err(self.model, eval_loc, block, block_precond)
+        dir,sum_o_sqrerr = _get_block_update_w_err(self.model, self.model.w, block, block_precond)
 
         if self.accelerated:
             self.temp[block] += block_eta * dir 
             self.m_new = (1-rho)/(1+rho)*(self.m_old-self.temp)
             self.model.w = self.model.w - self.temp + eta*self.m_new
             self.temp[:]=0
+            self.m_old = self.m_new.clone()
             
         else:
             self.model.w[block] -= block_eta * dir
