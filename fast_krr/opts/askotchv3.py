@@ -80,6 +80,9 @@ class ASkotchV3(Optimizer):
             self.model.w = self.model.w - self.temp + eta*self.m_new
             self.temp[:]=0
             self.m_old = self.m_new.clone()
+            self.dist_new += sum_o_sqrerr
+            if self.i%p==0:
             
         else:
             self.model.w[block] -= block_eta * dir
+        self.i+=1
