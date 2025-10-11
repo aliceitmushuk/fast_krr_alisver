@@ -54,8 +54,10 @@ class ASkotchV3(Optimizer):
         if self.accelerated:
             self.dist_new = 0.0
             self.dist_old = 0.0
-            self.v = self.model.w.clone()
-            self.y = self.model.w.clone()
+            self.rho = 0
+            self.m_old = torch.zeros(self.model.n)
+            self.m_new = torch.zeros(self.model.n)
+
 
     def step(self):
         # Randomly select block_sz distinct indices
@@ -76,8 +78,8 @@ class ASkotchV3(Optimizer):
         if self.accelerated:
             self.model.w = self.y.clone()
             self.model.w[block] -= block_eta * dir
-            self.v = self.beta * self.v + (1 - self.beta) * self.y
-            self.v[block] -= block_eta * self.gamma * dir
-            self.y = self.alpha * self.v + (1 - self.alpha) * self.model.w
+            self.m_new = (1-rho)/(1+rho)*(self.m_old-dir)
+            self.model.w = self.model.w - dir + eta*self.m_new
+            
         else:
             self.model.w[block] -= block_eta * dir
