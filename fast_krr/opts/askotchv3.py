@@ -83,13 +83,13 @@ class ASkotchV3(Optimizer):
             self.temp[:]=0
             self.m_old = self.m_new.clone()
             self.dist_new += sum_o_sqrerr
-            if self.i%p==p-1:
-                cnt=(self.i+1)//p
+            if self.i%self.p==self.p-1:
+                cnt=(self.i+1)//self.p
                 a_old = cnt**np.log(cnt)
                 a_new = (cnt+1)**np.log(cnt+1)
                 if cnt>=2:
                     ratio = ratio*(a_old/a_new) + min(1,dist_new / dist_old) * (1 - a_old/a_new)
-                    self.rho = max(0,1 - ratio**(1/p))
+                    self.rho = max(0,1 - ratio**(1/self.p))
                 dist_old=dist_new
                 dist_new=0
         else:
