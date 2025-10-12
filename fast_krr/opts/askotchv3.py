@@ -60,6 +60,7 @@ class ASkotchV3(Optimizer):
             self.m_old = torch.zeros(self.model.n,device=self.model.device)
             self.m_new = torch.zeros(self.model.n,device=self.model.device)
             self.temp = torch.zeros(self.model.n,device=self.model.device)
+            self.ratio = 0
 
 
     def step(self):
@@ -90,9 +91,9 @@ class ASkotchV3(Optimizer):
                 a_new = (cnt+1)**math.log(cnt+1)
                 if cnt>=2:
                     if cnt==2:
-                        ratio = self.dist_new / self.dist_old
+                        self.ratio = self.dist_new / self.dist_old
                     else:
-                        ratio = ratio*(a_old/a_new) + min(1,self.dist_new / self.dist_old) * (1 - a_old/a_new)
+                        self.ratio = self.ratio*(a_old/a_new) + min(1,self.dist_new / self.dist_old) * (1 - a_old/a_new)
                     self.rho = max(0,1 - ratio**(1/self.p))
                 self.dist_old=self.dist_new
                 self.dist_new=0
