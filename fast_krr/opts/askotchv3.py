@@ -25,8 +25,8 @@ class ASkotchV3(Optimizer):
         block_sz,
         sampling_method="uniform",
         precond_params=None,
-        eta=None
-        p=None
+        eta=None,
+        p=None,
         accelerated=True,
     ):
         super().__init__(model, precond_params)
