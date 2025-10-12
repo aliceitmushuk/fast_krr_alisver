@@ -89,7 +89,10 @@ class ASkotchV3(Optimizer):
                 a_old = cnt**math.log(cnt)
                 a_new = (cnt+1)**math.log(cnt+1)
                 if cnt>=2:
-                    ratio = ratio*(a_old/a_new) + min(1,self.dist_new / self.dist_old) * (1 - a_old/a_new)
+                    if cnt==2:
+                        ratio = self.dist_new / self.dist_old
+                    else:
+                        ratio = ratio*(a_old/a_new) + min(1,self.dist_new / self.dist_old) * (1 - a_old/a_new)
                     self.rho = max(0,1 - ratio**(1/self.p))
                 self.dist_old=self.dist_new
                 self.dist_new=0
