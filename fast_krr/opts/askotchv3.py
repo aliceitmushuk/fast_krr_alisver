@@ -1,5 +1,5 @@
 import torch
-
+import math
 from fast_krr.opts.optimizer import Optimizer
 from fast_krr.opts.utils.general import _get_leverage_scores
 from fast_krr.opts.utils.general import _get_L, _apply_precond
@@ -86,8 +86,8 @@ class ASkotchV3(Optimizer):
             self.dist_new += sum_o_sqrerr
             if self.i%self.p==self.p-1:
                 cnt=(self.i+1)//self.p
-                a_old = cnt**torch.log(cnt)
-                a_new = (cnt+1)**torch.log(cnt+1)
+                a_old = cnt**math.log(cnt)
+                a_new = (cnt+1)**math.log(cnt+1)
                 if cnt>=2:
                     ratio = ratio*(a_old/a_new) + min(1,dist_new / dist_old) * (1 - a_old/a_new)
                     self.rho = max(0,1 - ratio**(1/self.p))
