@@ -2,6 +2,7 @@ import torch
 
 from fast_krr.opts.optimizer import Optimizer
 from fast_krr.opts.utils.general import _get_leverage_scores
+from fast_krr.opts.utils.general import _get_L, _apply_precond
 from fast_krr.opts.utils.bcd import (
     _get_block,
     _get_block_properties,
