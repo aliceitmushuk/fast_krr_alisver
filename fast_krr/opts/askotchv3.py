@@ -89,10 +89,10 @@ class ASkotchV3(Optimizer):
                 a_old = cnt**math.log(cnt)
                 a_new = (cnt+1)**math.log(cnt+1)
                 if cnt>=2:
-                    ratio = ratio*(a_old/a_new) + min(1,dist_new / dist_old) * (1 - a_old/a_new)
+                    ratio = ratio*(a_old/a_new) + min(1,self.dist_new / self.dist_old) * (1 - a_old/a_new)
                     self.rho = max(0,1 - ratio**(1/self.p))
-                dist_old=dist_new
-                dist_new=0
+                self.dist_old=self.dist_new
+                self.dist_new=0
         else:
             self.model.w[block] -= block_eta * dir
         self.i+=1
