@@ -79,7 +79,7 @@ class ASkotchV3(Optimizer):
         if self.accelerated:
 
             print(dir.is_cuda)
-            print(temp.is_cuda)
+            print(self.temp.is_cuda)
             print(block.is_cuda)
             self.temp[block] += block_eta * dir 
             
