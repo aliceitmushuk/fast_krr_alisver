@@ -54,7 +54,8 @@ class ASkotchV3(Optimizer):
         if self.accelerated:
             self.dist_new = 0.0
             self.dist_old = 0.0
-            self.rho = 0
+            #rho=1 means no acceleration, only start to accelerate later
+            self.rho = 1
             self.m_old = torch.zeros(self.model.n)
             self.m_new = torch.zeros(self.model.n)
             self.temp = torch.zeros(self.model.n)
@@ -81,7 +82,7 @@ class ASkotchV3(Optimizer):
             self.temp[:]=0
             self.m_old = self.m_new.clone()
             self.dist_new += sum_o_sqrerr
-            if self.i%p==0:
+            if self.i%p==p-1:
             
         else:
             self.model.w[block] -= block_eta * dir
