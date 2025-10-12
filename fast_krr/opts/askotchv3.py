@@ -77,7 +77,12 @@ class ASkotchV3(Optimizer):
         dir,sum_o_sqrerr = _get_block_update_w_err(self.model, self.model.w, block, block_precond)
 
         if self.accelerated:
+
+            print(dir.is_cuda)
+            print(temp.is_cuda)
+            print(block.is_cuda)
             self.temp[block] += block_eta * dir 
+            
             self.m_new = (1-self.rho)/(1+self.rho)*(self.m_old-self.temp)
             self.model.w = self.model.w - self.temp + self.eta*self.m_new
             self.temp[:]=0
