@@ -78,7 +78,7 @@ class ASkotchV3(Optimizer):
 
         if self.accelerated:
             self.temp[block] += block_eta * dir 
-            self.m_new = (1-rho)/(1+rho)*(self.m_old-self.temp)
+            self.m_new = (1-self.rho)/(1+self.rho)*(self.m_old-self.temp)
             self.model.w = self.model.w - self.temp + eta*self.m_new
             self.temp[:]=0
             self.m_old = self.m_new.clone()
@@ -89,7 +89,7 @@ class ASkotchV3(Optimizer):
                 a_new = (cnt+1)**np.log(cnt+1)
                 if cnt>=2:
                     ratio = ratio*(a_old/a_new) + min(1,dist_new / dist_old) * (1 - a_old/a_new)
-                    rho = max(0,1 - ratio**(1/skip))
+                    self.rho = max(0,1 - ratio**(1/skip))
                 dist_old=dist_new
                 dist_new=0
         else:
