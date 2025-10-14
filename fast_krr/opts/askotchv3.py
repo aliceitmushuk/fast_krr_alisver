@@ -65,7 +65,7 @@ class ASkotchV3(Optimizer):
 
     def step(self):
         # Randomly select block_sz distinct indices
-        if self.ratio>1 and self.step>1000:
+        if self.ratio>1 and self.i>1000:
             return
         block = _get_block(self.probs, self.probs_cpu, self.block_sz)
 
