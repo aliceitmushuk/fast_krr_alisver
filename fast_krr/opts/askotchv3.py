@@ -32,7 +32,7 @@ class ASkotchV3(Optimizer):
     ):
         super().__init__(model, precond_params)
         self.block_sz = block_sz
-        self.eta = eta if eta is not None else self.block_sz / (2*self.model.n)
+        self.eta = eta if eta is not None else 4*self.block_sz / self.model.n
         self.p = p if p is not None else 100
         self.accelerated = accelerated
 
@@ -94,7 +94,7 @@ class ASkotchV3(Optimizer):
                         self.ratio = self.dist_new / self.dist_old
                     else:
                         self.ratio = self.ratio*(a_old/a_new) + min(1,self.dist_new / self.dist_old) * (1 - a_old/a_new)
-                    self.rho = max(0,1 - self.ratio**(1/self.p))
+                    self.rho = max(1e-4,1 - self.ratio**(1/self.p))
                 self.dist_old=self.dist_new
                 self.dist_new=0
         else:
