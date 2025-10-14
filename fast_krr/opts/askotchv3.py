@@ -65,7 +65,7 @@ class ASkotchV3(Optimizer):
 
     def step(self):
         # Randomly select block_sz distinct indices
-        if self.dist_new>self.dist_old:
+        if self.ratio>1 and self.step>1000:
             return
         block = _get_block(self.probs, self.probs_cpu, self.block_sz)
 
@@ -95,7 +95,7 @@ class ASkotchV3(Optimizer):
                     if cnt==2:
                         self.ratio = self.dist_new / self.dist_old
                     else:
-                        self.ratio = self.ratio*(a_old/a_new) + min(1,self.dist_new / self.dist_old) * (1 - a_old/a_new)
+                        self.ratio = self.ratio*(a_old/a_new) + self.dist_new / self.dist_old * (1 - a_old/a_new)
                     self.rho = max(0,1 - self.ratio**(1/self.p))
                 self.dist_old=self.dist_new
                 self.dist_new=0
