@@ -56,7 +56,7 @@ class ASkotchV3(Optimizer):
             self.dist_new = 0.0
             self.dist_old = 0.0
             #rho=1 means no acceleration, only start to accelerate later
-            self.rho = 1
+            self.rho = 0.01
             self.m_old = torch.zeros(self.model.n,device=self.model.device)
             self.m_new = torch.zeros(self.model.n,device=self.model.device)
             self.temp = torch.zeros(self.model.n,device=self.model.device)
@@ -65,6 +65,8 @@ class ASkotchV3(Optimizer):
 
     def step(self):
         # Randomly select block_sz distinct indices
+        if self.rho<=1e-10:
+            continue
         block = _get_block(self.probs, self.probs_cpu, self.block_sz)
 
         # Compute block preconditioner and learning rate
@@ -94,7 +96,7 @@ class ASkotchV3(Optimizer):
                         self.ratio = self.dist_new / self.dist_old
                     else:
                         self.ratio = self.ratio*(a_old/a_new) + min(1,self.dist_new / self.dist_old) * (1 - a_old/a_new)
-                    self.rho = abs(1 - self.ratio**(1/self.p))
+                    self.rho = max(0,1 - self.ratio**(1/self.p))
                 self.dist_old=self.dist_new
                 self.dist_new=0
         else:
