@@ -65,7 +65,7 @@ class ASkotchV3(Optimizer):
 
     def step(self):
         # Randomly select block_sz distinct indices
-        if self.rho<=1e-10:
+        if self.dist_new>self.dist_old:
             return
         block = _get_block(self.probs, self.probs_cpu, self.block_sz)
 
