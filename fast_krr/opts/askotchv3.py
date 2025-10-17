@@ -29,7 +29,7 @@ class ASkotchV3(Optimizer):
         eta=None,
         p=None,
         accelerated=True,
-        ratio_stop=1-(1e-4),
+        rho_stop=1e-4,
     ):
         super().__init__(model, precond_params)
         self.block_sz = block_sz
@@ -66,7 +66,7 @@ class ASkotchV3(Optimizer):
 
     def step(self):
         # Randomly select block_sz distinct indices
-        if self.ratio>ratio_stop and self.i>1000:
+        if self.rho<rho_stop and self.i>1000:
             return
         block = _get_block(self.probs, self.probs_cpu, self.block_sz)
 
