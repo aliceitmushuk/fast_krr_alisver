@@ -62,6 +62,7 @@ class ASkotchV3(Optimizer):
             self.m_new = torch.zeros(self.model.n,device=self.model.device)
             self.temp = torch.zeros(self.model.n,device=self.model.device)
             self.ratio = 0
+            self.rho_stop = rho_stop 
 
 
     def step(self):
