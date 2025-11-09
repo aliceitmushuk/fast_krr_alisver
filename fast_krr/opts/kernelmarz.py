@@ -67,7 +67,8 @@ class KernelMarz(Optimizer):
             xb_i = LazyTensor(self.x[block][:, None, :])
             Kbn = _get_kernel(xb_i, self.x_j, self.kernel_params)
             L=torch.cholesky(Kbn@Kbn.t()+)
-            self.
+            self.cache_chol.append(L)
+            self.cache_blocks.append(block)
         
         # Get the update direction
         dir,sum_o_sqrerr = _get_block_update_w_err(self.model, self.model.w,L, block)
