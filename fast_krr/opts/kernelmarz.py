@@ -7,7 +7,7 @@ from fast_krr.opts.utils.bcd import (
 )
 
 #also returns a sum of the squared error
-def _get_block_update_w_err(model, w, block, precond):
+def _get_block_update_w_err_kaczmarz(model, w, block):
     
     # Compute the block gradient
     gb = model._get_block_grad(w, block)
