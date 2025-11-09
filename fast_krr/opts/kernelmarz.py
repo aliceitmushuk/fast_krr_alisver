@@ -65,18 +65,11 @@ class KernelMarz(Optimizer):
             return
         block = _get_block(self.probs, self.probs_cpu, self.block_sz)
 
-        # Compute block preconditioner and learning rate
-        block_precond, block_eta, _ = _get_block_properties(
-            self.model, self.precond_params, [block], False
-        )
-        block_precond = block_precond[0]
-        block_eta = block_eta[0]
-
         # Get the update direction
         dir,sum_o_sqrerr = _get_block_update_w_err(self.model, self.model.w,L, block)
 
         if self.accelerated:
-            self.temp += block_eta * dir 
+            self.temp += dir 
             
             self.m_new = (1-self.rho)/(1+self.rho)*(self.m_old-self.temp)
             self.model.w = self.model.w - self.temp + self.eta*self.m_new
@@ -96,5 +89,5 @@ class KernelMarz(Optimizer):
                 self.dist_old=self.dist_new
                 self.dist_new=0
         else:
-            self.model.w -= block_eta * dir
+            self.model.w -= dir
         self.i+=1
