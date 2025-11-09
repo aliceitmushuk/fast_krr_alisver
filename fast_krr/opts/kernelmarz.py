@@ -1,7 +1,6 @@
 import torch
 import math
 from fast_krr.opts.optimizer import Optimizer
-from fast_krr.opts.utils.general import _get_leverage_scores
 from fast_krr.opts.utils.general import _get_L, _apply_precond
 from fast_krr.opts.utils.bcd import (
     _get_block,
@@ -36,18 +35,8 @@ class KernelMarz(Optimizer):
         self.eta = eta if eta is not None else 4*self.block_sz / self.model.n
         self.p = p if p is not None else 100
         self.accelerated = accelerated
-
-
-        # Compute sampling probabilities
-        if sampling_method == "rls":
-            leverage_scores = _get_leverage_scores(
-                model=self.model,
-                size_final=int(self.model.n**0.5),
-                lam_final=self.model.lambd,
-                rls_oversample_param=5,
-            )
-            self.probs = leverage_scores / torch.sum(leverage_scores)
-        elif sampling_method == "uniform":
+        #right now online uniform sampling is implemented
+        if sampling_method == "uniform":
             self.probs = torch.ones(self.model.n) / self.model.n
         self.probs_cpu = self.probs.cpu().numpy()
         self.i = 0
