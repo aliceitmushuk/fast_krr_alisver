@@ -4,7 +4,6 @@ import random
 from fast_krr.opts.optimizer import Optimizer
 from fast_krr.opts.utils.bcd import (
     _get_block,
-    _get_block_properties,
 )
 
 #also returns a sum of the squared error
