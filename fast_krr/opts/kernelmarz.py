@@ -14,9 +14,9 @@ def _get_block_update_w_err_kaczmarz(model, w, L, block):
     xb_i = LazyTensor(self.x[block][:, None, :])
     Kbn = _get_kernel(xb_i, self.x_j, self.kernel_params)
     resids=Kbn @ w - self.b[block]
-    temp=
-    # Apply the block kaczmarz update
-    dir = 
+    temp1=torch.linalg.solve_triangular(L, resids, upper=False)
+    temp2=torch.linalg.solve_triangular(L.t(), temp1, upper=True)
+    dir=Kbn.t()@temp2
     return dir, (resids**2).sum()
 
 class KernelMarz(Optimizer):
