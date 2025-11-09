@@ -7,14 +7,14 @@ from fast_krr.opts.utils.bcd import (
 )
 
 #also returns a sum of the squared error
-def _get_block_update_w_err_kaczmarz(model, w, block):
+def _get_block_update_w_err_kaczmarz(model, w, L, block):
     
     # Compute the block gradient
     gb = model._get_block_grad(w, block)
     resids=gb-model.lambd * model.w[block]
     
-    # Apply the preconditioner
-    dir = _apply_precond(gb, precond)
+    # Apply the block kaczmarz update
+    dir = 
     return dir, (resids**2).sum()
 
 class KernelMarz(Optimizer):
