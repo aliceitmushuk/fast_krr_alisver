@@ -1,5 +1,6 @@
 import torch
 import math
+import random
 from fast_krr.opts.optimizer import Optimizer
 from fast_krr.opts.utils.bcd import (
     _get_block,
