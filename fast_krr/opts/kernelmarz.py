@@ -66,7 +66,7 @@ class KernelMarz(Optimizer):
             block = _get_block(self.probs, self.probs_cpu, self.block_sz)
             xb_i = LazyTensor(self.x[block][:, None, :])
             Kbn = _get_kernel(xb_i, self.x_j, self.kernel_params)
-            L=torch.cholesky(Kbn@Kbn.t()+)
+            L=torch.cholesky(Kbn@Kbn.t()+proj_reg*torch.eye(self.block_sz))
             self.cache_chol.append(L)
             self.cache_blocks.append(block)
         
