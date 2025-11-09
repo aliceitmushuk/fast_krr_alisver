@@ -1,7 +1,6 @@
 import torch
 import math
 from fast_krr.opts.optimizer import Optimizer
-from fast_krr.opts.utils.general import _get_L, _apply_precond
 from fast_krr.opts.utils.bcd import (
     _get_block,
     _get_block_properties,
@@ -24,7 +23,7 @@ class KernelMarz(Optimizer):
         model,
         block_sz,
         sampling_method="uniform",
-        precond_params=None,
+        proj_reg=1e-8,
         eta=None,
         p=None,
         accelerated=True,
