@@ -37,7 +37,8 @@ class KernelMarz(Optimizer):
         self.accelerated = accelerated
         #stores the chol factors L
         self.cache_chol = []
-        #right now online uniform sampling is implemented
+        self.cache_blocks = []
+        #right now only uniform sampling is implemented
         if sampling_method == "uniform":
             self.probs = torch.ones(self.model.n) / self.model.n
         self.probs_cpu = self.probs.cpu().numpy()
