@@ -69,7 +69,11 @@ class KernelMarz(Optimizer):
             L=torch.cholesky(Kbn@Kbn.t()+proj_reg*torch.eye(self.block_sz))
             self.cache_chol.append(L)
             self.cache_blocks.append(block)
-        
+        else:
+            len_cache=len(self.cache_blocks)
+            ind=random.randint(0,len_cache-1)
+            block=self.cache_blocks[ind]
+            L=self.cache_chol[ind]
         # Get the update direction
         dir,sum_o_sqrerr = _get_block_update_w_err(self.model, self.model.w,L, block)
 
