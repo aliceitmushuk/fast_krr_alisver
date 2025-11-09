@@ -19,7 +19,7 @@ def _get_block_update_w_err(model, w, block, precond):
     dir = _apply_precond(gb, precond)
     return dir, (resids**2).sum()
 
-class ASkotchV3(Optimizer):
+class KernelMarz(Optimizer):
     def __init__(
         self,
         model,
@@ -37,7 +37,6 @@ class ASkotchV3(Optimizer):
         self.p = p if p is not None else 100
         self.accelerated = accelerated
 
-        # TODO(pratik): check that nu > mu and mu * nu <= 1
 
         # Compute sampling probabilities
         if sampling_method == "rls":
