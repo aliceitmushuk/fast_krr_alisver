@@ -35,6 +35,8 @@ class KernelMarz(Optimizer):
         self.eta = eta if eta is not None else 4*self.block_sz / self.model.n
         self.p = p if p is not None else 100
         self.accelerated = accelerated
+        #stores the chol factors L
+        self.cache_chol = []
         #right now online uniform sampling is implemented
         if sampling_method == "uniform":
             self.probs = torch.ones(self.model.n) / self.model.n
