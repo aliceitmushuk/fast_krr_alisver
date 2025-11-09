@@ -11,8 +11,10 @@ def _get_block_update_w_err_kaczmarz(model, w, L, block):
     
     # Compute the block gradient
     gb = model._get_block_grad(w, block)
-    resids=gb-model.lambd * model.w[block]
-    
+    xb_i = LazyTensor(self.x[block][:, None, :])
+    Kbn = _get_kernel(xb_i, self.x_j, self.kernel_params)
+    resids=Kbn @ w - self.b[block]
+    temp=
     # Apply the block kaczmarz update
     dir = 
     return dir, (resids**2).sum()
