@@ -29,7 +29,7 @@ class KernelMarz(Optimizer):
         eta=None,
         p=None,
         min_dists=None,
-        precond_params=None
+        precond_params=None,
         accelerated=True,
         rho_stop=1e-4,
     ):
