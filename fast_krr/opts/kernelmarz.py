@@ -26,6 +26,7 @@ class KernelMarz(Optimizer):
         proj_reg=1e-8,
         eta=None,
         p=None,
+        min_dists=None
         accelerated=True,
         rho_stop=1e-4,
     ):
