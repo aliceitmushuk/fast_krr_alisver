@@ -72,7 +72,7 @@ class KernelMarz(Optimizer):
         block_eta = block_eta[0]
 
         # Get the update direction
-        dir,sum_o_sqrerr = _get_block_update_w_err(self.model, self.model.w, block, block_precond)
+        dir,sum_o_sqrerr = _get_block_update_w_err(self.model, self.model.w,L, block)
 
         if self.accelerated:
             self.temp += block_eta * dir 
