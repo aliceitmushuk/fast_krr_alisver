@@ -8,9 +8,7 @@ from fast_krr.opts.utils.bcd import (
 
 #also returns a sum of the squared error
 def _get_block_update_w_err_kaczmarz(model, w, L, block):
-    
-    # Compute the block gradient
-    gb = model._get_block_grad(w, block)
+
     xb_i = LazyTensor(self.x[block][:, None, :])
     Kbn = _get_kernel(xb_i, self.x_j, self.kernel_params)
     resids=Kbn @ w - self.b[block]
@@ -64,8 +62,13 @@ class KernelMarz(Optimizer):
         if self.rho<self.rho_stop and self.i>1000:
             return
         prob_add=min(1,self.model.n/((self.i+1)*self.block_sz)*math.log(self.model.n))
-        block = _get_block(self.probs, self.probs_cpu, self.block_sz)
-
+        if random.random()<prob_add:
+            block = _get_block(self.probs, self.probs_cpu, self.block_sz)
+            xb_i = LazyTensor(self.x[block][:, None, :])
+            Kbn = _get_kernel(xb_i, self.x_j, self.kernel_params)
+            L=torch.cholesky(Kbn@Kbn.t()+)
+            self.
+        
         # Get the update direction
         dir,sum_o_sqrerr = _get_block_update_w_err(self.model, self.model.w,L, block)
 
