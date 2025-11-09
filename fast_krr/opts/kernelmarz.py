@@ -63,7 +63,7 @@ class KernelMarz(Optimizer):
         # Randomly select block_sz distinct indices
         if self.rho<self.rho_stop and self.i>1000:
             return
-        prob=self.block_sz/(self.i+1)*math.log(self.model.n)
+        prob=self.model.n/((self.i+1)*self.block_sz)*math.log(self.model.n)
         block = _get_block(self.probs, self.probs_cpu, self.block_sz)
 
         # Get the update direction
