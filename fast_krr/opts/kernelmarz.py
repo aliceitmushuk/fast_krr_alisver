@@ -2,6 +2,7 @@ import torch
 import math
 import random
 from fast_krr.opts.optimizer import Optimizer
+from pykeops.torch import LazyTensor
 from fast_krr.opts.utils.bcd import (
     _get_block,
 )
@@ -17,6 +18,8 @@ def _get_block_update_w_err_kaczmarz(model, w, L, block):
     dir=Kbn.t()@temp2
     return dir, (resids**2).sum()
 def min_l2_dist(x):
+    x_i = 
+    x_j =
     
     return min_dists
 class KernelMarz(Optimizer):
