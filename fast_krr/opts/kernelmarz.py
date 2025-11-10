@@ -18,11 +18,12 @@ def _get_block_update_w_err_kaczmarz(model, w, L, block):
     dir=Kbn.t()@temp2
     return dir, (resids**2).sum()
 def min_l2_dist(x):
-    x_i = LazyTensor( x[:,None,:] )  # x_i.shape = (1e6, 1, 3)
-    x_j = LazyTensor( y[None,:,:] )  # x_j.shape = ( 1, 2e6,3)
+    x_i = LazyTensor( x[:,None,:] )  
+    x_j = LazyTensor( y[None,:,:] )
 
-    D_ij = ((x_i - x_j)**2).sum(dim=2)  # Symbolic (1e6,2e6,1) matrix of squared distances
-    K_ij = (- D_ij).exp()               # Symbolic (1e6,2e6,1) Gaussian kernel matrix
+    D_ij = ((x_i - x_j)**2).sum(dim=2)
+    K=2
+    d_min_ijs=D_ij.Kmin(K,dim=1)             
     
     return min_dists
 class KernelMarz(Optimizer):
