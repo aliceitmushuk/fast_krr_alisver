@@ -16,7 +16,9 @@ def _get_block_update_w_err_kaczmarz(model, w, L, block):
     temp2=torch.linalg.solve_triangular(L.t(), temp1, upper=True)
     dir=Kbn.t()@temp2
     return dir, (resids**2).sum()
-def min_l2_dist(x)
+def min_l2_dist(x):
+    
+    return min_dists
 class KernelMarz(Optimizer):
     def __init__(
         self,
