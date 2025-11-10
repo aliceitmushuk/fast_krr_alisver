@@ -6,6 +6,9 @@ from pykeops.torch import LazyTensor
 from fast_krr.opts.utils.bcd import (
     _get_block,
 )
+from fast_krr.kernels.kernel_inits import (
+    _get_kernel,
+)
 
 #also returns a sum of the squared error
 def _get_block_update_w_err_kaczmarz(model, w, L, block):
