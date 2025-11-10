@@ -23,8 +23,10 @@ def min_l2_dist(x):
 
     D_ij = ((x_i - x_j)**2).sum(dim=2)
     K=2
-    d_min_ijs=D_ij.Kmin(K,dim=1)             
-    
+    d_mins_raw=D_ij.Kmin(K,dim=1)   
+    #just get rid of the zero element
+    d_mins=d_mins_raw.sum(dim=1)
+    min_dists=d_mins**0.5
     return min_dists
 class KernelMarz(Optimizer):
     def __init__(
