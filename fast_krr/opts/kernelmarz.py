@@ -9,11 +9,12 @@ from fast_krr.opts.utils.bcd import (
 from fast_krr.kernels.kernel_inits import (
     _get_kernel,
 )
-def keops_matmul(lazy_A,lazy_B):
-    A_aug=lazy_A[:,:,None]
-    B_aug=lazy_B[None,:,:]
-    AB=(A*B).sum(dim=1)
-    return AB
+
+def keops_matmul(A_lazy,B_lazy,m,n):
+    prod=torch.zeros(m,n)
+    for i in range(m):
+        prod[i,:]=A_lazy[i]@B_lazy
+    return prod
     
 #also returns a sum of the squared error
 def _get_block_update_w_err_kaczmarz(model, w, L, block):
