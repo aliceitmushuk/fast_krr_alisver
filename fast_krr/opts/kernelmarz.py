@@ -37,7 +37,7 @@ class KernelMarz(Optimizer):
         model,
         block_sz,
         sampling_method="uniform",
-        proj_reg=1e-8,
+        proj_reg=1e-4,
         eta=None,
         p=None,
         min_dists=None,
@@ -76,11 +76,7 @@ class KernelMarz(Optimizer):
         xb=self.model.x[block]
         for i in range(self.block_sz):
             row=_get_kernel(xb[i, None, :], self.model.x[None,:,:], self.model.kernel_params).flatten()
-            print(_get_kernel(xb[i, None, :], self.model.x[None,:,:], self.model.kernel_params).shape)
             Kbn_KbnT[:,i]=Kbn@row
-            if i>5:
-                break
-        print(Kbn_KbnT[:5,:5])
         return Kbn_KbnT
     '''
     def comp_Kbn_KbnT(self,Kbn,block):
