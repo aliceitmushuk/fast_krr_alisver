@@ -13,7 +13,7 @@ from fast_krr.kernels.kernel_inits import (
 def keops_matmul(A_lazy,B_lazy,m,n):
     prod=torch.zeros(m,n)
     for i in range(n):
-        prod[:,i]=A_lazy@B_lazy[:,i]
+        prod[:,i]=A_lazy@B_lazy[i]
     return prod
     
 #also returns a sum of the squared error
