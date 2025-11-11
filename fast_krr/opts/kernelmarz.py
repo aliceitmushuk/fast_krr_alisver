@@ -83,7 +83,7 @@ class KernelMarz(Optimizer):
         x_i=LazyTensor(self.model.x[block][None,:, None, :])
         x_j=LazyTensor(self.model.x[block][None, None, :,:])
         Kbn_lazy=_get_kernel(x_i,x_j, self.model.kernel_params)
-        Kbn_dense=Kbn_lazy.sum_reduce(dim=0)
+        Kbn_dense=Kbn_lazy.sum(dim=0)
         Kbn_KbnT=Kbn_dense@(Kbn_dense.t())
         return Kbn_KbnT
     
