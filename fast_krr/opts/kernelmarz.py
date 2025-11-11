@@ -69,7 +69,7 @@ class KernelMarz(Optimizer):
             self.temp = torch.zeros(self.model.n,device=self.model.device)
             self.ratio = 0
             self.rho_stop = rho_stop 
-    def comp_Kbn_KbnT(Kbn,block):
+    def comp_Kbn_KbnT(self,Kbn,block):
         Kbn_KbnT=torch.zeros(self.block_sz,self.block_sz)
         xb=self.model.x[block]
         for i in range(self.block_sz):
