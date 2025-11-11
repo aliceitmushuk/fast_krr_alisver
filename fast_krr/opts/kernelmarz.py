@@ -69,7 +69,7 @@ class KernelMarz(Optimizer):
             self.temp = torch.zeros(self.model.n,device=self.model.device)
             self.ratio = 0
             self.rho_stop = rho_stop 
-    '''
+    
     def comp_Kbn_KbnT(self,Kbn,block):
         Kbn_KbnT=torch.zeros(self.block_sz,self.block_sz)
         xb=self.model.x[block]
@@ -82,7 +82,7 @@ class KernelMarz(Optimizer):
         Kbn_dense=_get_kernel(self.model.x[block][:, None, :], self.model.x[None,:,:], self.model.kernel_params)
         Kbn_KbnT=Kbn_dense@(Kbn_dense.t())
         return Kbn_KbnT
-        
+    '''
     def step(self):
         # Randomly select block_sz distinct indices
         if self.rho<self.rho_stop and self.i>1000:
