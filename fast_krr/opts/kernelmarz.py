@@ -73,7 +73,8 @@ class KernelMarz(Optimizer):
         Kbn_KbnT=torch.zeros(self.block_sz,self.block_sz)
         xb=self.model.x[block]
         for i in range(self.block_sz):
-            Kbn_KbnT[:,i]=Kbn@_get_kernel(self.model.x, xb[i], self.model.kernel_params)
+            D = ((self.model.x- xb[i]) ** 2).sum(dim=1).sqrt()
+            Kbn_KbnT[:,i]=Kbn@D
         return Kbn_KbnT
         
     def step(self):
