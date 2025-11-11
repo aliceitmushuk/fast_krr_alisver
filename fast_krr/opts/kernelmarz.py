@@ -69,12 +69,18 @@ class KernelMarz(Optimizer):
             self.temp = torch.zeros(self.model.n,device=self.model.device)
             self.ratio = 0
             self.rho_stop = rho_stop 
+    '''
     def comp_Kbn_KbnT(self,Kbn,block):
         Kbn_KbnT=torch.zeros(self.block_sz,self.block_sz)
         xb=self.model.x[block]
         for i in range(self.block_sz):
             D = ((self.model.x- xb[i]) ** 2).sum(dim=1).sqrt()
             Kbn_KbnT[:,i]=Kbn@D
+        return Kbn_KbnT
+    '''
+    def comp_Kbn_KbnT(self,Kbn,block):
+        Kbn_dense=_get_kernel(self.model.x[block][:, None, :], self.model.x[None,:,:], model.kernel_params)
+        Kbn_KbnT=Kbn_dense@(Kbn_dense.t())
         return Kbn_KbnT
         
     def step(self):
@@ -87,7 +93,7 @@ class KernelMarz(Optimizer):
             xb_i = LazyTensor(self.model.x[block][:, None, :])
             Kbn = _get_kernel(xb_i, self.model.x_j, self.model.kernel_params)
             Kbn_Kbn_T=self.comp_Kbn_KbnT(Kbn,block)
-            L=torch.cholesky(Kbn_Kbn_T+proj_reg*torch.eye(self.block_sz))
+            L=torch.cholesky(Kbn_Kbn_T+self.proj_reg*torch.eye(self.block_sz))
             self.cache_chol.append(L)
             self.cache_blocks.append(block)
         else:
