@@ -79,7 +79,7 @@ class KernelMarz(Optimizer):
         return Kbn_KbnT
     '''
     def comp_Kbn_KbnT(self,Kbn,block):
-        Kbn_dense=_get_kernel(self.model.x[block][:, None, :], self.model.x[None,:,:], model.kernel_params)
+        Kbn_dense=_get_kernel(self.model.x[block][:, None, :], self.model.x[None,:,:], self.model.kernel_params)
         Kbn_KbnT=Kbn_dense@(Kbn_dense.t())
         return Kbn_KbnT
         
