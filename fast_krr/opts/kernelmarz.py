@@ -9,16 +9,9 @@ from fast_krr.opts.utils.bcd import (
 from fast_krr.kernels.kernel_inits import (
     _get_kernel,
 )
-
-def keops_matmul(A_lazy,B_lazy,m,n):
-    prod=torch.zeros(m,n)
-    for i in range(n):
-        prod[:,i]=A_lazy@B_lazy[i]
-    return prod
     
 #also returns a sum of the squared error
 def _get_block_update_w_err_kaczmarz(model, w, L, block):
-
     xb_i = LazyTensor(model.x[block][:, None, :])
     Kbn = _get_kernel(xb_i, model.x_j, model.kernel_params)
     resids=Kbn @ w - self.b[block]
@@ -76,7 +69,6 @@ class KernelMarz(Optimizer):
             self.ratio = 0
             self.rho_stop = rho_stop 
 
-
     def step(self):
         # Randomly select block_sz distinct indices
         if self.rho<self.rho_stop and self.i>1000:
@@ -86,8 +78,9 @@ class KernelMarz(Optimizer):
             block = _get_block(self.probs, self.probs_cpu, self.block_sz)
             xb_i = LazyTensor(self.model.x[block][:, None, :])
             Kbn = _get_kernel(xb_i, self.model.x_j, self.model.kernel_params)
-            print(Kbn)
-            Kbn_Kbn_T=keops_matmul(Kbn,Kbn.t(),self.block_sz,self.block_sz)
+            Kbn_i=
+            Kbn_j=
+            Kbn_Kbn_T=Kbn_i|Kbn_j
             L=torch.cholesky(Kbn_Kbn_T+proj_reg*torch.eye(self.block_sz))
             self.cache_chol.append(L)
             self.cache_blocks.append(block)
@@ -101,7 +94,6 @@ class KernelMarz(Optimizer):
 
         if self.accelerated:
             self.temp += dir 
-            
             self.m_new = (1-self.rho)/(1+self.rho)*(self.m_old-self.temp)
             self.model.w = self.model.w - self.temp + self.eta*self.m_new
             self.temp[:]=0
