@@ -16,7 +16,7 @@ def _get_block_update_w_err_kaczmarz(model, w, L, block):
     Kbn = _get_kernel(xb_i, model.x_j, model.kernel_params)
     resids=Kbn @ w - model.b[block]
     temp1=torch.linalg.solve_triangular(L, resids[:,None], upper=False)
-    temp2=torch.linalg.solve_triangular(L.t(), temp1, upper=True)
+    temp2=torch.linalg.solve_triangular(L.t(), temp1, upper=True).flatten()
     dir=Kbn.t()@temp2
     return dir, (resids**2).sum()
 
