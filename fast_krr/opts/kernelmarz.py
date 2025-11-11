@@ -14,7 +14,7 @@ from fast_krr.kernels.kernel_inits import (
 def _get_block_update_w_err_kaczmarz(model, w, L, block):
     xb_i = LazyTensor(model.x[block][:, None, :])
     Kbn = _get_kernel(xb_i, model.x_j, model.kernel_params)
-    resids=Kbn @ w - self.b[block]
+    resids=Kbn @ w - model.b[block]
     temp1=torch.linalg.solve_triangular(L, resids, upper=False)
     temp2=torch.linalg.solve_triangular(L.t(), temp1, upper=True)
     dir=Kbn.t()@temp2
