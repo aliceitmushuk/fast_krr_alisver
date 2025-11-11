@@ -9,7 +9,7 @@ KERNEL_CLASSES = {
     "rbf": Rbf,
     "l1_laplace": L1Laplace,
     "matern": Matern,
-    "rbf_invquad": Rbf_invquad
+    "rbf_invquad": Rbf_invquad,
     "matern_km": Matern_Km
 }
 
