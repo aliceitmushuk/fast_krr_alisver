@@ -103,7 +103,7 @@ class KernelMarz(Optimizer):
             block=self.cache_blocks[ind]
             L=self.cache_chol[ind]
         # Get the update direction
-        dir,sum_o_sqrerr = _get_block_update_w_err(self.model, self.model.w,L, block)
+        dir,sum_o_sqrerr = _get_block_update_w_err_kaczmarz(self.model, self.model.w,L, block)
 
         if self.accelerated:
             self.temp += dir 
