@@ -19,6 +19,7 @@ def _get_block_update_w_err_kaczmarz(model, w, L, block):
     temp2=torch.linalg.solve_triangular(L.t(), temp1, upper=True)
     dir=Kbn.t()@temp2
     return dir, (resids**2).sum()
+
 def min_l2_dist(x):
     x_i = LazyTensor( x[:,None,:] )  
     x_j = LazyTensor( y[None,:,:] )
@@ -68,7 +69,13 @@ class KernelMarz(Optimizer):
             self.temp = torch.zeros(self.model.n,device=self.model.device)
             self.ratio = 0
             self.rho_stop = rho_stop 
-
+    def comp_Kbn_KbnT(Kbn,block):
+        Kbn_KbnT=torch.zeros(self.block_sz,self.block_sz)
+        xb=self.model.x[block]
+        for i in range(self.block_sz):
+            Kbn_KbnT[:,i]=Kbn@_get_kernel(self.model.x, xb[i], self.model.kernel_params)
+        return Kbn_KbnT
+        
     def step(self):
         # Randomly select block_sz distinct indices
         if self.rho<self.rho_stop and self.i>1000:
@@ -78,9 +85,7 @@ class KernelMarz(Optimizer):
             block = _get_block(self.probs, self.probs_cpu, self.block_sz)
             xb_i = LazyTensor(self.model.x[block][:, None, :])
             Kbn = _get_kernel(xb_i, self.model.x_j, self.model.kernel_params)
-            Kbn_i= LazyTensor(Kbn.view([:,None,:]))
-            Kbn_j= LazyTensor(Kbn.view([None,:,:]))
-            Kbn_Kbn_T=Kbn_i|Kbn_j
+
             L=torch.cholesky(Kbn_Kbn_T+proj_reg*torch.eye(self.block_sz))
             self.cache_chol.append(L)
             self.cache_blocks.append(block)
