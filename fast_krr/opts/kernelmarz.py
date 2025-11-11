@@ -12,7 +12,10 @@ from fast_krr.kernels.kernel_inits import (
 
 def keops_matmul(A_lazy,B_lazy,m,n):
     prod=torch.zeros(m,n)
+    print(A_lazy)
     print(A_lazy[0])
+    print(A_lazy[1])
+    print(A_lazy[0:1])
     for i in range(n):
         prod[:,i]=A_lazy@B_lazy[:,i]
     return prod
