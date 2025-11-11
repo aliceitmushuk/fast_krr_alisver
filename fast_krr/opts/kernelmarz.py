@@ -77,6 +77,9 @@ class KernelMarz(Optimizer):
         for i in range(self.block_sz):
             row=_get_kernel(xb[i, None, :], self.model.x[None,:,:], self.model.kernel_params).flatten()
             Kbn_KbnT[:,i]=Kbn@row
+            if i>5:
+                break
+        print(Kbn_KbnT[:5,:5])
         return Kbn_KbnT
     '''
     def comp_Kbn_KbnT(self,Kbn,block):
