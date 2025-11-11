@@ -2,6 +2,7 @@ from pykeops.torch import LazyTensor
 
 from fast_krr.kernels.l1_laplace import L1Laplace
 from fast_krr.kernels.matern import Matern
+from fast_krr.kernels.matern_km import Matern_Km
 from fast_krr.kernels.rbf import Rbf
 from fast_krr.kernels.rbf_invquad import Rbf_invquad
 KERNEL_CLASSES = {
@@ -9,6 +10,7 @@ KERNEL_CLASSES = {
     "l1_laplace": L1Laplace,
     "matern": Matern,
     "rbf_invquad": Rbf_invquad
+    "matern_km": Matern_Km
 }
 
 
