@@ -79,15 +79,12 @@ class KernelMarz(Optimizer):
             Kbn_KbnT[:,i]=Kbn@row
         return Kbn_KbnT
     '''
-    def comp_Kbn_KbnT(self,Kbn,block):
-        Kbn_dense=_get_kernel(self.model.x[block][:, None, :], self.model.x[None,:,:], self.model.kernel_params)
-        Kbn_KbnT=torch.zeros(self.block_sz,self.block_sz)
-        xb=self.model.x[block]
-        i=0
-        while i<self.block_sz:
-            row=_get_kernel(xb[i:i+50, None, :], self.model.x[None,:,:], self.model.kernel_params).flatten()
-            Kbn_KbnT[:,i:i+50]=Kbn@row
-            i+=50
+    def comp_Kbn_KbnT(self,block):
+        x_i=LazyTensor(self.model.x[block][None,:, None, :])
+        x_j=LazyTensor(self.model.x[block][None, None, :,:])
+        Kbn_lazy=_get_kernel(x_i,x_j, self.model.kernel_params)
+        Kbn_dense=Kbn_lazy.sum_reduce(dim=0)
+        Kbn_KbnT=Kbn_dense@(Kbn_dense.t())
         return Kbn_KbnT
     
     def step(self):
