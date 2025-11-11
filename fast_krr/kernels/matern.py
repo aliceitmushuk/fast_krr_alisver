@@ -17,8 +17,6 @@ class Matern(Kernel):
     def _get_kernel(x1_lazy, x2_lazy, kernel_params):
         nu = kernel_params["nu"]
         sigma = kernel_params["sigma"]
-        print(x1_lazy.shape)
-        print(x2_lazy.shape)
         D = ((x1_lazy - x2_lazy) ** 2).sum(dim=2).sqrt()
 
         if nu == 0.5:
