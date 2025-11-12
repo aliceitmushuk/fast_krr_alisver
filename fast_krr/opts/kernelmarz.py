@@ -71,23 +71,7 @@ class KernelMarz(Optimizer):
             self.temp = torch.zeros(self.model.n,device=self.model.device)
             self.ratio = 0
             self.rho_stop = rho_stop 
-    '''
-    def comp_Kbn_KbnT(self,Kbn,block):
-        Kbn_KbnT=torch.zeros(self.block_sz,self.block_sz)
-        xb=self.model.x[block]
-        for i in range(self.block_sz):
-            row=_get_kernel(xb[i, None, :], self.model.x[None,:,:], self.model.kernel_params).flatten()
-            Kbn_KbnT[:,i]=Kbn@row
-        return Kbn_KbnT
-    '''
-    def comp_Kbn_KbnT(self,block):
-        x_i=LazyTensor(self.model.x[block][None,:, None, :])
-        x_j=LazyTensor(self.model.x[block][None, None, :,:])
-        Kbn_lazy=_get_kernel(x_i,x_j, self.model.kernel_params)
-        Kbn_dense=Kbn_lazy.sum(dim=0)
-        Kbn_KbnT=Kbn_dense@(Kbn_dense.t())
-        return Kbn_KbnT
-    
+
     def step(self):
         # Randomly select block_sz distinct indices
         if self.rho<self.rho_stop and self.i>1000:
