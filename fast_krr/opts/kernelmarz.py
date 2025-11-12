@@ -18,7 +18,7 @@ def _get_block_update_w_err_kaczmarz(model, w, block):
     Kbn = _get_kernel(xb_i, model.x_j, model.kernel_params)
     resids=Kbn @ w - model.b[block]
     K=aslinearoperator(Kbn)
-    dir=lsqr(A,resids,damp=1)
+    dir=lsqr(K,resids,damp=1)
     return dir, (resids**2).sum()
 
 def min_l2_dist(x):
