@@ -13,7 +13,7 @@ from fast_krr.kernels.kernel_inits import (
 )
     
 #also returns a sum of the squared error
-def _get_block_update_w_err_kaczmarz(model, w, L, block):
+def _get_block_update_w_err_kaczmarz(model, w, block):
     xb_i = LazyTensor(model.x[block][:, None, :])
     Kbn = _get_kernel(xb_i, model.x_j, model.kernel_params)
     resids=Kbn @ w - model.b[block]
@@ -78,8 +78,8 @@ class KernelMarz(Optimizer):
             return
         prob_add=min(1,self.model.n/((self.i+1)*self.block_sz)*math.log(self.model.n))
         if random.random()<prob_add:
-            pass
-            #block = _get_block(self.probs, self.probs_cpu, self.block_sz)
+            
+            block = _get_block(self.probs, self.probs_cpu, self.block_sz)
             #xb_i = LazyTensor(self.model.x[block][:, None, :])
             #Kbn = _get_kernel(xb_i, self.model.x_j, self.model.kernel_params)
             #self.cache_chol.append(L)
@@ -92,7 +92,7 @@ class KernelMarz(Optimizer):
             L=self.cache_chol[ind]
             '''
         # Get the update direction
-        dir,sum_o_sqrerr = _get_block_update_w_err_kaczmarz(self.model, self.model.w, L, block)
+        dir,sum_o_sqrerr = _get_block_update_w_err_kaczmarz(self.model, self.model.w, block)
 
         if self.accelerated:
             self.temp += dir 
