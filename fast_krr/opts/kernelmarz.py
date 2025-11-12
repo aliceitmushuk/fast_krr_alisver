@@ -3,6 +3,7 @@ import torch
 import math
 import random
 from fast_krr.opts.optimizer import Optimizer
+from scipy.sparse.linalg import aslinearoperator
 from pykeops.torch import LazyTensor
 from fast_krr.opts.utils.bcd import (
     _get_block,
@@ -16,9 +17,8 @@ def _get_block_update_w_err_kaczmarz(model, w, L, block):
     xb_i = LazyTensor(model.x[block][:, None, :])
     Kbn = _get_kernel(xb_i, model.x_j, model.kernel_params)
     resids=Kbn @ w - model.b[block]
-    temp1=torch.linalg.solve_triangular(L, resids[:,None], upper=False)
-    temp2=torch.linalg.solve_triangular(L.t(), temp1, upper=True).flatten()
-    dir=Kbn.t()@temp2
+    K=aslinearoperator(Kbn)
+    dir=lsqr(A,resids,damp=1)
     return dir, (resids**2).sum()
 
 def min_l2_dist(x):
@@ -78,18 +78,21 @@ class KernelMarz(Optimizer):
             return
         prob_add=min(1,self.model.n/((self.i+1)*self.block_sz)*math.log(self.model.n))
         if random.random()<prob_add:
-            block = _get_block(self.probs, self.probs_cpu, self.block_sz)
-            xb_i = LazyTensor(self.model.x[block][:, None, :])
-            Kbn = _get_kernel(xb_i, self.model.x_j, self.model.kernel_params)
+            pass
+            #block = _get_block(self.probs, self.probs_cpu, self.block_sz)
+            #xb_i = LazyTensor(self.model.x[block][:, None, :])
+            #Kbn = _get_kernel(xb_i, self.model.x_j, self.model.kernel_params)
             #self.cache_chol.append(L)
             #self.cache_blocks.append(block)
         else:
+            '''
             len_cache=len(self.cache_blocks)
             ind=random.randint(0,len_cache-1)
             block=self.cache_blocks[ind]
             L=self.cache_chol[ind]
+            '''
         # Get the update direction
-        dir,sum_o_sqrerr = _get_block_update_w_err_kaczmarz(self.model, Kbn, self.model.w, L, block)
+        dir,sum_o_sqrerr = _get_block_update_w_err_kaczmarz(self.model, self.model.w, L, block)
 
         if self.accelerated:
             self.temp += dir 
