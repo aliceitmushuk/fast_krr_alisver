@@ -18,6 +18,7 @@ def _get_block_update_w_err_kaczmarz(model, w, block):
     Kbn = _get_kernel(xb_i, model.x_j, model.kernel_params)
     resids=Kbn @ w - model.b[block]
     K=aslinearoperator(Kbn)
+    print(K.rmatvec(resids.cpu()))
     dir=lsqr(K,resids.cpu(),damp=1,iter_lim=8)
     return dir, (resids**2).sum()
 
