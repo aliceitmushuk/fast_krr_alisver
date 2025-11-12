@@ -16,6 +16,7 @@ from fast_krr.kernels.kernel_inits import (
 def _get_block_update_w_err_kaczmarz(model, w, block):
     xb_i = LazyTensor(model.x[block][:, None, :])
     Kbn = _get_kernel(xb_i, model.x_j, model.kernel_params)
+    print(Kbn)
     resids=Kbn @ w - model.b[block]
     K=aslinearoperator(Kbn)
     print(K.rmatvec(resids.cpu()))
