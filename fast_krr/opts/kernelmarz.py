@@ -81,17 +81,15 @@ class KernelMarz(Optimizer):
             block = _get_block(self.probs, self.probs_cpu, self.block_sz)
             xb_i = LazyTensor(self.model.x[block][:, None, :])
             Kbn = _get_kernel(xb_i, self.model.x_j, self.model.kernel_params)
-            Kbn_Kbn_T=self.comp_Kbn_KbnT(block)
-            L=torch.linalg.cholesky(Kbn_Kbn_T+self.proj_reg*torch.eye(self.block_sz)).to(self.model.device)
-            self.cache_chol.append(L)
-            self.cache_blocks.append(block)
+            #self.cache_chol.append(L)
+            #self.cache_blocks.append(block)
         else:
             len_cache=len(self.cache_blocks)
             ind=random.randint(0,len_cache-1)
             block=self.cache_blocks[ind]
             L=self.cache_chol[ind]
         # Get the update direction
-        dir,sum_o_sqrerr = _get_block_update_w_err_kaczmarz(self.model, self.model.w,L, block)
+        dir,sum_o_sqrerr = _get_block_update_w_err_kaczmarz(self.model, Kbn, self.model.w, L, block)
 
         if self.accelerated:
             self.temp += dir 
