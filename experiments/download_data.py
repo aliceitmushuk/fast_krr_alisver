@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from sklearn.datasets import fetch_openml
 import torch
-import qml
+#import qml
 from scipy.io import savemat
 
 from .data_handling.vision import process_all_datasets
@@ -78,7 +78,7 @@ def download_sgdml(url_stem, datasets, directory):
         else:
             print("Error: ", response.status_code)
 
-
+'''
 def download_qm9(url, directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -132,7 +132,7 @@ def process_qm9(directory, max_atoms=29, output_index=7):
     Y = np.array(energies).reshape((X.shape[0], 1))
 
     return X, Y
-
+'''
 
 def main():
     # Create the data directory if it doesn't exist
@@ -176,14 +176,14 @@ def main():
         "md17_toluene.npz",
     ]
     download_sgdml(url_stem, datasets, directory)
-
+'''
     # From QM9
     url = "https://figshare.com/ndownloader/files/3195389"
     directory_qm9 = os.path.join(directory, "qm9")
     download_qm9(url, directory_qm9)
     X, Y = process_qm9(directory_qm9)
     savemat(os.path.join(directory, "qm9.mat"), {"X": X, "Y": Y})
-
+'''
     # From torchvision
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     process_all_datasets(directory, device)
