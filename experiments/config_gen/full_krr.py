@@ -172,6 +172,17 @@ if __name__ == "__main__":
         "training.max_iter": [None],
         "wandb.project": ["performance_full_krr_v2"],
     }
+        sweep_params_performance_full_krr_askotchv3 = {
+        "dataset": PERFORMANCE_DATASETS,
+        "model": ["full_krr"],
+        "opt.type": ["askotchv3"],
+        "precond.r": [100],
+        "training.log_freq": [100],
+        "training.precision": ["float32"],
+        "training.seed": [SEED],
+        "training.max_iter": [None],
+        "wandb.project": ["performance_full_krr_v3"],
+    }
 
     output_dir = "performance_full_krr"
 
@@ -189,6 +200,19 @@ if __name__ == "__main__":
         BLK_SZ_FRAC,
         PRECONDITIONERS,
     )
-
-    save_configs(combinations_askotchv2, output_dir)
+    combinations_askotchv3 = generate_combinations(
+        sweep_params_performance_full_krr_askotchv3,
+        KERNEL_CONFIGS,
+        DATA_CONFIGS,
+        LAMBDA_CONFIGS,
+        PERFORMANCE_TIME_CONFIGS,
+        LOG_TEST_ONLY,
+        RHO_MODES,
+        CHOLESKY_MODES,
+        SAMPLING_MODES,
+        ACC_MODES,
+        BLK_SZ_FRAC,
+        PRECONDITIONERS,
+    )
+    save_configs(combinations_askotchv3+combinations_askotchv2, output_dir)
     # validate_yaml_variations(output_dir)
