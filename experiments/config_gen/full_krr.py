@@ -125,7 +125,7 @@ def validate_yaml_variations(output_dir):
     for key, values in unique_values.items():
         print(f"{key}: {values}")
         # if None in values:
-        #     print(f"Error: {key} contains unexpected None values!")
+        #     print(f"Error: {key} contains unexpected Non values!")
 
 
 if __name__ == "__main__":
@@ -136,18 +136,6 @@ if __name__ == "__main__":
         "precond.r": [100],
         "training.log_freq": [100],
         "training.precision": ["float32"],
-        "training.seed": [SEED],
-        "training.max_iter": [None],
-        "wandb.project": ["performance_full_krr_v2"],
-    }
-
-    sweep_params_performance_full_krr_pcg = {
-        "dataset": PERFORMANCE_DATASETS,
-        "model": ["full_krr"],
-        "opt.type": ["pcg"],
-        "precond.r": [100],
-        "training.log_freq": [20],
-        "training.precision": ["float32", "float64"],
         "training.seed": [SEED],
         "training.max_iter": [None],
         "wandb.project": ["performance_full_krr_v2"],
@@ -169,19 +157,6 @@ if __name__ == "__main__":
         BLK_SZ_FRAC,
         PRECONDITIONERS,
     )
-    combinations_pcg = generate_combinations(
-        sweep_params_performance_full_krr_pcg,
-        KERNEL_CONFIGS,
-        DATA_CONFIGS,
-        LAMBDA_CONFIGS,
-        PERFORMANCE_TIME_CONFIGS,
-        LOG_TEST_ONLY,
-        RHO_MODES,
-        CHOLESKY_MODES,
-        SAMPLING_MODES,
-        ACC_MODES,
-        BLK_SZ_FRAC,
-        PRECONDITIONERS,
-    )
-    save_configs(combinations_askotchv2 + combinations_pcg, output_dir)
+
+    save_configs(combinations_askotchv2, output_dir)
     # validate_yaml_variations(output_dir)
