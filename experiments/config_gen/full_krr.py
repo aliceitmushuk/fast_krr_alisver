@@ -172,7 +172,7 @@ if __name__ == "__main__":
         "training.max_iter": [None],
         "wandb.project": ["performance_full_krr_v2"],
     }
-        sweep_params_performance_full_krr_askotchv3 = {
+    sweep_params_performance_full_krr_askotchv3 = {
         "dataset": PERFORMANCE_DATASETS,
         "model": ["full_krr"],
         "opt.type": ["askotchv3"],
