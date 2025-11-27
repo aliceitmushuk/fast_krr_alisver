@@ -122,11 +122,17 @@ def generate_combinations(
                     blk_sz_frac,
                 )
             )
-        elif base_config["opt.type"] == "pcg":
+        elif base_config["opt.type"] == "askotchv3":
             all_combinations.extend(
-                generate_pcg_configs(nested_config, rho_modes, chol_modes, preconds)
+                generate_askotchv3_configs(
+                    nested_config,
+                    rho_modes,
+                    sampling_modes,
+                    acc_modes,
+                    preconds,
+                    blk_sz_frac,
+                )
             )
-
     return all_combinations
 
 
