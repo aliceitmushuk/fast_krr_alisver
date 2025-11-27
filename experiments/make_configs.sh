@@ -4,12 +4,12 @@ base_dir="config_gen"
 
 # Array of Python scripts to run
 scripts=(
-    "eigenpro2.py"
-    "eigenpro3.py"
-    "falkon.py"
+  #  "eigenpro2.py"
+  #  "eigenpro3.py"
+  #  "falkon.py"
     "full_krr.py"
-    "lin_cvg.py"
-    "taxi.py"
+   # "lin_cvg.py"
+  #  "taxi.py"
 )
 
 
