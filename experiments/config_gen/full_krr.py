@@ -128,7 +128,6 @@ def generate_combinations(
                     nested_config,
                     rho_modes,
                     sampling_modes,
-                    acc_modes,
                     preconds,
                     blk_sz_frac,
                 )
