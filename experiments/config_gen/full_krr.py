@@ -59,6 +59,32 @@ def generate_askotchv2_configs(
                 configs.extend(generate_no_preconditioner_configs(config))
     return configs
 
+def generate_askotchv3_configs(
+    base_config, rho_modes, sampling_modes, preconds, blk_sz_frac
+):
+    configs = []
+    for block_sampling in sampling_modes:
+        config = base_config.copy()
+        config["opt"] = {
+            "type": "askotchv3",
+            "sampling_method": block_sampling,
+            "accelerated": True,
+            "block_sz_frac": blk_sz_frac,
+        }
+        # Add all preconditioner configurations
+        for precond in preconds:
+            # Skip partial cholesky with askotchv2
+            if precond == "partial_cholesky":
+                continue
+            elif precond == "nystrom":
+                configs.extend(
+                    generate_nystrom_configs(config, rho_modes, config["precond"]["r"])
+                )
+            elif precond == "newton":
+                configs.extend(generate_newton_configs(config, rho_modes))
+            elif precond is None:
+                configs.extend(generate_no_preconditioner_configs(config))
+    return configs
 
 def generate_combinations(
     sweep_params,
