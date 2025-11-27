@@ -22,11 +22,11 @@ from config_gen.utils import (
 
 SEED = 0
 
-PRECONDITIONERS = ["nystrom", "partial_cholesky", None]
+PRECONDITIONERS = ["nystrom"]
 CHOLESKY_MODES = ["greedy", "rpc"]
-SAMPLING_MODES = ["uniform", "rls"]
+SAMPLING_MODES = ["uniform"]
 ACC_MODES = [True, False]
-RHO_MODES = ["damped", "regularization"]
+RHO_MODES = ["damped"]
 BLK_SZ_FRAC = 0.01
 
 
@@ -57,24 +57,6 @@ def generate_askotchv2_configs(
                 configs.extend(generate_newton_configs(config, rho_modes))
             elif precond is None:
                 configs.extend(generate_no_preconditioner_configs(config))
-    return configs
-
-
-def generate_pcg_configs(base_config, rho_modes, chol_modes, preconds):
-    configs = []
-    for precond in preconds:
-        config = base_config.copy()
-        config["opt"] = {"type": "pcg"}
-        if precond == "nystrom":
-            configs.extend(
-                generate_nystrom_configs(config, rho_modes, config["precond"]["r"])
-            )
-        elif precond == "partial_cholesky":
-            configs.extend(
-                generate_partial_cholesky_configs(
-                    config, chol_modes, config["precond"]["r"]
-                )
-            )
     return configs
 
 
