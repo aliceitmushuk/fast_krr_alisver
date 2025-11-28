@@ -61,6 +61,12 @@ def main(cfg: DictConfig):
         experiment_args["mu"] = cfg.opt.mu
         experiment_args["nu"] = cfg.opt.nu
         experiment_args["accelerated"] = cfg.opt.accelerated
+    if cfg.opt.type == "askotchv3":
+        experiment_args["block_sz_frac"] = cfg.opt.block_sz_frac
+        experiment_args["sampling_method"] = cfg.opt.sampling_method
+        experiment_args["mu"] = cfg.opt.mu
+        experiment_args["nu"] = cfg.opt.nu
+        experiment_args["accelerated"] = cfg.opt.accelerated
     if cfg.opt.type in ["eigenpro2", "eigenpro3"]:
         experiment_args["block_sz"] = cfg.opt.block_sz
         experiment_args["r"] = cfg.opt.r
