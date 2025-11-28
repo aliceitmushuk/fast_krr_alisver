@@ -189,6 +189,14 @@ def build_opt_params(model, config):
             "nu": config.nu,
             "accelerated": config.accelerated,
         }
+    elif config.opt == "askotchv3":
+        return {
+            "model": model,
+            "block_sz": config.block_sz,
+            "sampling_method": config.sampling_method,
+            "precond_params": config.precond_params,
+            "accelerated": config.accelerated,
+        }
     elif config.opt == "eigenpro2":
         return {
             "model": model,
