@@ -28,6 +28,10 @@ VALIDATION_RULES = {
         "required": ["block_sz_frac", "sampling_method", "accelerated"],
         "optional": [],
     },
+    "askotchv3": {
+        "required": ["block_sz_frac", "sampling_method"],
+        "optional": [],
+    },
     "eigenpro2": {
         "required": ["block_sz", "r"],
         "optional": ["bg", "gamma"],
