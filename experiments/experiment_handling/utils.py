@@ -11,6 +11,7 @@ from fast_krr.opts import ASkotch, ASkotchV2, EigenPro2, EigenPro3, Mimosa, PCG
 OPT_CLASSES = {
     "askotch": ASkotch,
     "askotchv2": ASkotchV2,
+    "askotchv3": ASkotchV3,
     "eigenpro2": EigenPro2,
     "eigenpro3": EigenPro3,
     "mimosa": Mimosa,
