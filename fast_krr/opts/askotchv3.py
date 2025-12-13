@@ -13,7 +13,8 @@ def _get_block_update_w_err(model, w, block, precond):
     
     # Compute the block gradient
     gb = model._get_block_grad(w, block)
-    resids=gb-model.lambd * model.w[block]
+    #resids=gb-model.lambd * model.w[block]
+    resids=gb
     
     # Apply the preconditioner
     dir = _apply_precond(gb, precond)
