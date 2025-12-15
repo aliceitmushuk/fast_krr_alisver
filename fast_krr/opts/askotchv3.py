@@ -30,8 +30,7 @@ class ASkotchV3(Optimizer):
         eta=None,
         p=None,
         accelerated=True,
-        rho_stop=1e-4,
-        #rho_stop=1e-2,
+        rho_min=1e-4,
     ):
         super().__init__(model, precond_params)
         self.block_sz = block_sz
@@ -64,13 +63,11 @@ class ASkotchV3(Optimizer):
             self.m_new = torch.zeros(self.model.n,device=self.model.device)
             self.temp = torch.zeros(self.model.n,device=self.model.device)
             self.ratio = 0
-            self.rho_stop = rho_stop 
+            self.rho_min = rho_min
 
 
     def step(self):
         # Randomly select block_sz distinct indices
-        #if self.rho<self.rho_stop and self.i>1000:
-            #return
         block = _get_block(self.probs, self.probs_cpu, self.block_sz)
 
         # Compute block preconditioner and learning rate
@@ -100,8 +97,7 @@ class ASkotchV3(Optimizer):
                         self.ratio = self.dist_new / self.dist_old
                     else:
                         self.ratio = self.ratio*(a_old/a_new) + self.dist_new / self.dist_old * (1 - a_old/a_new)
-                    #self.rho = max(0,1 - self.ratio**(1/self.p))
-                    self.rho = max(self.rho_stop,1 - self.ratio**(1/self.p))
+                    self.rho = max(self.rho_min,1 - self.ratio**(1/self.p))
                 self.dist_old=self.dist_new
                 self.dist_new=0
         else:
