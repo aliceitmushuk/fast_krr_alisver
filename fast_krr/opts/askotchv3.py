@@ -68,8 +68,8 @@ class ASkotchV3(Optimizer):
 
     def step(self):
         # Randomly select block_sz distinct indices
-        if self.rho<self.rho_stop and self.i>1000:
-            return
+        #if self.rho<self.rho_stop and self.i>1000:
+            #return
         block = _get_block(self.probs, self.probs_cpu, self.block_sz)
 
         # Compute block preconditioner and learning rate
@@ -99,7 +99,8 @@ class ASkotchV3(Optimizer):
                         self.ratio = self.dist_new / self.dist_old
                     else:
                         self.ratio = self.ratio*(a_old/a_new) + self.dist_new / self.dist_old * (1 - a_old/a_new)
-                    self.rho = max(0,1 - self.ratio**(1/self.p))
+                    #self.rho = max(0,1 - self.ratio**(1/self.p))
+                    self.rho = max(self.rho_stop,1 - self.ratio**(1/self.p))
                 self.dist_old=self.dist_new
                 self.dist_new=0
         else:
