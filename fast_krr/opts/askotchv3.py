@@ -100,6 +100,7 @@ class ASkotchV3(Optimizer):
                     if self.ratio<=1:
                         self.rho = max(self.rho_min,1 - self.ratio**(1/self.p))
                     else:
+                        self.m_old=0
                         self.rho_min = min(self.rho_min*10,1)
                         self.rho=self.rho_min
                 self.dist_old=self.dist_new
