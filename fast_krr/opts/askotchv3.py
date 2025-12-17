@@ -64,12 +64,13 @@ class ASkotchV3(Optimizer):
             self.temp = torch.zeros(self.model.n,device=self.model.device)
             self.ratio = 0
             self.rho_stop = rho_stop 
+            self.stopped = False
 
 
     def step(self):
         # Randomly select block_sz distinct indices
         if self.rho<self.rho_stop:
-            return
+            self.stopped=True
         block = _get_block(self.probs, self.probs_cpu, self.block_sz)
 
         # Compute block preconditioner and learning rate
