@@ -31,7 +31,6 @@ class ASkotchV3(Optimizer):
         p=None,
         accelerated=True,
         rho_stop=1e-4,
-        #rho_stop=1e-2,
     ):
         super().__init__(model, precond_params)
         self.block_sz = block_sz
@@ -69,8 +68,8 @@ class ASkotchV3(Optimizer):
 
     def step(self):
         # Randomly select block_sz distinct indices
-        #if self.rho<self.rho_stop and self.i>1000:
-            #return
+        if self.rho<self.rho_stop:
+            return
         block = _get_block(self.probs, self.probs_cpu, self.block_sz)
 
         # Compute block preconditioner and learning rate
