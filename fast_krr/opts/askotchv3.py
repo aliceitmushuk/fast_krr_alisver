@@ -71,6 +71,7 @@ class ASkotchV3(Optimizer):
         # Randomly select block_sz distinct indices
         if self.rho<self.rho_stop:
             self.stopped=True
+            return
         block = _get_block(self.probs, self.probs_cpu, self.block_sz)
 
         # Compute block preconditioner and learning rate
