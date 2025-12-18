@@ -35,7 +35,7 @@ class ASkotchV3(Optimizer):
         super().__init__(model, precond_params)
         self.block_sz = block_sz
         self.eta = eta if eta is not None else 4*self.block_sz / self.model.n
-        self.p = p if p is not None else 100
+        self.p = p if p is not None else 50
         self.accelerated = accelerated
 
         # TODO(pratik): check that nu > mu and mu * nu <= 1
