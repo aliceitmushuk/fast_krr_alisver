@@ -56,7 +56,7 @@ class ASkotchV3(Optimizer):
 
         if self.accelerated:
             self.dist_new = 0.0
-            self.dist_old = 0.0
+            self.dist_old = (self.model.b**2).sum()
             #rho=1 means no acceleration, only start to accelerate later
             self.rho = 0.01
             self.m_old = torch.zeros(self.model.n,device=self.model.device)
@@ -96,8 +96,8 @@ class ASkotchV3(Optimizer):
                 cnt=(self.i+1)//self.p
                 a_old = cnt**math.log(cnt)
                 a_new = (cnt+1)**math.log(cnt+1)
-                if cnt>=2:
-                    if cnt==2:
+                if cnt>=1:
+                    if cnt==1:
                         self.ratio = self.dist_new / self.dist_old
                     else:
                         self.ratio = self.ratio*(a_old/a_new) + self.dist_new / self.dist_old * (1 - a_old/a_new)
