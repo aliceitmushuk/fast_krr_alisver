@@ -34,7 +34,7 @@ class ASkotchV3(Optimizer):
     ):
         super().__init__(model, precond_params)
         self.block_sz = block_sz
-        self.eta = eta if eta is not None else 2*self.block_sz / self.model.n
+        self.eta = eta if eta is not None else 0.5*self.block_sz / self.model.n
         self.p = p if p is not None else 100
         self.accelerated = accelerated
 
