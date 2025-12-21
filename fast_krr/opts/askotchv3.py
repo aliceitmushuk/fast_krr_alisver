@@ -13,8 +13,8 @@ def _get_block_update_w_err(model, w, block, precond):
     
     # Compute the block gradient
     gb = model._get_block_grad(w, block)
-    resids=gb-model.lambd * model.w[block]
-    #resids=gb
+    #resids=gb-model.lambd * model.w[block]
+    resids=gb
     
     # Apply the preconditioner
     dir = _apply_precond(gb, precond)
@@ -30,7 +30,7 @@ class ASkotchV3(Optimizer):
         eta=None,
         p=None,
         accelerated=True,
-        rho_min=1e-4,
+        rho_stop=1e-4,
     ):
         super().__init__(model, precond_params)
         self.block_sz = block_sz
@@ -56,14 +56,15 @@ class ASkotchV3(Optimizer):
 
         if self.accelerated:
             self.dist_new = 0.0
-            self.dist_old = 0.0
+            self.dist_old = (self.model.b**2).sum()
             #rho=1 means no acceleration, only start to accelerate later
             self.rho = 0.01
             self.m_old = torch.zeros(self.model.n,device=self.model.device)
             self.m_new = torch.zeros(self.model.n,device=self.model.device)
             self.temp = torch.zeros(self.model.n,device=self.model.device)
             self.ratio = 0
-            self.rho_min = rho_min
+            self.rho_stop = rho_stop 
+            self.stopped = False
 
 
     def step(self):
@@ -92,19 +93,18 @@ class ASkotchV3(Optimizer):
                 cnt=(self.i+1)//self.p
                 a_old = cnt**math.log(cnt)
                 a_new = (cnt+1)**math.log(cnt+1)
-                if cnt>=2:
-                    if cnt==2:
+                if cnt>=1:
+                    if cnt==1:
                         self.ratio = self.dist_new / self.dist_old
                     else:
                         self.ratio = self.ratio*(a_old/a_new) + self.dist_new / self.dist_old * (1 - a_old/a_new)
-                    if  self.ratio<=1:
-                        self.rho = max(self.rho_min,1 - self.ratio**(1/self.p))
-                    else:
-                        self.m_old=0
-                        self.rho_min = min(self.rho_min*10,1)
-                        self.rho=self.rho_min
+                    self.rho = max(0,1 - self.ratio**(1/self.p))
                 self.dist_old=self.dist_new
                 self.dist_new=0
+                if self.rho<self.rho_stop:
+                    self.eta=self.eta/2
+                    self.rho_stop=self.rho_stop/2
+                print(f"{self.rho},{self.eta}")
         else:
             self.model.w[block] -= block_eta * dir
         self.i+=1
