@@ -27,7 +27,7 @@ class ASkotchV3(Optimizer):
         block_sz,
         sampling_method="uniform",
         precond_params=None,
-        eta=None,
+        eta_start=None,
         p=None,
         accelerated=True,
         rho_start=0.01
@@ -36,7 +36,8 @@ class ASkotchV3(Optimizer):
     ):
         super().__init__(model, precond_params)
         self.block_sz = block_sz
-        self.eta = eta if eta is not None else 4*self.block_sz / self.model.n
+        self.eta_start = eta_start if eta_start is not None else 4*self.block_sz / self.model.n
+        self.eta=self.eta_start
         self.p = p if p is not None else 100
         self.accelerated = accelerated
 
@@ -60,7 +61,8 @@ class ASkotchV3(Optimizer):
             self.dist_new = 0.0
             self.dist_old = (self.model.b**2).sum()
             #rho=1 means no acceleration, only start to accelerate later
-            self.rho = rho_start
+            self.rho_start = rho_start
+            self.rho = self.rho_start
             self.m_old = torch.zeros(self.model.n,device=self.model.device)
             self.m_new = torch.zeros(self.model.n,device=self.model.device)
             self.temp = torch.zeros(self.model.n,device=self.model.device)
@@ -103,7 +105,8 @@ class ASkotchV3(Optimizer):
                         self.ratio = self.dist_new / self.dist_old
                     else:
                         self.ratio = self.ratio*(a_old/a_new) + self.dist_new / self.dist_old * (1 - a_old/a_new)
-                    self.rho = max(0,1 - self.ratio**(1/self.p))
+                    self.rho = max(rho_stop,1 - self.ratio**(1/self.p))
+                    self.eta = self.eta_start/math.log(self.rho_start/self.rho)
                 self.dist_old=self.dist_new
                 self.dist_new=0
         else:
