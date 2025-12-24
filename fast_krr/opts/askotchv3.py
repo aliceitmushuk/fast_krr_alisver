@@ -30,7 +30,7 @@ class ASkotchV3(Optimizer):
         eta_start=None,
         p=None,
         accelerated=True,
-        rho_start=0.01
+        rho_start=0.01,
         #rho_stop=1e-4,
         rho_stop=0,
     ):
