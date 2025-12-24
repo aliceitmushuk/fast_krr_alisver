@@ -58,7 +58,8 @@ class ASkotchV3(Optimizer):
             self.dist_new = 0.0
             self.dist_old = (self.model.b**2).sum()
             #rho=1 means no acceleration, only start to accelerate later
-            self.rho = 0.01
+            #self.rho = 0.01
+            self.rho = 0
             self.m_old = torch.zeros(self.model.n,device=self.model.device)
             self.m_new = torch.zeros(self.model.n,device=self.model.device)
             self.temp = torch.zeros(self.model.n,device=self.model.device)
