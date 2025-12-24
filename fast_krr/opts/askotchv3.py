@@ -30,7 +30,8 @@ class ASkotchV3(Optimizer):
         eta=None,
         p=None,
         accelerated=True,
-        rho_stop=1e-4,
+        #rho_stop=1e-4,
+        rho_stop=0,
     ):
         super().__init__(model, precond_params)
         self.block_sz = block_sz
