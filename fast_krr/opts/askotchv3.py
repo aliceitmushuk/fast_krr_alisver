@@ -100,10 +100,11 @@ class ASkotchV3(Optimizer):
                     if (self.rho<self.rho_min) or (self.dist_old<self.dist_new):
                         self.eta=self.eta/2
                         self.rho=self.rho_min
-                    
+                        self.m_old[:]=0
+        
                     if self.dist_old<self.dist_new:
                         self.model.w=self.w_prev.clone()
-                        self.m_old=0
+                        self.m_old[:]=0
                         self.dist_new=self.dist_old
                     else:
                         self.w_prev=self.model.w.clone()
