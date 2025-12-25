@@ -60,7 +60,7 @@ class ASkotchV3(Optimizer):
             self.rho = 0.01
             self.m_old = torch.zeros(self.model.n,device=self.model.device)
             self.m_new = torch.zeros(self.model.n,device=self.model.device)
-            self.w_prev = self.model.w
+            self.w_prev = self.model.w.clone()
             self.temp = torch.zeros(self.model.n,device=self.model.device)
             self.ratio = 0
             self.rho_min = rho_min
