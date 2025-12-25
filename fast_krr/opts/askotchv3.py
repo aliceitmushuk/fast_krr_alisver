@@ -34,7 +34,7 @@ class ASkotchV3(Optimizer):
         super().__init__(model, precond_params)
         self.block_sz = block_sz
         self.eta = eta if eta is not None else 4*self.block_sz / self.model.n
-        self.p = p if p is not None else 50
+        self.p = p if p is not None else 100
         self.accelerated = accelerated
 
         # TODO(pratik): check that nu > mu and mu * nu <= 1
@@ -100,7 +100,11 @@ class ASkotchV3(Optimizer):
                     if (self.rho<self.rho_min) or (self.dist_old<self.dist_new):
                         self.eta=self.eta/2
                         self.rho=self.rho_min
+                    print(f"dist old {dist_old}")
+                    print(f"dist new {dist_new}")
+                    
                     if self.dist_old<self.dist_new:
+                        print("reverted")
                         self.model.w=self.w_prev.clone()
                         self.m_old=0
                         self.dist_new=self.dist_old
