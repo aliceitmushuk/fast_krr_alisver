@@ -103,10 +103,10 @@ class ASkotchV3(Optimizer):
                     print(self.dist_old)
                     print(self.dist_new)
                     if self.dist_old<self.dist_new:
-                        self.model.w=self.w_prev
+                        self.model.w=self.w_prev.clone()
                         self.m_old=0
                     else:
-                        self.w_prev=self.model.w
+                        self.w_prev=self.model.w.clone()
                 self.dist_old=self.dist_new
                 self.dist_new=0
         else:
