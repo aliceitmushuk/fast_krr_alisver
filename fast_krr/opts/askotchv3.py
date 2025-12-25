@@ -30,9 +30,7 @@ class ASkotchV3(Optimizer):
         eta_start=None,
         p=None,
         accelerated=True,
-        rho_start=0.01,
         rho_stop=1e-4,
-        #rho_stop=0,
     ):
         super().__init__(model, precond_params)
         self.block_sz = block_sz
@@ -65,6 +63,7 @@ class ASkotchV3(Optimizer):
             self.rho = self.rho_start
             self.m_old = torch.zeros(self.model.n,device=self.model.device)
             self.m_new = torch.zeros(self.model.n,device=self.model.device)
+            self.w_prev = self.model.
             self.temp = torch.zeros(self.model.n,device=self.model.device)
             self.ratio = 0
             self.rho_stop = rho_stop 
@@ -107,8 +106,6 @@ class ASkotchV3(Optimizer):
                         self.ratio = self.ratio*(a_old/a_new) + self.dist_new / self.dist_old * (1 - a_old/a_new)
                     self.rho_prev=self.rho
                     self.rho = max(0,1 - self.ratio**(1/self.p))
-                    #self.eta = self.eta_start/(1+math.log10(self.rho_start/self.rho))
-                    #self.eta =self.eta/(1+math.log10(self.rho_prev/self.rho))
                     if self.rho<self.rho_stop:
                         self.eta=self.eta/2
                         self.rho=self.rho_stop
