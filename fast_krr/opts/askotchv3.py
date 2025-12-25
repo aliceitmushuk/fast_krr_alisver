@@ -100,6 +100,8 @@ class ASkotchV3(Optimizer):
                     if self.rho<self.rho_min:
                         self.eta=self.eta/2
                         self.rho=self.rho_min
+                    print(self.dist_old)
+                    print(self.dist_new)
                     if self.dist_old<self.dist_new:
                         self.model.w=self.w_prev
                         self.m_old=0
