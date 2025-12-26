@@ -92,6 +92,7 @@ class ASkotchV3(Optimizer):
                 a_old = cnt**math.log(cnt)
                 a_new = (cnt+1)**math.log(cnt+1)
                 if cnt>=1:
+                    ratio_prev=self.ratio
                     if cnt==1:
                         self.ratio = self.dist_new / self.dist_old
                     else:
@@ -100,6 +101,7 @@ class ASkotchV3(Optimizer):
                     if self.ratio>1:
                         self.eta=self.eta/4
                         self.model.w=self.w_prev.clone()
+                        self.ratio=ratio_prev
                         self.m_old[:]=0
                         self.dist_new=self.dist_old
                     else:
