@@ -96,10 +96,9 @@ class ASkotchV3(Optimizer):
                         self.ratio = self.dist_new / self.dist_old
                     else:
                         self.ratio = self.ratio*(a_old/a_new) + self.dist_new / self.dist_old * (1 - a_old/a_new)
-                    self.rho = max(0,1 - self.ratio**(1/self.p))
+                    self.rho = max(self.rho_min,1 - self.ratio**(1/self.p))
                     if self.dist_old<0.99*self.dist_new:
                         self.eta=self.eta/4
-                        self.rho=self.rho_min
                         self.model.w=self.w_prev.clone()
                         self.m_old[:]=0
                         self.dist_new=self.dist_old
