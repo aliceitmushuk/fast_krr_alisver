@@ -61,6 +61,8 @@ class ASkotchV3(Optimizer):
                 nu=1/3*self.model.n/self.block_sz
                 self.rho=(mu/nu)**0.5
                 self.eta=max(0,1/nu-self.rho)/(1-self.rho)
+            if eta==0:
+                self.accelerated=False
             self.p = p if p is not None else 100
             self.dist_new = 0.0
             self.dist_old = (self.model.b**2).sum()
