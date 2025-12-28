@@ -30,12 +30,10 @@ class ASkotchV3(Optimizer):
         eta=None,
         p=None,
         accelerated=True,
-        rho_stop=1e-4,
+        rho_min=1e-4,
     ):
         super().__init__(model, precond_params)
         self.block_sz = block_sz
-        self.eta = eta if eta is not None else 4*self.block_sz / self.model.n
-        self.p = p if p is not None else 100
         self.accelerated = accelerated
 
         # TODO(pratik): check that nu > mu and mu * nu <= 1
@@ -55,23 +53,25 @@ class ASkotchV3(Optimizer):
         self.i = 0
 
         if self.accelerated:
+            if eta is not None:
+                self.eta=eta
+                self.rho=0.01
+            else:
+                mu=0.25*self.model.lambd
+                nu=1/3*self.model.n/self.block_sz
+                self.rho=(mu/nu)**0.5
+                self.eta=max(1/nu-self.rho)/(1-self.rho)
+            self.p = p if p is not None else 100
             self.dist_new = 0.0
             self.dist_old = (self.model.b**2).sum()
-            #rho=1 means no acceleration, only start to accelerate later
-            self.rho = 0.01
             self.m_old = torch.zeros(self.model.n,device=self.model.device)
             self.m_new = torch.zeros(self.model.n,device=self.model.device)
             self.temp = torch.zeros(self.model.n,device=self.model.device)
             self.ratio = 0
-            self.rho_stop = rho_stop 
-            self.stopped = False
-
+            self.rho_min = rho_min 
 
     def step(self):
         # Randomly select block_sz distinct indices
-        if self.rho<self.rho_stop:
-            self.stopped=True
-            return
         block = _get_block(self.probs, self.probs_cpu, self.block_sz)
 
         # Compute block preconditioner and learning rate
@@ -101,7 +101,7 @@ class ASkotchV3(Optimizer):
                         self.ratio = self.dist_new / self.dist_old
                     else:
                         self.ratio = self.ratio*(a_old/a_new) + self.dist_new / self.dist_old * (1 - a_old/a_new)
-                    self.rho = max(self.rho_stop,1 - self.ratio**(1/self.p))
+                    self.rho = max(self.rho_min,1 - self.ratio**(1/self.p))
                 self.dist_old=self.dist_new
                 self.dist_new=0
         else:
