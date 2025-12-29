@@ -106,6 +106,9 @@ class ASkotchV3(Optimizer):
                     self.rho = max(self.rho_min,1 - self.ratio**(1/self.p))
                 self.dist_old=self.dist_new
                 self.dist_new=0
+                if self.ratio>1:
+                    self.eta=self.eta/2
+                    self.m=0
         else:
             self.model.w[block] -= block_eta * dir
         self.i+=1
